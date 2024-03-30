@@ -1780,7 +1780,7 @@ void idPlayer::UpdateInventoryGridGUI()
 	// Obsttorte
 	const int userChoice = GetGuiInt(inventoryGridOverlay, "UserChoice");
 	const int selectedItem = (pageSize * currentPage) + userChoice;
-	common->Printf("%d", selectedItem);
+	//common->Printf("%d", selectedItem);
 	// Handle request for prev/next pages.
 	if (pageRequest == 1 && (items.Num() - 1 >= pageSize * (currentPage + 1)))
 	{
