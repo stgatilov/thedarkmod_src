@@ -308,7 +308,8 @@ or the overrides the current view with the previously locked one.
 */
 void R_LockView_FrontendStart( viewDef_t &viewDef ) {
 	renderView_t currentRenderView = viewDef.renderView;
-	assert( currentRenderView.viewID == VID_PLAYER_VIEW );
+	if ( currentRenderView.viewID != VID_PLAYER_VIEW )
+		return;	// e.g. compass
 
 	// process modifications of cvar
 	if ( r_lockView.IsModified() ) {
