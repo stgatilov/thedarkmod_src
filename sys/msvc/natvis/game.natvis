@@ -162,8 +162,9 @@
     <DisplayString>{commandId}</DisplayString>
     <Expand>
       <ExpandedItem Condition="commandId==1">*(drawSurfsCommand_t*)this</ExpandedItem>
-      <ExpandedItem Condition="commandId==2">*(setBufferCommand_t*)this</ExpandedItem>
-      <ExpandedItem Condition="commandId==3">*(copyRenderCommand_t*)this</ExpandedItem>
+      <ExpandedItem Condition="commandId==2">*(drawLightgemCommand_t*)this</ExpandedItem>
+      <ExpandedItem Condition="commandId==3">*(setBufferCommand_t*)this</ExpandedItem>
+      <ExpandedItem Condition="commandId==4">*(copyRenderCommand_t*)this</ExpandedItem>
     </Expand>
   </Type>
 
