@@ -30,7 +30,7 @@ struct DepthStage::DepthUniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( mat4, projectionMatrix )
 	DEFINE_UNIFORM( mat4, textureMatrix )
 	DEFINE_UNIFORM( vec4, clipPlane )
-	DEFINE_UNIFORM( mat4, inverseView )
+	DEFINE_UNIFORM( mat4, modelMatrix )
 	DEFINE_UNIFORM( sampler, texture )
 	DEFINE_UNIFORM( float, alphaTest )
 	DEFINE_UNIFORM( vec4, color )
@@ -80,10 +80,6 @@ void DepthStage::DrawDepth( const viewDef_t *viewDef, drawSurf_t **drawSurfs, in
 	uniforms = shader->GetUniformGroup<DepthUniforms>();
 
 	uniforms->projectionMatrix.Set( viewDef->projectionMatrix );
-
-	idMat4 inverseView = idMat4::FromGL( viewDef->worldSpace.modelViewMatrix );
-	inverseView.InverseSelf();
-	uniforms->inverseView.Set( inverseView );
 
 	// pass mirror clip plane details to vertex shader if needed
 	if ( viewDef->clipPlane) {
@@ -233,6 +229,7 @@ void DepthStage::IssueDrawCommand( const drawSurf_t *surf, const shaderStage_t *
 	}
 
 	uniforms->modelViewMatrix.Set( surf->space->modelViewMatrix );
+	uniforms->modelMatrix.Set( surf->space->modelMatrix );
 
 	// TODO #6349: Fix FB_ApplyScissor and use it here
 	uint32_t scissor[4];
