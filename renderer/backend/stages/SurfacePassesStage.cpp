@@ -24,6 +24,13 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/FrameBufferManager.h"
 #include "glprogs/stages/surface_passes/texgen_shared.glsl"
 
+idCVar r_envmapBumpyBehavior(
+	"r_envmapBumpyBehavior", "0", CVAR_RENDERER | CVAR_BOOL,
+	"Selects visual behavior of environment mapping on bumpmapped surfaces:\n"
+	"  0 --- old TDM: envmap looks very different if bumpmap is set\n"
+	"  1 --- new TDM: uniform envmap behavior regardless of bumpmap existance"
+);
+
 struct SimpleTextureUniforms : GLSLUniformGroup {
 	UNIFORM_GROUP_DEF( SimpleTextureUniforms )
 
@@ -240,28 +247,6 @@ bool SurfacePassesStage::ShouldDrawStage( const drawSurf_t *drawSurf, const shad
 		}
 	}
 
-	/*
-	 * TODO: does it even make sense?!
-	 * zero register color does not always mean zero output color...
-	StageType type = ChooseType(drawSurf, pStage);
-	if ( type == ST_SIMPLE_TEXTURE || type == ST_ENVIRONMENT ) {
-		// set the color
-		float color[4];
-		for ( int c = 0; c < 4; c++ )
-			color[c] = regs[pStage->color.registers[c]];
-
-		// skip the entire stage if an add would be black
-		if ( ( pStage->drawStateBits & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS ) ) == ( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE ) && color[0] <= 0 && color[1] <= 0 && color[2] <= 0 ) {
-			return false;
-		}
-
-		// skip the entire stage if a blend would be completely transparent
-		if ( ( pStage->drawStateBits & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS ) ) == ( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA ) && color[3] <= 0 ) {
-			return false;
-		}
-	}
-	*/
-
 	return true;
 }
 
@@ -403,8 +388,8 @@ void SurfacePassesStage::DrawEnvironment( const drawSurf_t *drawSurf, const shad
 	idVec4 regColor = drawSurf->GetStageColor( pStage );
 
 	// set settings which different in bumpmapped case
-	// TODO: why do they differ?
-	if ( bumpStage ) {
+	// #6453: now we always use the same behavior (supposedly coming from Doom 3)
+	if ( bumpStage && !r_envmapBumpyBehavior.GetBool() ) {
 		uniforms->constant.Set( idVec4(0.4f) );
 		uniforms->fresnel.Set( idVec4(3.0f) );
 		uniforms->tonemapOutputColor.Set( true );
