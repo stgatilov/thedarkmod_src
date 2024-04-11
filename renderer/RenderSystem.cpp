@@ -796,6 +796,8 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	// we can now release the vertexes used this frame
 	vertexCache.EndFrame();
 
+	PurgeOldSubviewImages();
+
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
 		session->writeDemo->WriteInt( DC_END_FRAME );
@@ -834,6 +836,80 @@ void idRenderSystemLocal::RenderViewToViewport( const renderView_t &renderView, 
 	viewport.y1 = idMath::FtoiTrunc( ( rc.y + rc.height ) - floor( ( renderView.y + renderView.height ) * hRatio + 0.5f ) );
 	viewport.y2 = idMath::FtoiTrunc( ( rc.y + rc.height ) - floor( renderView.y * hRatio + 0.5f ) - 1 );
 }
+
+/*
+=====================
+PurgeOldSubviewImages
+=====================
+*/
+void idRenderSystemLocal::PurgeOldSubviewImages() {
+	// this method should be called outside parallel section
+	assert(!session->IsFrontend());
+
+	static const int SUBVIEW_IMAGE_KILL_AFTER_FRAMES = 100;
+
+	for (int i = 0; i < subviewImages.Num(); i++) {
+		ImageForSubview &si = subviewImages[i];
+		if (si.purged)
+			continue;
+
+		if (frameCount - si.lastUsedFrameCount > SUBVIEW_IMAGE_KILL_AFTER_FRAMES) {
+			si.purged = true;
+			si.image->PurgeImage();
+		}
+	}
+}
+
+/*
+=====================
+CreateImageForSubview
+=====================
+*/
+idImageScratch *idRenderSystemLocal::CreateImageForSubview() {
+	// should be called from frontend
+	//assert(!com_smp.GetBool() || session->IsFrontend());	// can be called in backend from Session::StartWipe
+
+	renderCrop_t &rc = renderCrops[currentRenderCrop];
+	int width = rc.width;
+	int height = rc.height;
+
+	int slot = -1;
+	for (int i = 0; i < subviewImages.Num(); i++) {
+		ImageForSubview &si = subviewImages[i];
+
+		if (si.purged) {
+			slot = i;
+			continue;	// GPU texture was freed
+		}
+
+		if (si.lastUsedFrameCount == frameCount) {
+			continue;	// already occupied for this frame
+		}
+
+		if (si.width == width && si.height == height) {
+			// can reuse texture (not freed yet)
+			si.lastUsedFrameCount = frameCount;
+			return si.image;
+		}
+	}
+
+	if (slot < 0) {
+		// add new texture to the end
+		ImageForSubview &added = subviewImages.Alloc();
+		slot = subviewImages.IndexOf(&added);
+		added.width = width;
+		added.height = height;
+
+		idStr imageName = va("$subview$%d", slot);
+		added.image = globalImages->ImageScratch(imageName);
+	}
+
+	ImageForSubview &si = subviewImages[slot];
+	si.purged = false;	// will be generated in backend when data is copied into it
+	si.lastUsedFrameCount = frameCount;
+	return si.image;
+}
+
 
 static int RoundDownToPowerOfTwo( int v ) {
 	int	i;

@@ -1768,6 +1768,8 @@ void idRenderSystemLocal::Clear( void ) {
 	memset( gammaTable, 0, sizeof( gammaTable ) );
 	takingScreenshot = false;
 	frontEndJobList = NULL;
+	// make sure we don't try to reuse dead subview images after engine restart
+	subviewImages.Clear();
 }
 
 /*

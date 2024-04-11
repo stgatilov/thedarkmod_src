@@ -469,7 +469,7 @@ static imageBlock_t R_WhiteImage() {
 
 static imageBlock_t R_BlackImage() {
 	imageBlock_t res = imageBlock_t::Alloc2D( DEFAULT_SIZE, DEFAULT_SIZE );
-	// solid white texture
+	// transparent black texture
 	memset( res.pic[0], 0, res.GetSizeInBytes() );
 	return res;
 }

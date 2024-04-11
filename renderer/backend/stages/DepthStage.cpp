@@ -82,7 +82,7 @@ void DepthStage::DrawDepth( const viewDef_t *viewDef, drawSurf_t **drawSurfs, in
 	uniforms->projectionMatrix.Set( viewDef->projectionMatrix );
 
 	// pass mirror clip plane details to vertex shader if needed
-	if ( viewDef->clipPlane) {
+	if ( viewDef->numClipPlanes ) {
 		uniforms->clipPlane.Set( *viewDef->clipPlane );
 	} else {
 		uniforms->clipPlane.Set( colorBlack );

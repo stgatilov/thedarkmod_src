@@ -153,6 +153,7 @@ typedef struct drawSurf_s {
 
 	const struct viewEntity_s *space;
 	const idMaterial		*material;			// may be NULL for shadow volumes
+	idImage					*dynamicImageOverride;	// stgatilov #6434: if not NULL, then texture of material should be replaced with this one (for subviews)
 	float					sort;				// material->sort, modified by gui / entity sort offsets
 	const float				*shaderRegisters;	// evaluated and adjusted for referenceShaders
 	/*const*/ struct drawSurf_s	*nextOnLight;	// viewLight chains
@@ -518,7 +519,6 @@ typedef struct viewDef_s {
 	bool				isSubview;				// true if this view is not the main view
 	bool				isMirror;				// the portal is a mirror, invert the face culling
 	xrayEntityMask_t	xrayEntityMask;
-	bool				hasXraySubview;
 
 	// stgatilov: the color output of this view should become background for the next view rendering
 	// for this reason, do NOT clear color buffer at the beginning of the NEXT view render
@@ -527,7 +527,8 @@ typedef struct viewDef_s {
 
 	bool				isEditor;
 
-	idPlane				*clipPlane;			// in world space, the positive side, mirrors will often use a single clip plane
+	int					numClipPlanes;
+	idPlane				clipPlane[1];	// in world space, the positive side, K nested mirrors use K planes
 	// of the plane is the visible side
 	idScreenRect		viewport;				// in real pixels and proper Y flip
 
@@ -825,6 +826,13 @@ const int MAX_GUI_SURFACES	= 1024;		// default size of the drawSurfs list for gu
 
 static const int	MAX_RENDER_CROPS = 8;
 
+struct ImageForSubview {
+	bool purged = false;
+	int width = -1, height = -1;
+	idImageScratch *image = nullptr;
+	int lastUsedFrameCount = INT_MIN;
+};
+
 /*
 ** Most renderer globals are defined here.
 ** backend functions should never modify any of these fields,
@@ -882,6 +890,9 @@ public:
 
 	void					Clear( void );
 	void					RenderViewToViewport( const renderView_t &renderView, idScreenRect &viewport );
+
+	idImageScratch *		CreateImageForSubview();	// create or reuse intermediate texture for currently set render crop
+	void					PurgeOldSubviewImages();	// free intermediate textures not used for some time, but keep images alive
 
 public:
 	// renderer globals
@@ -941,6 +952,8 @@ public:
 	bool					lockedViewAvailable = false;	// debug only: for r_lockView 
 	int						lockedViewSinceFrame = -1;		// ...
 	renderView_t			lockedViewData;					// ...
+
+	idList<ImageForSubview> subviewImages;
 };
 
 extern backEndState_t		backEnd;

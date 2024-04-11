@@ -1219,8 +1219,6 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 
 		else if (  !token.Icmp( "xrayRenderMap" ) ) {
 			ts->dynamic = DI_XRAY_RENDER;
-			//ts->width = src.ParseInt();
-			//ts->height = src.ParseInt();
 			ts->width = 0;
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if ( !token.Icmp( "inclusive" ) ) {
