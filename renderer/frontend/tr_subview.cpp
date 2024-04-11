@@ -385,7 +385,7 @@ duzenko: copy pasted from idPlayerView::SingleView
 void R_PortalRender( textureStage_t *stage, idScreenRect& scissor ) {
 	viewDef_t		*parms;
 	parms = (viewDef_t *)R_FrameAlloc( sizeof( *parms ) );
-	*parms = *tr.primaryView;
+	*parms = *tr.viewDef;
 	parms->renderView.viewID = VID_SUBVIEW;
 	parms->unlockedRenderView = nullptr;
 
