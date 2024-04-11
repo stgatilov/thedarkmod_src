@@ -450,7 +450,7 @@ public:
 
 	void				Clear( void );
 
-	void				OverrideParms( const soundShaderParms_t *base, const soundShaderParms_t *over, soundShaderParms_t *out );
+	void				OverrideParms( const soundShaderParms_t *base, const soundShaderParms_t *over, soundShaderParms_t *out, const char *comment );
 	void				CheckForCompletion( int current44kHzTime );
 	void				Spatialize( bool primary, idVec3 listenerPos, int listenerArea, idRenderWorld *rw ); // grayman #4882
 

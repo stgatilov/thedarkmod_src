@@ -588,7 +588,8 @@ public:
 	bool					StartSound( const char *soundName, const s_channelType channel, int soundShaderFlags, bool broadcast, int *length, float propVolMod = 0, int msgTag = 0); // grayman #3355
 	bool					StartSoundShader( const idSoundShader *shader, const s_channelType channel, int soundShaderFlags, bool broadcast, int *length);
 	void					StopSound( const s_channelType channel, bool broadcast );	// pass SND_CHANNEL_ANY to stop all sounds
-	void					SetSoundVolume( float volume );
+	void					SetSoundVolume( float volume );	// stgatilov #6346: set and enable override
+	void					SetSoundVolume( void );			// stgatilov #6346: disable override
 	void					UpdateSound( void ); // grayman #4337
 	int						GetListenerId( void ) const;
 	idSoundEmitter *		GetSoundEmitter( void ) const;

@@ -415,43 +415,95 @@ void idSoundEmitterLocal::Clear( void ) {
 	memset( &parms, 0, sizeof( parms ) );
 }
 
+idCVar s_override_parms_mode(
+	"s_override_parms_mode", "0", CVAR_SOUND | CVAR_INTEGER,
+	"Implementation of sound params override:\n"
+	"  0 --- original mode where nonzero value means override\n"
+	"  1 --- new mode where override flag is stored separately\n"
+	"  2 --- compare original and new modes, warn when there is difference",
+	0, 2
+);
+
 /*
 ==================
 idSoundEmitterLocal::OverrideParms
 ==================
 */
-void idSoundEmitterLocal::OverrideParms( const soundShaderParms_t *base, 
-									  const soundShaderParms_t *over, soundShaderParms_t *out ) {
+void idSoundEmitterLocal::OverrideParms( const soundShaderParms_t *base, const soundShaderParms_t *over, soundShaderParms_t *out, const char *comment ) {
 	if ( !over ) {
+		// NULL override: nothing to do
 		*out = *base;
 		return;
 	}
-	if ( over->minDistance ) {
-		out->minDistance = over->minDistance;
-	} else {
-		out->minDistance = base->minDistance;
+
+	soundShaderParms_t resultOld, resultNew;
+
+	{
+		// original Doom 3 mode: override if overriding parameter is nonzero
+		resultOld = *base;
+		if ( over->minDistance ) {
+			resultOld.minDistance = over->minDistance;
+		}
+		if ( over->maxDistance ) {
+			resultOld.maxDistance = over->maxDistance;
+		}
+		if ( over->shakes ) {
+			resultOld.shakes = over->shakes;
+		}
+		if ( over->volume ) {
+			resultOld.volume = over->volume;
+		}
+		if ( over->soundClass ) {
+			resultOld.soundClass = over->soundClass;
+		}
+		// always OR flags
+		resultOld.soundShaderFlags |= over->soundShaderFlags;
 	}
-	if ( over->maxDistance ) {
-		out->maxDistance = over->maxDistance;
-	} else {
-		out->maxDistance = base->maxDistance;
+	{
+		// new mode: override depending on proper flags
+		resultNew = *base;
+		if ( over->overrideMode & SSOM_MIN_DISTANCE_OVERRIDE ) {
+			resultNew.minDistance = over->minDistance;
+		}
+		if ( over->overrideMode & SSOM_MAX_DISTANCE_OVERRIDE ) {
+			resultNew.maxDistance = over->maxDistance;
+		}
+		if ( over->overrideMode & SSOM_SHAKES_OVERRIDE ) {
+			resultNew.shakes = over->shakes;
+		}
+		if ( over->overrideMode & SSOM_VOLUME_OVERRIDE ) {
+			resultNew.volume = over->volume;
+		}
+		if ( over->overrideMode & SSOM_SOUND_CLASS_OVERRIDE ) {
+			resultNew.soundClass = over->soundClass;
+		}
+
+		if ( over->overrideMode & SSOM_FLAGS_OR ) {
+			resultNew.soundShaderFlags |= over->soundShaderFlags;
+		} else if ( over->overrideMode & SSOM_FLAGS_OVERRIDE ) {
+			resultNew.soundShaderFlags = over->soundShaderFlags;
+		}
 	}
-	if ( over->shakes ) {
-		out->shakes = over->shakes;
-	} else {
-		out->shakes = base->shakes;
+
+	if ( s_override_parms_mode.GetInteger() == 2 ) {
+		if ( memcmp( &resultOld, &resultNew, sizeof(resultOld) ) != 0 ) {
+			common->Warning( "OverrideParms: different result for '%s'", comment );
+			#define PRINTDIFF( member ) \
+				if ( resultOld.member != resultNew.member ) \
+					common->Printf("  %s: %s -> %s\n", #member, std::to_string(resultOld.member).c_str(), std::to_string(resultNew.member).c_str() );
+			PRINTDIFF( volume );
+			PRINTDIFF( minDistance );
+			PRINTDIFF( maxDistance );
+			PRINTDIFF( shakes );
+			PRINTDIFF( soundShaderFlags );
+			PRINTDIFF( soundClass );
+		}
 	}
-	if ( over->volume ) {
-		out->volume = over->volume;
+	if ( s_override_parms_mode.GetInteger() == 0 ) {
+		*out = resultOld;
 	} else {
-		out->volume = base->volume;
+		*out = resultNew;
 	}
-	if ( over->soundClass ) {
-		out->soundClass = over->soundClass;
-	} else {
-		out->soundClass = base->soundClass;
-	}
-	out->soundShaderFlags = base->soundShaderFlags | over->soundShaderFlags;
 }
 
 /*
@@ -741,6 +793,7 @@ void idSoundEmitterLocal::UpdateEmitter( const idVec3 &origin, int listenerId, c
 		soundWorld->writeDemo->WriteFloat( parms->shakes );
 		soundWorld->writeDemo->WriteInt( parms->soundShaderFlags );
 		soundWorld->writeDemo->WriteInt( parms->soundClass );
+		soundWorld->writeDemo->WriteInt( parms->overrideMode );
 	}
 
 	this->origin = origin;
@@ -845,7 +898,7 @@ int idSoundEmitterLocal::StartSound( const idSoundShader *shader, const s_channe
 	soundShaderParms_t	chanParms;
 
 	chanParms = shader->parms;
-	OverrideParms( &chanParms, &this->parms, &chanParms );
+	OverrideParms( &chanParms, &this->parms, &chanParms, shader->GetName() );
 	chanParms.soundShaderFlags |= soundShaderFlags;
 
 	if ( chanParms.shakes > 0.0f ) {
@@ -1120,6 +1173,7 @@ void idSoundEmitterLocal::ModifySound( const s_channelType channel, const soundS
 		soundWorld->writeDemo->WriteFloat( parms->shakes );
 		soundWorld->writeDemo->WriteInt( parms->soundShaderFlags );
 		soundWorld->writeDemo->WriteInt( parms->soundClass );
+		soundWorld->writeDemo->WriteInt( parms->overrideMode );
 	}
 
 	for ( int i = 0; i < SOUND_MAX_CHANNELS; i++ ) {
@@ -1132,7 +1186,7 @@ void idSoundEmitterLocal::ModifySound( const s_channelType channel, const soundS
 			continue;
 		}
 
-		OverrideParms( &chan->parms, parms, &chan->parms );
+		OverrideParms( &chan->parms, parms, &chan->parms, (chan->soundShader ? chan->soundShader->GetName() : "???") );
 
 		if ( chan->parms.shakes > 0.0f && chan->soundShader != NULL ) {
 			chan->soundShader->CheckShakesAndOgg();

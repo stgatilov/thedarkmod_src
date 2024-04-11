@@ -935,10 +935,22 @@ void idGameEdit::ParseSpawnArgsToRefSound( const idDict *args, refSound_t *refSo
 
 	memset( refSound, 0, sizeof( *refSound ) );
 
-	refSound->parms.minDistance = args->GetFloat( "s_mindistance" );
-	refSound->parms.maxDistance = args->GetFloat( "s_maxdistance" );
-	refSound->parms.volume = args->GetFloat( "s_volume" );
-	refSound->parms.shakes = args->GetFloat( "s_shakes" );
+	auto ReadFloatParam = [&]( const char *spawnargName, int ssomFlag ) -> float {
+		// stgatilov #6346: mark parameter as overriding only when spawnarg is present, nonempty and valid number
+		// otherwise, parameter should not override anything (i.e. disabled)
+		const char *text;
+		float value;
+		if ( args->GetString( spawnargName, "", &text ) && sscanf( text, "%f", &value ) == 1 ) {
+			refSound->parms.overrideMode |= ssomFlag;
+			return value;
+		}
+		return 0.0f;
+	};
+
+	refSound->parms.minDistance = ReadFloatParam( "s_mindistance", SSOM_MIN_DISTANCE_OVERRIDE );
+	refSound->parms.maxDistance = ReadFloatParam( "s_maxdistance", SSOM_MAX_DISTANCE_OVERRIDE );
+	refSound->parms.volume = ReadFloatParam( "s_volume", SSOM_VOLUME_OVERRIDE );
+	refSound->parms.shakes = ReadFloatParam( "s_shakes", SSOM_SHAKES_OVERRIDE );
 
 	args->GetVector( "origin", "0 0 0", refSound->origin );
 
@@ -966,6 +978,7 @@ void idGameEdit::ParseSpawnArgsToRefSound( const idDict *args, refSound_t *refSo
 		refSound->parms.soundShaderFlags |= SSF_UNCLAMPED;
 	}
 	refSound->parms.soundClass = args->GetInt( "s_soundClass" );
+	refSound->parms.overrideMode |= SSOM_FLAGS_OR;
 
 	temp = args->GetString( "s_shader" );
 	if ( temp[0] != '\0' ) {
@@ -4020,6 +4033,11 @@ idEntity::SetSoundVolume
 */
 void idEntity::SetSoundVolume( float volume ) {
 	refSound.parms.volume = volume;
+	refSound.parms.overrideMode |= SSOM_VOLUME_OVERRIDE;
+}
+void idEntity::SetSoundVolume( void ) {
+	refSound.parms.volume = 0.0f;
+	refSound.parms.overrideMode &= ~SSOM_VOLUME_OVERRIDE;
 }
 
 /*
@@ -7250,7 +7268,7 @@ tels:
 ================
 */
 void idEntity::Event_SetSoundVolume( float volume ) {
-	refSound.parms.volume = volume;
+	SetSoundVolume( volume );
 }
 
 /*

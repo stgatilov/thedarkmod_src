@@ -157,6 +157,7 @@ bool idSoundShader::ParseShader( idLexer &src ) {
 	//this will results in missing sounds later, when soundCache is finally available
 	assert( soundSystemLocal.soundCache || soundSystemLocal.s_noSound.GetBool() );
 
+	memset( &parms, 0, sizeof(parms) );
 	parms.minDistance = 1;
 	parms.maxDistance = 10;
 	parms.volume = 1;

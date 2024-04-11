@@ -374,6 +374,7 @@ void idSoundWorldLocal::ProcessDemoCommand( idDemoFile *readDemo ) {
 			readDemo->ReadFloat( parms.shakes );
 			readDemo->ReadInt( parms.soundShaderFlags );
 			readDemo->ReadInt( parms.soundClass );
+			readDemo->ReadInt( parms.overrideMode );
 			EmitterForIndex( index )->UpdateEmitter( origin, listenerId, &parms );
 		}
 		break;
@@ -405,6 +406,7 @@ void idSoundWorldLocal::ProcessDemoCommand( idDemoFile *readDemo ) {
 			readDemo->ReadFloat( parms.shakes );
 			readDemo->ReadInt( parms.soundShaderFlags );
 			readDemo->ReadInt( parms.soundClass );
+			readDemo->ReadInt( parms.overrideMode );
 			EmitterForIndex( index )->ModifySound( (s_channelType)channel, &parms );
 		}
 		break;
@@ -1511,6 +1513,7 @@ void idSoundWorldLocal::WriteToSaveGameSoundShaderParams( idFile *saveGame, soun
 	saveGame->WriteFloat(params->shakes);
 	saveGame->WriteInt(params->soundShaderFlags);
 	saveGame->WriteInt(params->soundClass);
+	saveGame->WriteInt(params->overrideMode);
 }
 
 /*
@@ -1681,6 +1684,7 @@ void idSoundWorldLocal::ReadFromSaveGameSoundShaderParams( idFile *saveGame, sou
 	saveGame->ReadFloat(params->shakes);
 	saveGame->ReadInt(params->soundShaderFlags);
 	saveGame->ReadInt(params->soundClass);
+	saveGame->ReadInt(params->overrideMode);
 }
 
 /*

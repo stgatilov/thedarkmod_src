@@ -5400,7 +5400,7 @@ void idPlayer::PlaySwimmingSplashSound( const char *soundName )
 	const idSoundShader	*sndShader = declManager->FindSound( sound );
 	SetSoundVolume( sndShader->GetParms()->volume + volAdjust);
 	StartSoundShader( sndShader, SND_CHANNEL_ANY, SSF_GLOBAL, false, NULL );
-	SetSoundVolume( 0.0f );
+	SetSoundVolume();
 
 	// propagate the suspicious sound to AI
 	PropSoundDirect( soundName, true, false, volAdjust, 0 );
@@ -11593,7 +11593,7 @@ void idPlayer::PlayPlayerFootStepSound(idVec3* pPointOfContact /*= NULL*/, const
 		const idSoundShader* sndShader = declManager->FindSound( sound );
 		SetSoundVolume( sndShader->GetParms()->volume + GetMovementVolMod() + crouchVolAdjust); // grayman #3485
 		StartSoundShader( sndShader, SND_CHANNEL_BODY, 0, false, NULL );
-		SetSoundVolume( 0.0f );
+		SetSoundVolume();
 
 		// propagate the suspicious sound to other AI
 		PropSoundDirect( localSound, true, false, crouchVolAdjust, 0 ); // grayman #3355, grayman #3485
