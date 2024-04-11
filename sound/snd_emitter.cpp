@@ -415,8 +415,8 @@ void idSoundEmitterLocal::Clear( void ) {
 	memset( &parms, 0, sizeof( parms ) );
 }
 
-idCVar s_override_parms_mode(
-	"s_override_parms_mode", "0", CVAR_SOUND | CVAR_INTEGER,
+idCVar s_overrideParmsMode(
+	"s_overrideParmsMode", "0", CVAR_SOUND | CVAR_INTEGER,
 	"Implementation of sound params override:\n"
 	"  0 --- original mode where nonzero value means override\n"
 	"  1 --- new mode where override flag is stored separately\n"
@@ -485,7 +485,7 @@ void idSoundEmitterLocal::OverrideParms( const soundShaderParms_t *base, const s
 		}
 	}
 
-	if ( s_override_parms_mode.GetInteger() == 2 ) {
+	if ( s_overrideParmsMode.GetInteger() == 2 ) {
 		if ( memcmp( &resultOld, &resultNew, sizeof(resultOld) ) != 0 ) {
 			common->Warning( "OverrideParms: different result for '%s'", comment );
 			#define PRINTDIFF( member ) \
@@ -499,7 +499,7 @@ void idSoundEmitterLocal::OverrideParms( const soundShaderParms_t *base, const s
 			PRINTDIFF( soundClass );
 		}
 	}
-	if ( s_override_parms_mode.GetInteger() == 0 ) {
+	if ( s_overrideParmsMode.GetInteger() == 0 ) {
 		*out = resultOld;
 	} else {
 		*out = resultNew;
