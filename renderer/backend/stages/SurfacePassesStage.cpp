@@ -529,7 +529,7 @@ void SurfacePassesStage::DrawCustomShader( const drawSurf_t *drawSurf, const sha
 	for ( int i = 0; i < newStage->numFragmentProgramImages; i++ ) {
 		if ( idImage *image = newStage->fragmentProgramImages[i] ) {
 			// #6434: X-ray subview-generated images are used in heatHaze stages
-			if ( pStage->texture.dynamic && image->AsScratch() ) {
+			if ( pStage->texture.dynamic && image == globalImages->xrayImage ) {
 				if ( drawSurf->dynamicImageOverride ) {
 					image = drawSurf->dynamicImageOverride;
 				} else {
