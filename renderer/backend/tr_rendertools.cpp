@@ -2665,13 +2665,13 @@ void RB_RenderDebugTools( drawSurf_t **drawSurfs, int numDrawSurfs ) {
 	}
 }
 
+static idCVar r_maxTrisPerDrawCall( "r_maxTrisPerDrawCall", "0", CVAR_RENDERER, "Limit max tri per draw call" );
 void R_Tools() {
 	if ( r_showPortals ) // moved from backend to allow subviews and SMP
 		tr.viewDef->renderWorld->ShowPortals();
-	static idCVarInt r_maxTri( "r_maxTri", "0", CVAR_RENDERER, "Limit max tri per draw call" );
-	if ( r_maxTri ) {
+	if ( r_maxTrisPerDrawCall.GetInteger() > 0 ) {
 		auto limitTris = []( drawSurf_t* surf ) {
-			surf->numIndexes = Min<int>( r_maxTri*3, surf->numIndexes );
+			surf->numIndexes = Min<int>( r_maxTrisPerDrawCall.GetInteger() * 3, surf->numIndexes );
 		};
 		for ( int i = 0; i < tr.viewDef->numDrawSurfs; i++ )
 			limitTris( tr.viewDef->drawSurfs[i] );
