@@ -403,6 +403,9 @@ idImageAsset::idImageAsset() {
 	loadStack = nullptr;
 }
 
+idImageScratch::idImageScratch() {
+	isDynamicImagePlaceholder = false;
+}
 
 /*
 ==================
@@ -1703,19 +1706,23 @@ void idImageManager::Init() {
 	ImageFromFunction( "_ambientWorldDiffuseCubeMap", R_AmbientWorldDiffuseCubeMap, TF_LINEAR, false, TR_REPEAT, TD_HIGH_QUALITY );
 	ImageFromFunction( "_ambientWorldSpecularCubeMap", R_AmbientWorldSpecularCubeMap, TF_LINEAR, false, TR_REPEAT, TD_HIGH_QUALITY );
 
-	// cinematicImage is used for cinematic drawing
-	// scratchImage is used for screen wipes/doublevision etc..
+	// used for cinematic drawing
 	cinematicImage = ImageScratch( "_cinematic" );
+	// generic dynamic texture, used as reference to image provided by subview rendering
+	ImageScratch("_dynamic")->isDynamicImagePlaceholder = true;
+	// used for screen wipes/doublevision/etc., also used as dynamic texture
 	scratchImage = ImageScratch( "_scratch" );
-	scratchImage2 = ImageScratch( "_scratch2" );
-	// cameraN is used in security camera (see materials/tdm_camera.mtr)
-	memset(cameraImages, 0, sizeof(cameraImages));
+	scratchImage->isDynamicImagePlaceholder = true;
+	// were used as dynamic textures, since #6434 they are interchangeable with _dynamic image
+	ImageScratch( "_scratch2" )->isDynamicImagePlaceholder = true;
 	for (int k = 1; k <= 9; k++)
-		cameraImages[k] = ImageScratch( ("_camera" + idStr(k)).c_str() );
-	xrayImage = ImageScratch( "_xray" );
+		ImageScratch( ("_camera" + idStr(k)).c_str() )->isDynamicImagePlaceholder = true;
+	ImageScratch( "_xray" )->isDynamicImagePlaceholder = true;
+	// post-processing shaders use these textures prepared by engine (e.g. heatHaze)
 	currentRenderImage = ImageScratch( "_currentRender" );
-	guiRenderImage = ImageScratch( "_guiRender" );
 	currentDepthImage = ImageScratch( "_currentDepth" ); // #3877. Allow shaders to access scene depth
+	// engine-internal images (should not be referenced in materials)
+	guiRenderImage = ImageScratch( "_guiRender" );
 	shadowDepthFbo = ImageScratch( "_shadowDepthFbo" );
 	shadowAtlas = ImageScratch( "_shadowAtlas" );
 	currentStencilFbo = ImageScratch( "_currentStencilFbo" );

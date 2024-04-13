@@ -75,7 +75,7 @@ typedef enum {
 	DI_XRAY_RENDER,
 	DI_REMOTE_RENDER,
 	DI_PORTAL_RENDER
-} dynamicidImage_t;
+} dynamicImage_t;
 
 // note: keep opNames[] in sync with changes
 typedef enum {
@@ -153,7 +153,7 @@ typedef struct {
 	int					matrix[2][3];	// subset of the full projection matrix (row-major)
 
 	// dynamic image variables
-	dynamicidImage_t	dynamic;
+	dynamicImage_t		dynamic;
 	int					width, height;
 } textureStage_t;
 

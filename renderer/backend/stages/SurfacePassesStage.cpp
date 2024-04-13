@@ -529,11 +529,16 @@ void SurfacePassesStage::DrawCustomShader( const drawSurf_t *drawSurf, const sha
 	for ( int i = 0; i < newStage->numFragmentProgramImages; i++ ) {
 		if ( idImage *image = newStage->fragmentProgramImages[i] ) {
 			// #6434: X-ray subview-generated images are used in heatHaze stages
-			if ( pStage->texture.dynamic && image == globalImages->xrayImage ) {
-				if ( drawSurf->dynamicImageOverride ) {
-					image = drawSurf->dynamicImageOverride;
-				} else {
-					image = globalImages->blackImage;
+			// same happens in 3D rendering, e.g. mirroring water with heat-haze effect
+			if ( pStage->texture.dynamic ) {
+				if ( idImageScratch *scratch = image->AsScratch() ) {
+					if ( scratch->isDynamicImagePlaceholder ) {
+						if ( drawSurf->dynamicImageOverride ) {
+							image = drawSurf->dynamicImageOverride;
+						} else {
+							image = globalImages->blackImage;
+						}
+					}
 				}
 			}
 
