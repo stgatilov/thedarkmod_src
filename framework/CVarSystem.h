@@ -40,6 +40,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 	However declarations in classes and functions should always be static to
 	save space and time. Making CVars static does not change their
 	functionality due to their global nature.
+	UPDATE #6500: Do NOT declare idCVars in functions,
+	make sure cvars are intialized on start.
 
 	CVars should be contructed only through one of the constructors with name,
 	value, flags and description. The name, value and description parameters
