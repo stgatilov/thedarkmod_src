@@ -291,6 +291,7 @@ void CModMenu::DisplayBriefingPage(idUserInterface* gui, bool isDebriefing)
 
 	// update GUI
 	gui->SetStateString("BriefingText", briefing);
+	gui->SetStateString("DebriefingText", briefing);	// it is OK to put text into both vars
 	gui->SetStateBool("ScrollDownVisible", scrollDown);
 	gui->SetStateBool("ScrollUpVisible", scrollUp);
 
