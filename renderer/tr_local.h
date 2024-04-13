@@ -518,6 +518,7 @@ typedef struct viewDef_s {
 
 	bool				isSubview;				// true if this view is not the main view
 	bool				isMirror;				// the portal is a mirror, invert the face culling
+	bool				isPortalSky;			// true if view is generated for portalSky
 	xrayEntityMask_t	xrayEntityMask;
 
 	// stgatilov: the color output of this view should become background for the next view rendering

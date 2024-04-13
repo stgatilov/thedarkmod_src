@@ -219,6 +219,7 @@ static viewDef_t *R_MirrorViewBySurface( drawSurf_t *drawSurf ) {
 
 	parms->isSubview = true;
 	parms->isMirror = true;
+	parms->isPortalSky = false;
 	parms->xrayEntityMask = XR_IGNORE;
 
 	// create plane axis for the portal we are seeing
@@ -270,6 +271,7 @@ static viewDef_t *R_XrayView() {
 	parms->unlockedRenderView = nullptr;
 
 	parms->isSubview = true;
+	parms->isPortalSky = false;
 	parms->xrayEntityMask = XR_ONLY;
 
 	return parms;
@@ -293,6 +295,7 @@ static void R_RemoteRender( drawSurf_t *surf, textureStage_t *stage ) {
 
 	parms->isSubview = true;
 	parms->isMirror = false;
+	parms->isPortalSky = false;
 	// if we see remote screen in mirror, drop mirror's clip plane
 	parms->numClipPlanes = 0;
 	parms->xrayEntityMask = XR_IGNORE;
@@ -374,10 +377,9 @@ void R_MirrorRender( drawSurf_t *surf, textureStage_t *stage, idScreenRect& scis
 /*
 =================
 R_PortalRender
-duzenko: copy pasted from idPlayerView::SingleView
 =================
 */
-void R_PortalRender( textureStage_t *stage, idScreenRect& scissor ) {
+void R_PortalRender() {
 	viewDef_t		*parms;
 	parms = (viewDef_t *)R_FrameAlloc( sizeof( *parms ) );
 	*parms = *tr.viewDef;
@@ -387,6 +389,7 @@ void R_PortalRender( textureStage_t *stage, idScreenRect& scissor ) {
 	parms->numClipPlanes = 0;
 	parms->superView = tr.viewDef;
 	parms->subviewSurface = nullptr;
+	parms->isPortalSky = true;
 
 	parms->renderView.viewaxis = parms->renderView.viewaxis * gameLocal.GetLocalPlayer()->playerView.ShakeAxis();
 
@@ -684,12 +687,6 @@ bool	R_GenerateSurfaceSubview( drawSurf_t *drawSurf ) {
 
 	shader = drawSurf->material;
 
-	int depth = 0;
-	for (viewDef_s *view = tr.viewDef; view; view = view->superView)
-		depth++;
-	if (depth > r_subviewMaxDepth.GetInteger())
-		return false;
-
 	// crop the scissor bounds based on the precise cull
 	idScreenRect	scissor;
 
@@ -722,7 +719,8 @@ bool	R_GenerateSurfaceSubview( drawSurf_t *drawSurf ) {
 				R_XrayRender( drawSurf, const_cast<textureStage_t *>(&stage->texture), nullptr );
 				break;
 			case DI_PORTAL_RENDER:
-				// R_PortalRender( drawSurf, const_cast<textureStage_t *>(&stage->texture), scissor );
+				common->Error("Portal subview error");	// never happens, see R_GenerateSubViews
+				R_PortalRender();
 				break;
 			}
 		}
@@ -745,11 +743,6 @@ would change tr.viewCount.
 bool R_GenerateSubViews( void ) {
 	TRACE_CPU_SCOPE( "R_GenerateSubViews" )
 
-	drawSurf_t *drawSurf;
-	int				i;
-	bool			subviews;
-	const idMaterial		*shader;
-
 	// for testing the performance hit
 	if ( r_skipSubviews || tr.viewDef->areaNum < 0 ) 
 		return false;
@@ -758,7 +751,7 @@ bool R_GenerateSubViews( void ) {
 	if ( tr.viewDef->IsLightGem() )
 		return false;
 
-	subviews = false;
+	bool subviews = false;
 
 	extern idCVar cv_lg_interleave;								// FIXME a better way to check for RenderWindow views? (compass, etc)
 	if ( !tr.viewDef->isSubview && cv_lg_interleave.GetBool() && !tr.viewDef->renderWorld->mapName.IsEmpty() ) {
@@ -766,22 +759,35 @@ bool R_GenerateSubViews( void ) {
 		subviews = true;
 	}
 
+	int depth = 0;
+	bool isInsidePortalSky = false;
+	for ( viewDef_s *view = tr.viewDef; view; view = view->superView ) {
+		depth++;
+		if ( view->isPortalSky )
+			isInsidePortalSky = true;
+	}
+	if ( depth > r_subviewMaxDepth.GetInteger() )
+		return false;
+
 	// scan the surfaces until we either find a subview, or determine
 	// there are no more subview surfaces.
-	for ( i = 0; i < tr.viewDef->numDrawSurfs; i++ ) {
-		drawSurf = tr.viewDef->drawSurfs[i];
-		shader = drawSurf->material;
+	for ( int i = 0; i < tr.viewDef->numDrawSurfs; i++ ) {
+		drawSurf_t *drawSurf = tr.viewDef->drawSurfs[i];
+		const idMaterial *shader = drawSurf->material;
 
 		if ( !shader || !shader->HasSubview() )
 			continue;
 
-		if ( shader->GetSort() != SS_PORTAL_SKY ) {// portal sky needs to be the last one, and only once
-			if ( R_GenerateSurfaceSubview( drawSurf ) ) {
-				subviews = true;
-			} else {
-				// #6434: probably blocked due to limits: render as black image
-				drawSurf->dynamicImageOverride = nullptr;
-			}
+		if ( shader->GetSort() == SS_PORTAL_SKY ) {
+			// portal sky needs to be the last one and only once
+			continue;
+		}
+
+		if ( R_GenerateSurfaceSubview( drawSurf ) ) {
+			subviews = true;
+		} else {
+			// #6434: probably blocked due to limits: render as black image
+			drawSurf->dynamicImageOverride = nullptr;
 		}
 	}
 
@@ -791,6 +797,14 @@ bool R_GenerateSubViews( void ) {
 			idImageScratch *imageOverride;
 			R_XrayRender( nullptr, const_cast<textureStage_t *>(textureStage), &imageOverride );
 			tr.guiModel->SetXrayImageOverride( imageOverride );
+			subviews = true;
+		}
+	}
+
+	// generate portalsky only in main 3D view (not in compass), and never nest portalsky subviews in each other
+	if ( !isInsidePortalSky && tr.viewDef->renderWorld == gameRenderWorld ) {
+		if ( gameLocal.portalSkyEnt.GetEntity() && ( gameLocal.IsPortalSkyActive() || g_stopTime.GetBool() ) && g_enablePortalSky.GetBool() ) {
+			R_PortalRender();
 			subviews = true;
 		}
 	}
