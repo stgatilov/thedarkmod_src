@@ -140,19 +140,37 @@ void CModMenu::HandleCommands(const idStr& cmd, idUserInterface* gui)
 	{
 		// Display the briefing text
 		_briefingPage = 1;
-		DisplayBriefingPage(gui);
+		DisplayBriefingPage(gui, false);
 	}
 	else if (cmd == "briefing_scroll_down_request")
 	{
 		// Display the next page of briefing text
 		_briefingPage++;
-		DisplayBriefingPage(gui);
+		DisplayBriefingPage(gui, false);
 	}
 	else if (cmd == "briefing_scroll_up_request")
 	{
 		// Display the previous page of briefing text
 		_briefingPage--;
-		DisplayBriefingPage(gui);
+		DisplayBriefingPage(gui, false);
+	}
+	else if (cmd == "debriefing_show")
+	{
+		// Display the briefing text
+		_briefingPage = 1;
+		DisplayBriefingPage(gui, true);
+	}
+	else if (cmd == "debriefing_scroll_down_request")
+	{
+		// Display the next page of briefing text
+		_briefingPage++;
+		DisplayBriefingPage(gui, true);
+	}
+	else if (cmd == "debriefing_scroll_up_request")
+	{
+		// Display the previous page of briefing text
+		_briefingPage--;
+		DisplayBriefingPage(gui, true);
 	}
 	else if (cmd == "uninstallMod")
 	{
@@ -213,16 +231,21 @@ void CModMenu::UpdateSelectedMod(idUserInterface* gui)
 }
 
 // Displays the current page of briefing text
-void CModMenu::DisplayBriefingPage(idUserInterface* gui)
+void CModMenu::DisplayBriefingPage(idUserInterface* gui, bool isDebriefing)
 {
 	// look up the briefing xdata, which is in "maps/<map name>/mission_briefing"
-	idStr briefingData = idStr("maps/") + gameLocal.m_MissionManager->GetCurrentStartingMap() + "/mission_briefing";
+	idStr xdataDeclName = idStr("maps/") + gameLocal.m_MissionManager->GetCurrentStartingMap();
+	if (isDebriefing) {
+		xdataDeclName += "/mission_debriefing";
+	} else {
+		xdataDeclName += "/mission_briefing";
+	}
 
-	gameLocal.Printf("DisplayBriefingPage: briefingData is %s\n", briefingData.c_str());
+	gameLocal.Printf("DisplayBriefingPage: xdecl is %s\n", xdataDeclName.c_str());
 
 	// Load the XData declaration
 	const tdmDeclXData* xd = static_cast<const tdmDeclXData*>(
-		declManager->FindType(DECL_XDATA, briefingData, false)
+		declManager->FindType(DECL_XDATA, xdataDeclName, false)
 	);
 
 	const char* briefing = "";
@@ -231,7 +254,7 @@ void CModMenu::DisplayBriefingPage(idUserInterface* gui)
 
 	if (xd != NULL)
 	{
-		gameLocal.Printf("DisplayBriefingPage: xdata found.\n");
+		//gameLocal.Printf("DisplayBriefingPage: xdata found.\n");
 
 		// get page count from xdata (tels: and if nec., translate it #3193)
 		idStr strNumPages = common->Translate( xd->m_data.GetString("num_pages") );
@@ -263,7 +286,7 @@ void CModMenu::DisplayBriefingPage(idUserInterface* gui)
 	}
 	else
 	{
-		gameLocal.Warning("DisplayBriefingPage: Could not find briefing xdata: %s", briefingData.c_str());
+		gameLocal.Warning("DisplayBriefingPage: Could not find briefing xdata: %s", xdataDeclName.c_str());
 	}
 
 	// update GUI

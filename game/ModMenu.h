@@ -39,8 +39,8 @@ public:
 	// updates the GUI variables
 	void UpdateGUI(idUserInterface* gui);
 
-	// displays the current briefing page
-	void DisplayBriefingPage(idUserInterface* gui);
+	// displays the current briefing or debriefing page
+	void DisplayBriefingPage(idUserInterface* gui, bool isDebriefing);
 
 private:
 

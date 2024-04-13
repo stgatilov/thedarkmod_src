@@ -4119,6 +4119,7 @@ void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterfa
 			{"SETTINGS", "SettingsMenuState", "MAINMENU_%INGAME%", "Music%INGAME%"},
 			{"SELECT_LANGUAGE", "SelectLanguageState", "MAINMENU_%INGAME%", "Music%INGAME%"},
 			{"DOWNLOAD", "DownloadMissionsMenuState", "EXTRAMENU_NOTINGAME", "Music%INGAME%"},
+			{"DEBRIEFING", "DebriefingState", "DEBRIEFING", "MusicDebriefing"},
 			{"DEBRIEFING_VIDEO", "DebriefingVidState", "", "MusicDebriefingVideo"},
 			{"GUISIZE", "SettingsGuiSizeState", "", "Music%INGAME%"},
 			{"MOD_SELECT", "NewGameMenuState", "EXTRAMENU_NOTINGAME", "Music%INGAME%"},
@@ -4133,7 +4134,8 @@ void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterfa
 			{"SHOP", "FORWARD", "START_GAME"},
 			//standard FM-customized sequence: game finished successfully
 			{"FINISHED", "FORWARD", "DEBRIEFING_VIDEO"},
-			{"DEBRIEFING_VIDEO", "FORWARD", "SUCCESS"},		{"SUCCESS", "BACKWARD", "DEBRIEFING_VIDEO"},
+			{"DEBRIEFING_VIDEO", "FORWARD", "DEBRIEFING"},		{"DEBRIEFING", "BACKWARD", "DEBRIEFING_VIDEO"},
+			{"DEBRIEFING", "FORWARD", "SUCCESS"},				{"SUCCESS", "BACKWARD", "DEBRIEFING"},
 			{"SUCCESS", "FORWARD", "MAINMENU"},
 		};
 
