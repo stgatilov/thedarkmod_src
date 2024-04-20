@@ -103,7 +103,7 @@ idCVar com_forceGenericSIMD( "com_forceGenericSIMD", "0", CVAR_SYSTEM | CVAR_NOC
 	"Other options include: SSE, SSE2, SSSE3, AVX, AVX2, [Win32]:IdAsm)"
 );
 idCVar com_fpexceptions( "com_fpexceptions", "0", CVAR_BOOL | CVAR_SYSTEM, "enable FP exceptions: throw exception when NaN or Inf value is produced" );
-idCVar com_developer( "developer", "0", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT, "developer mode" );
+idCVar com_developer( "developer", "0", CVAR_BOOL|CVAR_SYSTEM, "developer mode" );
 idCVar com_allowConsole( "com_allowConsole", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "allow toggling console with the tilde key" );
 idCVar com_speeds( "com_speeds", "0", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT, "show engine timings" );
 idCVar com_showFPS( "com_showFPS", "0", CVAR_BOOL|CVAR_SYSTEM|CVAR_ARCHIVE|CVAR_NOCHEAT, "show frames rendered per second" );

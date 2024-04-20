@@ -474,7 +474,7 @@ extern idCVar	cv_gui_CenterY;
 * End DarkMod cvars
 **/
 
-extern idCVar	developer;
+extern idCVar	com_developer;
 
 extern idCVar	g_cinematic;
 extern idCVar	g_cinematicMaxSkipTime;

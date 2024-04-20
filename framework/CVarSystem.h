@@ -101,8 +101,8 @@ typedef enum {
 
 class idCVar {
 public:
-							// Never use the default constructor.
-							idCVar( void ) { assert( typeid( this ) != typeid( idCVar ) ); }
+							// Never use the default constructor directly.
+							idCVar( void ) { }
 
 							// Always use one of the following constructors.
 							idCVar( const char *name, const char *value, int flags, const char *description,
@@ -112,35 +112,35 @@ public:
 							idCVar( const char *name, const char *value, int flags, const char *description,
 									const char **valueStrings, argCompletion_t valueCompletion = NULL );
 
-	virtual					~idCVar( void ) {}
-
-	ID_FORCE_INLINE const char *		GetName( void ) const { return internalVar->name; }
-	ID_FORCE_INLINE int					GetFlags( void ) const { return internalVar->flags; }
-	ID_FORCE_INLINE const char *		GetDescription( void ) const { return internalVar->description; }
-	ID_FORCE_INLINE float				GetMinValue( void ) const { return internalVar->valueMin; }
-	ID_FORCE_INLINE float				GetMaxValue( void ) const { return internalVar->valueMax; }
+	ID_FORCE_INLINE const char *		GetName( void ) const { return name; }
+	ID_FORCE_INLINE int					GetFlags( void ) const { return flags; }
+	ID_FORCE_INLINE const char *		GetDescription( void ) const { return description; }
+	ID_FORCE_INLINE float				GetMinValue( void ) const { return valueMin; }
+	ID_FORCE_INLINE float				GetMaxValue( void ) const { return valueMax; }
 	ID_FORCE_INLINE const char **		GetValueStrings( void ) const { return valueStrings; }
 	ID_FORCE_INLINE argCompletion_t		GetValueCompletion( void ) const { return valueCompletion; }
 
-	ID_FORCE_INLINE bool					IsModified( void ) const { return ( internalVar->flags & CVAR_MODIFIED ) != 0; }
-	void					SetModified( void ) { internalVar->flags |= CVAR_MODIFIED; }
-	void					ClearModified( void ) { internalVar->flags &= ~CVAR_MODIFIED; }
+	ID_FORCE_INLINE bool				IsModified( void ) const { return ( flags & CVAR_MODIFIED ) != 0; }
+	void								SetModified( void ) { flags |= CVAR_MODIFIED; }
+	void								ClearModified( void ) { flags &= ~CVAR_MODIFIED; }
 
-	ID_FORCE_INLINE const char *			GetString( void ) const { return internalVar->value; }
-	ID_FORCE_INLINE bool					GetBool( void ) const { return ( internalVar->integerValue != 0 ); }
-	ID_FORCE_INLINE int						GetInteger( void ) const { return internalVar->integerValue; }
-	ID_FORCE_INLINE float					GetFloat( void ) const { return internalVar->floatValue; }
+	ID_FORCE_INLINE const char *		GetString( void ) const { return value; }
+	ID_FORCE_INLINE bool				GetBool( void ) const { return ( integerValue != 0 ); }
+	ID_FORCE_INLINE int					GetInteger( void ) const { return integerValue; }
+	ID_FORCE_INLINE float				GetFloat( void ) const { return floatValue; }
 
-	void					SetString( const char *value ) { internalVar->InternalSetString( value ); }
-	void					SetBool( const bool value ) { internalVar->InternalSetBool( value ); }
-	void					SetInteger( const int value ) { internalVar->InternalSetInteger( value ); }
-	void					SetFloat( const float value ) { internalVar->InternalSetFloat( value ); }
-
-	void					SetInternalVar( idCVar *cvar ) { internalVar = cvar; }
+	void					SetString( const char *value ) { InternalSetString( value ); }
+	void					SetBool( const bool value ) { InternalSetBool( value ); }
+	void					SetInteger( const int value ) { InternalSetInteger( value ); }
+	void					SetFloat( const float value ) { InternalSetFloat( value ); }
 
 	static void				RegisterStaticVars( void );
 
-protected:
+	void					UpdateValue( void );
+	void					Set( const char *newValue, bool force, bool fromServer );
+	void					Reset( void );
+
+private:
 	const char *			name;					// name
 	const char *			value;					// value
 	const char *			description;			// description
@@ -151,17 +151,27 @@ protected:
 	argCompletion_t			valueCompletion;		// value auto-completion function
 	int						integerValue;			// atoi( string )
 	float					floatValue;				// atof( value )
-	idCVar *				internalVar;			// internal cvar
 	idCVar *				next;					// next statically declared cvar
+
+	// from idInternalCVar:
+	idStr					nameString;				// name
+	idStr					resetString;			// resetting will change to this value
+	idStr					valueString;			// value
+	idStr					descriptionString;		// description
+	friend class idCVarSystemLocal;
 
 private:
 	void					Init( const char *name, const char *value, int flags, const char *description,
 									float valueMin, float valueMax, const char **valueStrings, argCompletion_t valueCompletion );
 
-	virtual void			InternalSetString( const char *newValue ) {}
-	virtual void			InternalSetBool( const bool newValue ) {}
-	virtual void			InternalSetInteger( const int newValue ) {}
-	virtual void			InternalSetFloat( const float newValue ) {}
+	// fromt idInternalCVar:
+	void					InternalSetString( const char *newValue );
+	void					InternalServerSetString( const char *newValue );
+	void					InternalSetBool( const bool newValue );
+	void					InternalSetInteger( const int newValue );
+	void					InternalSetFloat( const float newValue );
+	static idCVar *			InternalCreate( const char *newName, const char *newValue, int newFlags );
+	void					InternalRegister( void );
 
 	static idCVar *			staticVars;
 };
@@ -294,8 +304,7 @@ ID_INLINE void idCVar::Init( const char *name, const char *value, int flags, con
 	this->valueCompletion = valueCompletion;
 	this->integerValue = 0;
 	this->floatValue = 0.0f;
-	this->internalVar = this;
-	if ( staticVars != BAD_CVAR) {
+	if ( staticVars != BAD_CVAR ) {
 		this->next = staticVars;
 		staticVars = this;
 	} else {
@@ -304,7 +313,7 @@ ID_INLINE void idCVar::Init( const char *name, const char *value, int flags, con
 }
 
 ID_INLINE void idCVar::RegisterStaticVars( void ) {
-	if ( staticVars != BAD_CVAR) {
+	if ( staticVars != BAD_CVAR ) {
 		for ( idCVar *cvar = staticVars; cvar; cvar = cvar->next ) {
 			cvarSystem->Register( cvar );
 		}

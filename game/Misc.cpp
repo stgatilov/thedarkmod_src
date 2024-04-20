@@ -2058,7 +2058,7 @@ idTextEntity::Think
 */
 void idTextEntity::Think( void )
 {
-	if ( force || developer.GetBool() ) // grayman #3042
+	if ( force || com_developer.GetBool() ) // grayman #3042
 	{
 		gameRenderWorld->DebugText( text, GetPhysics()->GetOrigin(), 0.25, colorWhite, playerOriented ? gameLocal.GetLocalPlayer()->viewAngles.ToMat3() : GetPhysics()->GetAxis().Transpose(), 1 );
 		for ( int i = 0 ; i < targets.Num() ; i++ )

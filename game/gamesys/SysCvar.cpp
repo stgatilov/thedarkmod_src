@@ -675,9 +675,6 @@ idCVar ui_ready(					"ui_ready",				si_readyArgs[ 0 ],	CVAR_GAME | CVAR_USERINFO
 idCVar ui_spectate(					"ui_spectate",		si_spectateArgs[ 0 ],	CVAR_GAME | CVAR_USERINFO, "play or spectate", idCmdSystem::ArgCompletion_String<si_spectateArgs> );
 idCVar ui_chat(						"ui_chat",					"0",			CVAR_GAME | CVAR_USERINFO | CVAR_BOOL | CVAR_ROM , "player is chatting" );
 
-// change anytime vars
-idCVar developer(					"developer",				"0",			CVAR_GAME | CVAR_BOOL, "" );
-
 idCVar cv_gui_Width( 				"gui_Width",			"1.0",			CVAR_RENDERER | CVAR_FLOAT | CVAR_ARCHIVE, "Size of the GUI as factor of the screen width. Default is 1.0 and stretches the GUI over the entire screen." );
 idCVar cv_gui_Height( 				"gui_Height",			"1.0",			CVAR_RENDERER | CVAR_FLOAT | CVAR_ARCHIVE, "Size of the GUI as factor of the screen height. Default is 1.0 and stretches the GUI over the entire screen." );
 idCVar cv_gui_CenterX( 			"gui_CenterX",			"0.5",			CVAR_RENDERER | CVAR_FLOAT | CVAR_ARCHIVE, "Position of the center of the GUI as percentage of the whole screen width. Default is 0.5 (half of the screen width)." );
