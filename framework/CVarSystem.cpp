@@ -19,6 +19,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 
 idCVar * idCVar::staticVars = NULL;
+bool idCVar::blockVarsCreation = false;
 
 
 /*
@@ -65,6 +66,10 @@ void idCVar::RegisterStaticVars( void ) {
 	}
 }
 
+void idCVar::BlockVarsCreation( void ) {
+	blockVarsCreation = true;
+}
+
 /*
 ===============================================================================
 
@@ -73,6 +78,7 @@ void idCVar::RegisterStaticVars( void ) {
 ===============================================================================
 */
 
+#if 0
 /*
 ============
 idInternalCVar::idInternalCVar
@@ -95,6 +101,7 @@ idCVar *idCVar::InternalCreate( const char *newName, const char *newValue, int n
 	self->UpdateValue();
 	return self;
 }
+#endif
 
 /*
 ============
@@ -407,9 +414,20 @@ void idCVarSystemLocal::SetInternal( const char *name, const char *value, int fl
             common->Warning("Attempt to modify read-only %s CVAR failed.", name);
         }
 	} else {
-		internal = idCVar::InternalCreate( name, value, flags );
-		int hash = cvarHash.GenerateKey( internal->nameString.c_str(), false );
-		cvarHash.Add( hash, cvars.Append( internal ) );
+		if ( idCVar::blockVarsCreation ) {
+			// #5600: creating cvars during gameplay is not threadsafe
+			common->Warning( "Setting unregistered cvar %s to \"%s\" ignored", name, value );
+		} else {
+			// this happens after switching versions/platforms because .cfg files contains unknown cvars
+			// perhaps we want to make unknown cvars created via "seta" as archivable?
+			// in that case it would make sense to uncomment this and actually create the cvar
+			// but right now even if we create cvar, it will disappear from .cfg on game exit
+#if 0
+			internal = idCVar::InternalCreate( name, value, flags );
+			int hash = cvarHash.GenerateKey( internal->nameString.c_str(), false );
+			cvarHash.Add( hash, cvars.Append( internal ) );
+#endif
+		}
 	}
 }
 

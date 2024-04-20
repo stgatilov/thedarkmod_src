@@ -124,6 +124,7 @@ public:
 	void					SetFloat( const float value ) { InternalSetFloat( value ); }
 
 	static void				RegisterStaticVars( void );
+	static void				BlockVarsCreation( void );
 
 private:
 	const char *			name;					// name
@@ -165,6 +166,7 @@ private:
 	void					InternalRegister( void );
 
 	static idCVar *			staticVars;
+	static bool				blockVarsCreation;
 };
 
 class idCVarInt : public idCVar {

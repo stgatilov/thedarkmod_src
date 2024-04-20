@@ -2956,9 +2956,6 @@ void idCommonLocal::InitGame( void )
 	// init journalling, etc
 	eventLoop->Init();
 
-	// init the parallel job manager
-	parallelJobManager->Init();
-
 	// initialize the declaration manager
 	declManager->Init();
 
@@ -3019,6 +3016,13 @@ void idCommonLocal::InitGame( void )
 
 	// cvars are initialized, but not the rendering system. Allow preference startup dialog
 	Sys_DoPreferences();
+
+	// stgatilov #5600: we have already read all .cfg files which might contain unknown cvars
+	// block registering new cvars in future to avoid race conditions, since we will create threads soon
+	idCVar::BlockVarsCreation();
+
+	// init the parallel job manager
+	parallelJobManager->Init();
 
 	// init the user command input code
 	usercmdGen->Init();
