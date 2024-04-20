@@ -64,11 +64,11 @@ const idEventDef EV_Thread_SetSpawnArg( "setSpawnArg", EventArgs('s', "key", "",
 const idEventDef EV_Thread_SpawnString( "SpawnString", EventArgs('s', "key", "", 's', "default", ""), 's', "Returns the string for the given spawn argument." );
 const idEventDef EV_Thread_SpawnFloat( "SpawnFloat", EventArgs('s', "key", "", 'f', "default", ""), 'f', "Returns the floating point value for the given spawn argument.");
 const idEventDef EV_Thread_SpawnVector( "SpawnVector", EventArgs('s', "key", "", 'v', "default", ""), 'v', "Returns the vector for the given spawn argument.");
-const idEventDef EV_Thread_ClearPersistantArgs( "clearPersistantArgs", EventArgs(), EV_RETURNS_VOID, "Clears data that persists between maps." );
-const idEventDef EV_Thread_SetPersistantArg( "setPersistantArg", EventArgs('s', "key", "", 's', "value", ""), EV_RETURNS_VOID, "Sets a key/value pair that persists between maps");
-const idEventDef EV_Thread_GetPersistantString( "getPersistantString", EventArgs('s', "key", ""), 's', "Returns the string for the given persistent arg");
-const idEventDef EV_Thread_GetPersistantFloat( "getPersistantFloat", EventArgs('s', "key", ""), 'f', "Returns the floating point value for the given persistent arg");
-const idEventDef EV_Thread_GetPersistantVector( "getPersistantVector", EventArgs('s', "key", ""), 'v', "Returns the vector for the given persistent arg");
+const idEventDef EV_Thread_ClearPersistentArgs( "clearPersistentArgs", EventArgs(), EV_RETURNS_VOID, "Clears data that persists between maps." );
+const idEventDef EV_Thread_SetPersistentArg( "setPersistentArg", EventArgs('s', "key", "", 's', "value", ""), EV_RETURNS_VOID, "Sets a key/value pair that persists between maps");
+const idEventDef EV_Thread_GetPersistentString( "getPersistentString", EventArgs('s', "key", ""), 's', "Returns the string for the given persistent arg");
+const idEventDef EV_Thread_GetPersistentFloat( "getPersistentFloat", EventArgs('s', "key", ""), 'f', "Returns the floating point value for the given persistent arg");
+const idEventDef EV_Thread_GetPersistentVector( "getPersistentVector", EventArgs('s', "key", ""), 'v', "Returns the vector for the given persistent arg");
 
 // Returns the number of the current mission (0-based)
 const idEventDef EV_Thread_GetCurrentMissionNum( "getCurrentMissionNum", EventArgs(), 'f', "Returns the number of the current mission (0-based, the first mission has number 0).");
@@ -338,11 +338,11 @@ CLASS_DECLARATION( idClass, idThread )
 	EVENT( EV_Thread_SpawnString,			idThread::Event_SpawnString )
 	EVENT( EV_Thread_SpawnFloat,			idThread::Event_SpawnFloat )
 	EVENT( EV_Thread_SpawnVector,			idThread::Event_SpawnVector )
-	EVENT( EV_Thread_ClearPersistantArgs,	idThread::Event_ClearPersistantArgs )
-	EVENT( EV_Thread_SetPersistantArg,		idThread::Event_SetPersistantArg )
-	EVENT( EV_Thread_GetPersistantString,	idThread::Event_GetPersistantString )
-	EVENT( EV_Thread_GetPersistantFloat,	idThread::Event_GetPersistantFloat )
-	EVENT( EV_Thread_GetPersistantVector,	idThread::Event_GetPersistantVector )
+	EVENT( EV_Thread_ClearPersistentArgs,	idThread::Event_ClearPersistentArgs )
+	EVENT( EV_Thread_SetPersistentArg,		idThread::Event_SetPersistentArg )
+	EVENT( EV_Thread_GetPersistentString,	idThread::Event_GetPersistentString )
+	EVENT( EV_Thread_GetPersistentFloat,	idThread::Event_GetPersistentFloat )
+	EVENT( EV_Thread_GetPersistentVector,	idThread::Event_GetPersistentVector )
 
 	EVENT( EV_Thread_GetCurrentMissionNum,	idThread::Event_GetCurrentMissionNum )
 	EVENT( EV_Thread_GetTDMVersion,			idThread::Event_GetTDMVersion )
@@ -1494,29 +1494,29 @@ void idThread::Event_SpawnVector( const char *key, idVec3 &defaultvalue ) {
 
 /*
 ================
-idThread::Event_ClearPersistantArgs
+idThread::Event_ClearPersistentArgs
 ================
 */
-void idThread::Event_ClearPersistantArgs( void ) {
+void idThread::Event_ClearPersistentArgs( void ) {
 	gameLocal.persistentLevelInfo.Clear();
 }
 
 
 /*
 ================
-idThread::Event_SetPersistantArg
+idThread::Event_SetPersistentArg
 ================
 */
-void idThread::Event_SetPersistantArg( const char *key, const char *value ) {
+void idThread::Event_SetPersistentArg( const char *key, const char *value ) {
 	gameLocal.persistentLevelInfo.Set( key, value );
 }
 
 /*
 ================
-idThread::Event_GetPersistantString
+idThread::Event_GetPersistentString
 ================
 */
-void idThread::Event_GetPersistantString( const char *key ) {
+void idThread::Event_GetPersistentString( const char *key ) {
 	const char *result;
 
 	gameLocal.persistentLevelInfo.GetString( key, "", &result );
@@ -1525,10 +1525,10 @@ void idThread::Event_GetPersistantString( const char *key ) {
 
 /*
 ================
-idThread::Event_GetPersistantFloat
+idThread::Event_GetPersistentFloat
 ================
 */
-void idThread::Event_GetPersistantFloat( const char *key ) {
+void idThread::Event_GetPersistentFloat( const char *key ) {
 	float result;
 
 	gameLocal.persistentLevelInfo.GetFloat( key, "0", result );
@@ -1537,10 +1537,10 @@ void idThread::Event_GetPersistantFloat( const char *key ) {
 
 /*
 ================
-idThread::Event_GetPersistantVector
+idThread::Event_GetPersistentVector
 ================
 */
-void idThread::Event_GetPersistantVector( const char *key ) {
+void idThread::Event_GetPersistentVector( const char *key ) {
 	idVec3 result;
 
 	gameLocal.persistentLevelInfo.GetVector( key, "0 0 0", result );

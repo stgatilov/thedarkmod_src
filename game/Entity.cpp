@@ -1122,7 +1122,7 @@ idEntity::idEntity()
 	// grayman #597 - for hiding arrows when nocked to the bow
 	m_HideUntilTime = 0;
 
-	// SteveL #3817. Make decals and overlays persistant.
+	// SteveL #3817. Make decals and overlays persistent.
 	needsDecalRestore = false;
 
 	memset( &xrayRenderEnt, 0, sizeof( xrayRenderEnt ) );

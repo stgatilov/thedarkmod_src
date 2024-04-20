@@ -84,11 +84,11 @@ private:
 	void						Event_SpawnString( const char *key, const char *defaultvalue );
 	void						Event_SpawnFloat( const char *key, float defaultvalue );
 	void						Event_SpawnVector( const char *key, idVec3 &defaultvalue );
-	void						Event_ClearPersistantArgs( void );
-	void 						Event_SetPersistantArg( const char *key, const char *value );
-	void 						Event_GetPersistantString( const char *key );
-	void 						Event_GetPersistantFloat( const char *key );
-	void 						Event_GetPersistantVector( const char *key );
+	void						Event_ClearPersistentArgs( void );
+	void 						Event_SetPersistentArg( const char *key, const char *value );
+	void 						Event_GetPersistentString( const char *key );
+	void 						Event_GetPersistentFloat( const char *key );
+	void 						Event_GetPersistentVector( const char *key );
 
 	void						Event_GetCurrentMissionNum();
 	void						Event_GetTDMVersion() const;

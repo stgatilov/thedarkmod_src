@@ -1912,7 +1912,7 @@ bool idSessionLocal::SaveGame( const char *saveName, bool autosave, bool skipChe
 	}
 
 	// Write SaveGame Header: 
-	// Game Name / Version / Map Name / Persistant Player Info
+	// Game Name / Version / Map Name / Persistent Player Info
 
 	// game
 	const char *gamename = GAME_NAME;
@@ -2256,7 +2256,7 @@ bool idSessionLocal::ParseSavegamePreamble(const char * saveName, idFile** saveg
 	}
 
 	// Read in save game header
-	// Game Name / Version / Map Name / Persistant Player Info
+	// Game Name / Version / Map Name / Persistent Player Info
 
 	// game
 	(*savegameFile)->ReadString(gamename);

@@ -545,8 +545,8 @@ public:
 	void					SpawnToPoint( const idVec3	&spawn_origin, const idAngles &spawn_angles );
 	void					SetClipModel( void );	// spectator mode uses a different bbox size
 
-	void					SavePersistantInfo( void );
-	void					RestorePersistantInfo( void );
+	void					SavePersistentInfo( void );
+	void					RestorePersistentInfo( void );
 
 	bool					UserInfoChanged( bool canModify );
 	idDict *				GetUserInfo( void );

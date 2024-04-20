@@ -1101,7 +1101,7 @@ const idDict &idGameLocal::GetPersistentPlayerInfo( int clientNum ) {
 	persistentPlayerInfo.Clear();
 	ent = entities[ clientNum ];
 	if ( ent && ent->IsType( idPlayer::Type ) ) {
-		static_cast<idPlayer *>(ent)->SavePersistantInfo();
+		static_cast<idPlayer *>(ent)->SavePersistentInfo();
 	}
 
 	return persistentPlayerInfo;

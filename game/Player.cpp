@@ -883,7 +883,7 @@ void idPlayer::Init( void ) {
 	ClearPain();
 
 	// restore persistent data
-	RestorePersistantInfo();
+	RestorePersistentInfo();
 
 	bobCycle		= 0;
 	stamina			= 0.0f;
@@ -2889,7 +2889,7 @@ idPlayer::SpawnToPoint
 
 Called every time a client is placed fresh in the world:
 after the first ClientBegin, and after each respawn
-Initializes all non-persistant parts of playerState
+Initializes all non-persistent parts of playerState
 
 when called here with spectating set to true, just place yourself and init
 ============
@@ -2982,12 +2982,12 @@ void idPlayer::SpawnToPoint( const idVec3 &spawn_origin, const idAngles &spawn_a
 
 /*
 ===============
-idPlayer::SavePersistantInfo
+idPlayer::SavePersistentInfo
 
 Saves any inventory and player stats when changing levels.
 ===============
 */
-void idPlayer::SavePersistantInfo( void ) {
+void idPlayer::SavePersistentInfo( void ) {
 	idDict &playerInfo = gameLocal.persistentPlayerInfo;
 
 	playerInfo.Clear();
@@ -3002,12 +3002,12 @@ void idPlayer::SavePersistantInfo( void ) {
 
 /*
 ===============
-idPlayer::RestorePersistantInfo
+idPlayer::RestorePersistentInfo
 
 Restores any inventory and player stats when changing levels.
 ===============
 */
-void idPlayer::RestorePersistantInfo( void ) {
+void idPlayer::RestorePersistentInfo( void ) {
 	// greebo: TDM doesn't need to load health or weapon from the dict, that is not (yet) intended since
 	// map switching within missions is not yet planned or fleshed out
 #if 0
