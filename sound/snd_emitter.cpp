@@ -416,7 +416,7 @@ void idSoundEmitterLocal::Clear( void ) {
 }
 
 idCVar s_overrideParmsMode(
-	"s_overrideParmsMode", "0", CVAR_SOUND | CVAR_INTEGER,
+	"s_overrideParmsMode", "1", CVAR_SOUND | CVAR_INTEGER,
 	"Implementation of sound params override:\n"
 	"  0 --- original mode where nonzero value means override\n"
 	"  1 --- new mode where override flag is stored separately\n"
