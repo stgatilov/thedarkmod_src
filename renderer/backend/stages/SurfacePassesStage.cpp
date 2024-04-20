@@ -25,7 +25,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "glprogs/stages/surface_passes/texgen_shared.glsl"
 
 idCVar r_envmapBumpyBehavior(
-	"r_envmapBumpyBehavior", "0", CVAR_RENDERER | CVAR_BOOL,
+	"r_envmapBumpyBehavior", "1", CVAR_RENDERER | CVAR_BOOL,
 	"Selects visual behavior of environment mapping on bumpmapped surfaces:\n"
 	"  0 --- old TDM: envmap looks very different if bumpmap is set\n"
 	"  1 --- new TDM: uniform envmap behavior regardless of bumpmap existance"
