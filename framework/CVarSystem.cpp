@@ -20,6 +20,51 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 idCVar * idCVar::staticVars = NULL;
 
+
+/*
+===============================================================================
+
+CVar Registration
+
+Each DLL using CVars has to declare a private copy of the static variable
+idCVar::staticVars like this: idCVar * idCVar::staticVars = NULL;
+Furthermore idCVar::RegisterStaticVars() has to be called after the
+cvarSystem pointer is set when the DLL is first initialized.
+
+===============================================================================
+*/
+
+#define BAD_CVAR ((idCVar *)(size_t)(-1LL))
+
+void idCVar::Init( const char *name, const char *value, int flags, const char *description,
+	float valueMin, float valueMax, const char **valueStrings, argCompletion_t valueCompletion ) {
+	this->name = name;
+	this->value = value;
+	this->flags = flags;
+	this->description = description;
+	this->flags = flags | CVAR_STATIC;
+	this->valueMin = valueMin;
+	this->valueMax = valueMax;
+	this->valueStrings = valueStrings;
+	this->valueCompletion = valueCompletion;
+	this->integerValue = 0;
+	this->floatValue = 0.0f;
+	if ( staticVars == BAD_CVAR ) {
+		common->Error( "Late attempt to register cvar %s", name );
+	}
+	this->next = staticVars;
+	staticVars = this;
+}
+
+void idCVar::RegisterStaticVars( void ) {
+	if ( staticVars != BAD_CVAR ) {
+		for ( idCVar *cvar = staticVars; cvar; cvar = cvar->next ) {
+			cvarSystem->Register( cvar );
+		}
+		staticVars = BAD_CVAR;
+	}
+}
+
 /*
 ===============================================================================
 
@@ -438,6 +483,7 @@ idCVarSystemLocal::Register
 ============
 */
 void idCVarSystemLocal::Register( idCVar *cvar ) {
+	assert( idCVar::staticVars != BAD_CVAR );
 	idCVar *internal = FindInternal( cvar->GetName() );
 
 	if ( internal ) {

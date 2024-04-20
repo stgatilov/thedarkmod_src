@@ -36,21 +36,13 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 	cvarName X			sets the value to X if the variable exists
 	set cvarName X		as above, but creates the CVar if not present
 
-	CVars may be declared in the global namespace, in classes and in functions.
-	However declarations in classes and functions should always be static to
-	save space and time. Making CVars static does not change their
-	functionality due to their global nature.
-	UPDATE #6500: Do NOT declare idCVars in functions,
-	make sure cvars are intialized on start.
+	stgatilov #5600: CVars must be declared as global variable or as static class member.
+	Unlike original Doom 3, a cvar can only have one C++ variable connected to it.
 
 	CVars should be contructed only through one of the constructors with name,
 	value, flags and description. The name, value and description parameters
 	to the constructor have to be static strings, do not use va() or the like
 	functions returning a string.
-
-	CVars may be declared multiple times using the same name string. However,
-	they will all reference the same value and changing the value of one CVar
-	changes the value of all CVars with the same name.
 
 	CVars should always be declared with the correct type flag: CVAR_BOOL,
 	CVAR_INTEGER or CVAR_FLOAT. If no such flag is specified the CVar
@@ -101,9 +93,6 @@ typedef enum {
 
 class idCVar {
 public:
-							// Never use the default constructor directly.
-							idCVar( void ) { }
-
 							// Always use one of the following constructors.
 							idCVar( const char *name, const char *value, int flags, const char *description,
 									argCompletion_t valueCompletion = NULL );
@@ -136,10 +125,6 @@ public:
 
 	static void				RegisterStaticVars( void );
 
-	void					UpdateValue( void );
-	void					Set( const char *newValue, bool force, bool fromServer );
-	void					Reset( void );
-
 private:
 	const char *			name;					// name
 	const char *			value;					// value
@@ -161,10 +146,16 @@ private:
 	friend class idCVarSystemLocal;
 
 private:
+	idCVar( void ) = default;
+
 	void					Init( const char *name, const char *value, int flags, const char *description,
 									float valueMin, float valueMax, const char **valueStrings, argCompletion_t valueCompletion );
 
-	// fromt idInternalCVar:
+	void					UpdateValue( void );
+	void					Set( const char *newValue, bool force, bool fromServer );
+	void					Reset( void );
+
+	// from idInternalCVar:
 	void					InternalSetString( const char *newValue );
 	void					InternalServerSetString( const char *newValue );
 	void					InternalSetBool( const bool newValue );
@@ -228,6 +219,7 @@ public:
 	virtual bool			IsInitialized( void ) const = 0;
 
 							// Registers a CVar.
+							// INTERNAL USE ONLY!
 	virtual void			Register( idCVar *cvar ) = 0;
 
 							// Finds the CVar with the given name.
@@ -274,51 +266,5 @@ public:
 };
 
 extern idCVarSystem *		cvarSystem;
-
-
-/*
-===============================================================================
-
-	CVar Registration
-
-	Each DLL using CVars has to declare a private copy of the static variable
-	idCVar::staticVars like this: idCVar * idCVar::staticVars = NULL;
-	Furthermore idCVar::RegisterStaticVars() has to be called after the
-	cvarSystem pointer is set when the DLL is first initialized.
-
-===============================================================================
-*/
-
-#define BAD_CVAR ((idCVar *)(size_t)(-1LL))
-
-ID_INLINE void idCVar::Init( const char *name, const char *value, int flags, const char *description,
-							float valueMin, float valueMax, const char **valueStrings, argCompletion_t valueCompletion ) {
-	this->name = name;
-	this->value = value;
-	this->flags = flags;
-	this->description = description;
-	this->flags = flags | CVAR_STATIC;
-	this->valueMin = valueMin;
-	this->valueMax = valueMax;
-	this->valueStrings = valueStrings;
-	this->valueCompletion = valueCompletion;
-	this->integerValue = 0;
-	this->floatValue = 0.0f;
-	if ( staticVars != BAD_CVAR ) {
-		this->next = staticVars;
-		staticVars = this;
-	} else {
-		cvarSystem->Register( this );
-	}
-}
-
-ID_INLINE void idCVar::RegisterStaticVars( void ) {
-	if ( staticVars != BAD_CVAR ) {
-		for ( idCVar *cvar = staticVars; cvar; cvar = cvar->next ) {
-			cvarSystem->Register( cvar );
-		}
-		staticVars = BAD_CVAR;
-	}
-}
 
 #endif /* !__CVARSYSTEM_H__ */
