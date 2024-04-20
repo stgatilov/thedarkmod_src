@@ -39,6 +39,12 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 	stgatilov #5600: CVars must be declared as global variable or as static class member.
 	Unlike original Doom 3, a cvar can only have one C++ variable connected to it.
 
+	stgatilov #5600: Standard thread-safety principles apply:
+	 * It is OK to read/write different cvars in parallel.
+	 * It is OK to read the same cvar in parallel.
+	 * It is WRONG to write cvar in parallel with reading/writing the same cvar.
+	 * Some methods are only called during initialization, they are never in parallel to anything.
+
 	CVars should be contructed only through one of the constructors with name,
 	value, flags and description. The name, value and description parameters
 	to the constructor have to be static strings, do not use va() or the like
