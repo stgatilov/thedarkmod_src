@@ -383,10 +383,6 @@ void idKeyInput::SetBinding( int keynum, const char *binding ) {
 
 	// find the action for the async command generation
 	keys[keynum].usercmdAction = usercmdGen->CommandStringUsercmdData( binding );
-
-	// consider this like modifying an archived cvar, so the
-	// file write will be triggered at the next oportunity
-	cvarSystem->SetModifiedFlags( CVAR_ARCHIVE );
 }
 
 

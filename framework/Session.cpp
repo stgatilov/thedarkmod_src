@@ -2813,12 +2813,12 @@ void idSessionLocal::Frame() {
 		return;
 	}
 
-	// check for user info changes
+	/*// check for user info changes
 	if ( cvarSystem->GetModifiedFlags() & CVAR_USERINFO ) {
 		mapSpawnData.userInfo[0] = *cvarSystem->MoveCVarsToDict( CVAR_USERINFO );
 		game->SetUserInfo( 0, mapSpawnData.userInfo[0], false, false );
 		cvarSystem->ClearModifiedFlags( CVAR_USERINFO );
-	}
+	}*/
 
 	// see how many usercmds we are going to run
 	int	numCmdsToRun = latchedTicNumber - lastGameTic;

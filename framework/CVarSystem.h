@@ -246,11 +246,6 @@ public:
 	virtual void			CommandCompletion( void(*callback)( const char *s ) ) = 0;
 	virtual void			ArgCompletion( const char *cmdString, void(*callback)( const char *s ) ) = 0;
 
-							// Sets/gets/clears modified flags that tell what kind of CVars have changed.
-	virtual void			SetModifiedFlags( int flags ) = 0;
-	virtual int				GetModifiedFlags( void ) const = 0;
-	virtual void			ClearModifiedFlags( int flags ) = 0;
-
 							// Resets variables with one of the given flags set.
 	virtual void			ResetFlaggedVariables( int flags ) = 0;
 

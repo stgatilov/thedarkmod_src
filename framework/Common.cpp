@@ -1369,12 +1369,6 @@ void idCommonLocal::WriteConfiguration( void ) {
 		return;
 	}
 
-	if ( !( cvarSystem->GetModifiedFlags() & CVAR_ARCHIVE ) ) {
-		return;
-	}
-
-	cvarSystem->ClearModifiedFlags( CVAR_ARCHIVE );
-
 	// disable printing out the "Writing to:" message
 	bool developer = com_developer.GetBool();
 	com_developer.SetBool( false );
@@ -3022,9 +3016,6 @@ void idCommonLocal::InitGame( void )
 
 	// re-override anything from the config files with command line args
 	StartupVariable( NULL, false );
-
-	// if any archived cvars are modified after this, we will trigger a writing of the config file
-	cvarSystem->ClearModifiedFlags( CVAR_ARCHIVE );
 
 	// cvars are initialized, but not the rendering system. Allow preference startup dialog
 	Sys_DoPreferences();

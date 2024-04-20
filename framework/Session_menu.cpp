@@ -935,9 +935,6 @@ void idSessionLocal::HandleMainMenuCommands( const char *menuCommand ) {
 				cvarSystem->SetCVarFloat("r_brightness", 0.0f);
 				cvarSystem->SetCVarFloat("r_brightness", bright);
 
-				//Force user info modified after a reset to defaults
-				cvarSystem->SetModifiedFlags(CVAR_USERINFO);
-
 				//guiActive->SetStateInt( "com_machineSpec", com_machineSpec.GetInteger() );
 
 				//Restore the language

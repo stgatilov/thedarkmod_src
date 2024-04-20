@@ -213,7 +213,6 @@ void idCVar::Set( const char *newValue, bool force, bool fromServer ) {
 	UpdateValue();
 
 	SetModified();
-	cvarSystem->SetModifiedFlags( flags );
 }
 
 /*
@@ -309,10 +308,6 @@ public:
 	virtual void			CommandCompletion( void(*callback)( const char *s ) ) override;
 	virtual void			ArgCompletion( const char *cmdString, void(*callback)( const char *s ) ) override;
 
-	virtual void			SetModifiedFlags( int flags ) override;
-	virtual int				GetModifiedFlags( void ) const override;
-	virtual void			ClearModifiedFlags( int flags ) override;
-
 	virtual void			ResetFlaggedVariables( int flags ) override;
 	virtual void			RemoveFlaggedAutoCompletion( int flags ) override;
 	virtual void			WriteFlaggedVariables( int flags, const char *setCmd, idFile *f ) const override;
@@ -328,7 +323,6 @@ private:
 	bool					initialized;
 	idList<idCVar*>			cvars;
 	idHashIndex				cvarHash;
-	int						modifiedFlags;
 							// use a static dictionary to MoveCVarsToDict can be used from game
 	static idDict			moveCVarsToDict;
 
@@ -426,7 +420,6 @@ idCVarSystemLocal::idCVarSystemLocal
 */
 idCVarSystemLocal::idCVarSystemLocal( void ) {
 	initialized = false;
-	modifiedFlags = 0;
 }
 
 /*
@@ -435,8 +428,6 @@ idCVarSystemLocal::Init
 ============
 */
 void idCVarSystemLocal::Init( void ) {
-
-	modifiedFlags = 0;
 
 	cmdSystem->AddCommand( "toggle", Toggle_f, CMD_FL_SYSTEM, "toggles a cvar" );
 	cmdSystem->AddCommand( "set", Set_f, CMD_FL_SYSTEM, "sets a cvar" );
@@ -649,33 +640,6 @@ void idCVarSystemLocal::ArgCompletion( const char *cmdString, void(*callback)( c
 			break;
 		}
 	}
-}
-
-/*
-============
-idCVarSystemLocal::SetModifiedFlags
-============
-*/
-void idCVarSystemLocal::SetModifiedFlags( int flags ) {
-	modifiedFlags |= flags;
-}
-
-/*
-============
-idCVarSystemLocal::GetModifiedFlags
-============
-*/
-int idCVarSystemLocal::GetModifiedFlags( void ) const {
-	return modifiedFlags;
-}
-
-/*
-============
-idCVarSystemLocal::ClearModifiedFlags
-============
-*/
-void idCVarSystemLocal::ClearModifiedFlags( int flags ) {
-	modifiedFlags &= ~flags;
 }
 
 /*

@@ -218,10 +218,6 @@ void idGamepadInput::UnbindAll() {
 		}
 	}
 	modifierButton = -1;
-
-	// consider this like modifying an archived cvar, so the
-	// file write will be triggered at the next oportunity
-	cvarSystem->SetModifiedFlags( CVAR_ARCHIVE );
 }
 
 void idGamepadInput::SetBinding( int button, int type, const idStr &binding ) {
@@ -254,10 +250,6 @@ void idGamepadInput::SetBinding( int button, int type, const idStr &binding ) {
 			modifierButton = -1;
 		}
 	}
-
-	// consider this like modifying an archived cvar, so the
-	// file write will be triggered at the next oportunity
-	cvarSystem->SetModifiedFlags( CVAR_ARCHIVE );
 }
 
 void idGamepadInput::SetButtonState( int button, bool pressed ) {
