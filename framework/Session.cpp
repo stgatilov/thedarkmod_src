@@ -1784,6 +1784,45 @@ void SimulateEscape_f( const idCmdArgs & ) {
 }
 
 /*
+====================
+Session_PrintPersistentInfo_f
+====================
+*/
+void Session_PrintPersistentInfo_f( const idCmdArgs & ) {
+	auto PrintDict = []( const idDict &dict ) {
+		int n = dict.GetNumKeyVals();
+		common->Printf( " (%d entries):\n",  n );
+		for ( int i = 0; i < n; i++ ) {
+			const idKeyValue *kv = dict.GetKeyVal( i );
+			common->Printf( "  \"%s\" = \"%s\"\n", kv->GetKey().c_str(), kv->GetValue().c_str() );
+		}
+	};
+
+	const idDict &playerInfoGame = game->GetPersistentPlayerInfo( 0 );
+	const idDict &playerInfoSession = sessLocal.mapSpawnData.persistentPlayerInfo[0];	// perhaps not interesting...
+	const idDict &levelInfoGame = gameLocal.persistentLevelInfo;
+
+	idDict levelInfoMenu;
+	if ( sessLocal.guiMainMenu ) {
+		const idDict &allGuiVars = sessLocal.guiMainMenu->State();
+		for (const idKeyValue *kv = allGuiVars.MatchPrefix("persistent_"); kv; kv = allGuiVars.MatchPrefix("persistent_", kv)) {
+			idStr key = kv->GetKey().c_str() + strlen("persistent_");
+			levelInfoMenu.Set(key, kv->GetValue());
+		}
+	} else {
+		levelInfoMenu.Set( "<<<menu is dead>>>", "<<<menu is dead>>>" );
+	}
+
+	common->Printf( "Doom 3 'player info'" );
+	PrintDict( playerInfoGame );
+
+	common->Printf( "TDM 'level info' game%s", gameLocal.persistentLevelInfoLocation == PERSISTENT_LOCATION_GAME ? " (*)" : "" );
+	PrintDict( levelInfoGame );
+	common->Printf( "TDM 'level info' menu%s", gameLocal.persistentLevelInfoLocation == PERSISTENT_LOCATION_MAINMENU ? " (*)" : "" );
+	PrintDict( levelInfoMenu );
+}
+
+/*
 ===============
 idSessionLocal::ScrubSaveGameFileName
 
@@ -3237,6 +3276,11 @@ void idSessionLocal::Init() {
 	cmdSystem->AddCommand( "hitch", Session_Hitch_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "hitches the game" );
 
 	cmdSystem->AddCommand( "escape", SimulateEscape_f, CMD_FL_GAME, "simulate a press of the ESC key" );
+
+	cmdSystem->AddCommand(
+		"printPersistentInfo", Session_PrintPersistentInfo_f, CMD_FL_GAME,
+		"Prints all persistent info.\nIt is used to pass data between missions in campaign, and between briefing/debriefing and game."
+	);
 
 	// the same idRenderWorld will be used for all games
 	// and demos, insuring that level specific models
