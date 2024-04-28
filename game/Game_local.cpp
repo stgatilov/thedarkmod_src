@@ -2172,6 +2172,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	savegame.ReadInt( numEntitiesToDeactivate );
 	savegame.ReadDict( &persistentLevelInfo );
+	persistentLevelInfoLocation = PERSISTENT_LOCATION_GAME;
 
 	persistentPlayerInventory->Restore(&savegame);
 
