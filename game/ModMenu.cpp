@@ -176,10 +176,6 @@ void CModMenu::HandleCommands(const idStr& cmd, idUserInterface* gui)
 	{
 		UninstallMod(gui);
 	}
-	else if (cmd == "startSelect") // grayman #2933 - save mission start position
-	{
-		gameLocal.m_StartPosition = gui->GetStateString("startSelect", "");
-	}
 }
 
 void CModMenu::UpdateSelectedMod(idUserInterface* gui)

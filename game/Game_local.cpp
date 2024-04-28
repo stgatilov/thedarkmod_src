@@ -274,8 +274,6 @@ void idGameLocal::Clear( void )
 
 	m_TriggerFinalSave = false;
 
-	m_StartPosition = ""; // grayman #2933
-
 	m_GUICommandStack.Clear();
 	m_GUICommandArgs = 0;
 
@@ -329,6 +327,7 @@ void idGameLocal::Clear( void )
 	spawnedAI.Clear();
 	numEntitiesToDeactivate = 0;
 	persistentLevelInfo.Clear();
+	persistentLevelInfoLocation = PERSISTENT_LOCATION_NOWHERE;
 	persistentPlayerInventory.reset();
 	campaignInfoEntities.Clear();
 
@@ -1910,12 +1909,6 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	
 	// greebo: Clear the mission data, it might have been filled during the objectives screen display
 	m_MissionData->Clear();
-
-	// Clear the persistent data if starting a new campaign
-	if (m_MissionManager->CurrentModIsCampaign() && m_MissionManager->GetCurrentMissionIndex() == 0)
-	{
-		ClearPersistentInfo();
-	}
 
 	Printf( "----------- Game Map Init ------------\n" );
 
@@ -4224,8 +4217,17 @@ void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterfa
 		if (targetState != modeState) {
 			if (targetState->name == "START_GAME") {
 				DM_LOG(LC_MAINMENU, LT_INFO)LOGSTRING("Starting game");
-				idStr mapname = m_MissionManager->GetCurrentStartingMap();
-				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, va("map %s\n", mapname.c_str()) );
+				//stgatilov #6509: transfer persistent info early, so that we can read map name from it now
+				SyncPersistentInfoFromGui(gui, true);
+				//select which map to load
+				idStr customMapName = persistentLevelInfo.GetString("builtin_startMap");
+				idStr mapName;
+				if (customMapName[0]) {
+					mapName = customMapName;
+				} else {
+					mapName = m_MissionManager->GetCurrentStartingMap();
+				}
+				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, va("map %s\n", mapName.c_str()) );
 				//note: it seems that target state does not matter
 				//map start resets "mode" to NONE anyway (see ClearMainMenuMode)
 			}
@@ -4867,7 +4869,10 @@ void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterfa
 		idStr mapToStart = m_MissionManager->GetCurrentStartingMap();
 		gui->SetStateString("mapStartCmd", va("exec 'map %s'", mapToStart.c_str()));
 
+		// stgatilov #6509: set persistent info to empty when starting mission or campaign from scratch
 		ClearPersistentInfo();
+		ClearPersistentInfoInGui(gui);
+		gameLocal.persistentLevelInfoLocation = PERSISTENT_LOCATION_MAINMENU;
 	}
 	else if (cmd == "setlang")
 	{
@@ -6875,12 +6880,15 @@ idEntity *idGameLocal::SelectInitialSpawnPoint( idPlayer *player ) {
 
 	// grayman #2933 - Did the player specify
 	// a starting point in the briefing?
+	// stgatilov #6509: now passed via persistent data
 
 	bool foundSpot = false;
 	spot.ent = NULL;
-	if ( m_StartPosition[0] != '\0' )
+
+	const char *startEntityName = persistentLevelInfo.GetString("builtin_playerStartEntity");
+	if ( startEntityName[0] != '\0' )
 	{
-		spot.ent = FindEntity( m_StartPosition );
+		spot.ent = FindEntity( startEntityName );
 		if ( spot.ent != NULL )
 		{
 			foundSpot = true;
@@ -7954,10 +7962,58 @@ idLight* idGameLocal::FindMainAmbientLight( bool a_bCreateNewIfNotFound /*= fals
 
 void idGameLocal::ClearPersistentInfo()
 {
-	persistentPlayerInventory->Clear();
-	persistentLevelInfo.Clear();
 	m_CampaignStats.reset(new CampaignStats);
 	m_InterMissionTriggers.Clear();
+	persistentPlayerInventory->Clear();
+
+	persistentLevelInfo.Clear();
+	if (persistentLevelInfoLocation == PERSISTENT_LOCATION_GAME)
+		persistentLevelInfoLocation = PERSISTENT_LOCATION_NOWHERE;
+}
+
+void idGameLocal::ClearPersistentInfoInGui(idUserInterface *gui)
+{
+	const idDict &allGuiVars = gui->State();
+	idStrList keys;
+	for (const idKeyValue *kv = allGuiVars.MatchPrefix("persistent_"); kv; kv = allGuiVars.MatchPrefix("persistent_", kv))
+		keys.Append(kv->GetKey());
+
+	for (idStr key : keys)
+		gui->DeleteStateVar(key);
+
+	if (persistentLevelInfoLocation == PERSISTENT_LOCATION_MAINMENU)
+		persistentLevelInfoLocation = PERSISTENT_LOCATION_NOWHERE;
+}
+
+void idGameLocal::SyncPersistentInfoToGui(idUserInterface *gui, bool moveOwnership)
+{
+	assert(persistentLevelInfoLocation == PERSISTENT_LOCATION_GAME);
+	ClearPersistentInfoInGui(gui);
+
+	for (const idKeyValue *kv = persistentLevelInfo.MatchPrefix(""); kv; kv = persistentLevelInfo.MatchPrefix("", kv)) {
+		idStr key = "persistent_" + kv->GetKey();
+		gui->SetStateString(key, kv->GetValue());
+	}
+
+	// mark main menu GUI vars as the source of truth from now on
+	if (moveOwnership)
+		persistentLevelInfoLocation = PERSISTENT_LOCATION_MAINMENU;
+}
+
+void idGameLocal::SyncPersistentInfoFromGui(const idUserInterface *gui, bool moveOwnership)
+{
+	assert(persistentLevelInfoLocation == PERSISTENT_LOCATION_MAINMENU);
+	persistentLevelInfo.Clear();
+
+	const idDict &allGuiVars = gui->State();
+	for (const idKeyValue *kv = allGuiVars.MatchPrefix("persistent_"); kv; kv = allGuiVars.MatchPrefix("persistent_", kv)) {
+		idStr key = kv->GetKey().c_str() + strlen("persistent_");
+		persistentLevelInfo.Set(key, kv->GetValue());
+	}
+
+	// mark game as the source of truth from now on
+	if (moveOwnership)
+		persistentLevelInfoLocation = PERSISTENT_LOCATION_GAME;
 }
 
 void idGameLocal::ProcessInterMissionTriggers()

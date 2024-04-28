@@ -46,6 +46,13 @@ void idSessionLocal::ResetMainMenu() {
 			SetGUI(NULL, NULL);
 			assert(guiActive != guiMainMenu);
 		}
+
+		// stgatilov #6509: copy persistent info from main menu gui vars
+		// make game source of truth
+		if ( gameLocal.persistentLevelInfoLocation == PERSISTENT_LOCATION_MAINMENU ) {
+			gameLocal.SyncPersistentInfoFromGui( sessLocal.guiMainMenu, true );
+		}
+
 		uiManager->DeAlloc(guiMainMenu);
 		guiMainMenu = NULL;
 	}
@@ -102,6 +109,12 @@ void idSessionLocal::CreateMainMenu() {
 	}
 	// note: MainMenuStartUp takes the state and handles it
 	mainMenuStartState = MMSS_MAINMENU;
+
+	// stgatilov #6509: copy persistent info to main menu gui vars
+	// unless this is "ingame" menu, make menu GUI source of truth
+	if ( gameLocal.persistentLevelInfoLocation == PERSISTENT_LOCATION_GAME ) {
+		gameLocal.SyncPersistentInfoToGui( sessLocal.guiMainMenu, gameLocal.GameState() != GAMESTATE_ACTIVE );
+	}
 }
 
 /*

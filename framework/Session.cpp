@@ -339,8 +339,6 @@ void idSessionLocal::Stop() {
 
 	// clear mapSpawned and demo playing flags
 	UnloadMap();
-	// stgatilov: reset to default playerstart when "Quit Mission" is used (but not on restart)
-	gameLocal.m_StartPosition = "";
 
 	if ( sw ) {
 		sw->StopAllSounds();
@@ -1542,10 +1540,6 @@ bool idSessionLocal::ExecuteMapChange(idFile* savegameFile, bool noFadeWipe ) {
 			// STiFU #4531: We used to do an initialized load of the map at this point. 
 			// This is now controlled from the outside, however.
 			return false;
-			
-			/*		
-			game->SetServerInfo( mapSpawnData.serverInfo );
-			game->InitFromNewMap( fullMapName + ".map", rw, sw, false, false, Sys_Milliseconds() );*/
 		}
 	} else {
 		game->SetServerInfo( mapSpawnData.serverInfo );
