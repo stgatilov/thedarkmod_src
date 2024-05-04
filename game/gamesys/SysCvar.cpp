@@ -957,3 +957,73 @@ idCVar net_serverDlTable(			"net_serverDlTable",		"",				CVAR_GAME | CVAR_ARCHIV
 idCVar s_driver("s_driver", "0", CVAR_GUI, "Dummy CVAR introduced by TDM to fix a console warning in Windows. Seems to be missing, but D3's mpmain.gui references this.");
 #endif
 
+
+// stgatilov #6530: extracted these constants from game scripts
+
+idCVar tdm_arrow_pullBackEncumbrance(
+	"tdm_arrow_pullBackEncumbrance", "0.30", CVAR_GAME | CVAR_FLOAT,
+	"Multiplier applied to player movement speed when bow is drawn back, e.g. 0.50 is half speed."
+);
+idCVar tdm_arrow_maxPower(
+	"tdm_arrow_maxPower", "1.0", CVAR_GAME | CVAR_FLOAT,
+	"Maximum power the arrow is launched.\n"
+	"This is a multiplier for 'velocity' in the .def file."
+);
+idCVar tdm_arrow_minPower(
+	"tdm_arrow_minPower", "0.1", CVAR_GAME | CVAR_FLOAT,
+	"Minimum power the arrow is launched.\n"
+	"This is a multiplier for 'velocity' in the .def file."
+);
+idCVar tdm_arrow_powerTime(
+	"tdm_arrow_powerTime", "1.5", CVAR_GAME | CVAR_FLOAT,
+	"Time it takes to go from minimum to maximum power.\n"
+);
+idCVar tdm_arrow_numProjectiles(
+	"tdm_arrow_numProjectiles", "1", CVAR_GAME | CVAR_INTEGER,
+	"How many projectiles to launch per shot.\n"
+	"Currently you can only fire one arrow at a time."
+);
+idCVar tdm_arrow_minReleaseTime(
+	"tdm_arrow_minReleaseTime", "0.05", CVAR_GAME | CVAR_FLOAT,
+	"Minimum time the 'pull arrow back' sequence is allowed to go for.\n"
+	"This is so you can't rapidly click the fire button and have a jittery effect."
+);
+idCVar tdm_arrow_tiredTime(
+	"tdm_arrow_tiredTime", "16.0", CVAR_GAME | CVAR_FLOAT,
+	"How long it takes for the player to get tired and put the arrow away.\n"
+);
+idCVar tdm_arrow_startTiredTime(
+	"tdm_arrow_startTiredTime", "12.0", CVAR_GAME | CVAR_FLOAT,
+	"How long it takes for tired anim to start playing.\n"
+	"Note: must be less than tdm_arrow_tired."
+);
+idCVar tdm_arrow_readyArrowTime(
+	"tdm_arrow_readyArrowTime", "1.0", CVAR_GAME | CVAR_FLOAT,
+	"How long it takes to ready the arrow in the bow (before pulling back).\n"
+	"If you let go of fire sooner, the arrow is put away."
+);
+idCVar tdm_arrow_cancelTime(
+	"tdm_arrow_cancelTime", "0.55", CVAR_GAME | CVAR_FLOAT,
+	"Duration of 'let go to early and put away' animation."
+);
+idCVar tdm_arrow_fireTime(
+	"tdm_arrow_fireTime", "0.1", CVAR_GAME | CVAR_FLOAT,
+	"Duration of `fire` animation."
+);
+idCVar tdm_arrow_zoomDelayTime(
+	"tdm_arrow_zoomDelayTime", "6.0", CVAR_GAME | CVAR_FLOAT,
+	"How long bowstring has to be held back before zoom starts."
+);
+idCVar tdm_arrow_zoomAmount(
+	"tdm_arrow_zoomAmount", "60.0", CVAR_GAME | CVAR_FLOAT,
+	"New FOV setting to zoom into when holding bowstring back.\n"
+	"E.g. engine uses 90 degrees for normal view. Set lower number to zoom in."
+);
+idCVar tdm_arrow_zoomInTime(
+	"tdm_arrow_zoomInTime", "2.0", CVAR_GAME | CVAR_FLOAT,
+	"How long to zoom in when holding bowstring back.\n"
+);
+idCVar tdm_arrow_zoomOutTime(
+	"tdm_arrow_zoomOutTime", "0.5", CVAR_GAME | CVAR_FLOAT,
+	"How long to zoom out when holding bowstring back.\n"
+);
