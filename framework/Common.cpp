@@ -151,9 +151,6 @@ idGameEdit *	gameEdit = NULL;
 
 void Com_Crash_f( const idCmdArgs &args );
 
-// writes si_version to the config file - in a kinda obfuscated way
-//#define ID_WRITE_VERSION
-
 class idCommonLocal : public idCommon {
 public:
 								idCommonLocal( void );
@@ -253,10 +250,6 @@ private:
 	idStrList					errorList;
 
     uintptr_t					gameDLL;
-
-#ifdef ID_WRITE_VERSION
-	idCompressor *				config_compressor;
-#endif
 };
 
 idCommonLocal	commonLocal;
@@ -286,10 +279,6 @@ idCommonLocal::idCommonLocal( void ) {
 	rd_flush = NULL;
 
 	gameDLL = 0;
-
-#ifdef ID_WRITE_VERSION
-	config_compressor = NULL;
-#endif
 }
 
 /*
@@ -1319,31 +1308,12 @@ void idCommonLocal::WriteConfigToFile(
 	const eConfigExport	configexport)
 {
 	idFile *f;
-#ifdef ID_WRITE_VERSION
-	ID_TIME_T t;
-	char *curtime;
-	idStr runtag;
-	idFile_Memory compressed( "compressed" );
-	idBase64 out;
-#endif
 
 	f = fileSystem->OpenFileWrite( filename, basePath, "" );
 	if ( !f ) {
 		Printf ("Couldn't write %s.\n", filename );
 		return;
 	}
-
-#ifdef ID_WRITE_VERSION
-	assert( config_compressor );
-	t = time( NULL );
-	curtime = ctime( &t );
-	sprintf( runtag, "%s - %s", cvarSystem->GetCVarString( "si_version" ), curtime );
-	config_compressor->Init( &compressed, true, 8 );
-	config_compressor->Write( runtag.c_str(), runtag.Length() );
-	config_compressor->FinishCompress( );
-	out.Encode( (const byte *)compressed.GetDataPtr(), compressed.Length() );
-	f->Printf( "// %s\n", out.c_str() );
-#endif
 
 	if (configexport == eConfigExport_all || configexport == eConfigExport_keybinds)
 		idKeyInput::WriteBindings( f );
@@ -2853,10 +2823,6 @@ void idCommonLocal::Init( int argc, const char **argv, const char *cmdline )
 		// init commands
 		InitCommands();
 
-#ifdef ID_WRITE_VERSION
-		config_compressor = idCompressor::AllocArithmetic();
-#endif
-
 		// game specific initialization
 		InitGame();
 
@@ -2919,11 +2885,6 @@ void idCommonLocal::Shutdown( void ) {
 
 	// shut down the console command system
 	cmdSystem->Shutdown();
-
-#ifdef ID_WRITE_VERSION
-	delete config_compressor;
-	config_compressor = NULL;
-#endif
 
 	// free any buffered warning messages
 	ClearWarnings( GAME_NAME " shutdown" );
