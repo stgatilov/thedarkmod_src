@@ -1027,3 +1027,48 @@ idCVar tdm_arrow_zoomOutTime(
 	"tdm_arrow_zoomOutTime", "0.5", CVAR_GAME | CVAR_FLOAT,
 	"How long to zoom out when holding bowstring back.\n"
 );
+
+idCVar tdm_vinearrow_spacing(
+	"tdm_vinearrow_spacing", "16.0", CVAR_GAME | CVAR_FLOAT,
+	"Ideal distance between each vine piece (in Doom units)."
+);
+idCVar tdm_vinearrow_growTime(
+	"tdm_vinearrow_growTime", "0.7", CVAR_GAME | CVAR_FLOAT,
+	"How long it takes to grow a vine piece."
+);
+idCVar tdm_vinearrow_growIncrements(
+	"tdm_vinearrow_growIncrements", "10", CVAR_GAME | CVAR_INTEGER,
+	"How many growing increments."
+);
+idCVar tdm_vinearrow_traceInCount(
+	"tdm_vinearrow_traceInCount", "6", CVAR_GAME | CVAR_INTEGER,
+	"Number of attempts to find locations for vine pieces."
+);
+idCVar tdm_vinearrow_outDistance(
+	"tdm_vinearrow_outDistance", "20.0", CVAR_GAME | CVAR_FLOAT,
+	"How far out from the surface to start a child trace (in Doom units)."
+);
+idCVar tdm_vinearrow_angleSector(
+	"tdm_vinearrow_angleSector", "120.0", CVAR_GAME | CVAR_FLOAT,
+	"Angular size of sector where a random vine piece is planted for planting children."
+);
+idCVar tdm_vinearrow_angleSector2(
+	"tdm_vinearrow_angleSector2", "90.0", CVAR_GAME | CVAR_FLOAT,
+	"Angular size of sector where a random vine piece is planted for planting grandchildren."
+);
+idCVar tdm_vinearrow_angleSectorWater(
+	"tdm_vinearrow_angleSectorWater", "60.0", CVAR_GAME | CVAR_FLOAT,
+	"Angular size of sector where a random vine piece is planted after hit by water."
+);
+idCVar tdm_vinearrow_numChildren(
+	"tdm_vinearrow_numChildren", "3", CVAR_GAME | CVAR_INTEGER,
+	"How many direct children vines to grow from shot impact."
+);
+idCVar tdm_vinearrow_numGrandChildren(
+	"tdm_vinearrow_numGrandChildren", "2", CVAR_GAME | CVAR_INTEGER,
+	"How many grandchildren vines to grow from 2 direct children."
+);
+idCVar tdm_vinearrow_numChildrenWater(
+	"tdm_vinearrow_numChildrenWater", "2", CVAR_GAME | CVAR_INTEGER,
+	"How many additional children vines to grow on water stim."
+);
