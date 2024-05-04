@@ -74,6 +74,7 @@ private:
 	void						Event_Trigger( idEntity *ent );
 	void						Event_SetCvar( const char *name, const char *value ) const;
 	void						Event_GetCvar( const char *name ) const;
+	void						Event_GetCvarF( const char *name ) const;
 	void						Event_Random( float range ) const;
 	void						Event_GetTime( void );
 	void						Event_KillThread( const char *name );

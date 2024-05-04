@@ -53,6 +53,7 @@ const idEventDef EV_Thread_Assert( "assert", EventArgs('f', "condition", ""), EV
 const idEventDef EV_Thread_Trigger( "trigger", EventArgs('e', "entityToTrigger", ""), EV_RETURNS_VOID, "Triggers the given entity.");
 const idEventDef EV_Thread_SetCvar( "setcvar", EventArgs('s', "name", "", 's', "value", ""), EV_RETURNS_VOID, "Sets a cvar.");
 const idEventDef EV_Thread_GetCvar( "getcvar", EventArgs('s', "name", ""), 's', "Returns the string for a cvar.");
+const idEventDef EV_Thread_GetCvarF( "getcvarf", EventArgs('s', "name", ""), 'f', "Returns float value for a cvar.");
 const idEventDef EV_Thread_Random( "random", EventArgs('f', "range", ""), 'f', "Returns a random value X where 0 <= X < range.");
 const idEventDef EV_Thread_GetTime( "getTime", EventArgs(), 'f', "Returns the current game time in seconds." );
 const idEventDef EV_Thread_KillThread( "killthread", EventArgs('s', "threadName", ""), EV_RETURNS_VOID, "Kills all threads with the specified name");
@@ -327,6 +328,7 @@ CLASS_DECLARATION( idClass, idThread )
 	EVENT( EV_Thread_Trigger,				idThread::Event_Trigger )
 	EVENT( EV_Thread_SetCvar,				idThread::Event_SetCvar )
 	EVENT( EV_Thread_GetCvar,				idThread::Event_GetCvar )
+	EVENT( EV_Thread_GetCvarF,				idThread::Event_GetCvarF )
 	EVENT( EV_Thread_Random,				idThread::Event_Random )
 	EVENT( EV_Thread_GetTime,				idThread::Event_GetTime )
 	EVENT( EV_Thread_KillThread,			idThread::Event_KillThread )
@@ -1359,6 +1361,15 @@ idThread::Event_GetCvar
 */
 void idThread::Event_GetCvar( const char *name ) const {
 	ReturnString( cvarSystem->GetCVarString( name ) );
+}
+
+/*
+================
+idThread::Event_GetCvarFloat
+================
+*/
+void idThread::Event_GetCvarF( const char *name ) const {
+	ReturnFloat( cvarSystem->GetCVarFloat( name ) );
 }
 
 /*
