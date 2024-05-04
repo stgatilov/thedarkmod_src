@@ -252,18 +252,12 @@ public:
 	virtual void			CommandCompletion( void(*callback)( const char *s ) ) = 0;
 	virtual void			ArgCompletion( const char *cmdString, void(*callback)( const char *s ) ) = 0;
 
-							// Resets variables with one of the given flags set.
-	virtual void			ResetFlaggedVariables( int flags ) = 0;
-
-							// Removes auto-completion from the flagged variables.
-	virtual void			RemoveFlaggedAutoCompletion( int flags ) = 0;
-
-							// Writes variables with one of the given flags set to the given file.
-	virtual void			WriteFlaggedVariables( int flags, const char *setCmd, idFile *f ) const = 0;
-
 							// Moves CVars to and from dictionaries.
-	virtual const idDict *	MoveCVarsToDict( int flags ) const = 0;
+	virtual idDict			MoveCVarsToDict( int flags ) const = 0;
 	virtual void			SetCVarsFromDict( const idDict &dict ) = 0;
+
+	virtual bool			WasArchivedCVarModifiedAfterLastWrite() = 0;
+	virtual void			WriteArchivedCVars( idFile *f ) = 0;
 };
 
 extern idCVarSystem *		cvarSystem;

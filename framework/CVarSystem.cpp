@@ -213,6 +213,10 @@ void idCVar::Set( const char *newValue, bool force, bool fromServer ) {
 	UpdateValue();
 
 	SetModified();
+
+	extern void SetArchivedCVarModified();
+	if ( flags & CVAR_ARCHIVE )
+		SetArchivedCVarModified();
 }
 
 /*
@@ -308,12 +312,12 @@ public:
 	virtual void			CommandCompletion( void(*callback)( const char *s ) ) override;
 	virtual void			ArgCompletion( const char *cmdString, void(*callback)( const char *s ) ) override;
 
-	virtual void			ResetFlaggedVariables( int flags ) override;
-	virtual void			RemoveFlaggedAutoCompletion( int flags ) override;
-	virtual void			WriteFlaggedVariables( int flags, const char *setCmd, idFile *f ) const override;
-
-	virtual const idDict *	MoveCVarsToDict( int flags ) const override;
+	virtual idDict			MoveCVarsToDict( int flags ) const override;
 	virtual void			SetCVarsFromDict( const idDict &dict ) override;
+
+	friend void				SetArchivedCVarModified();
+	virtual bool			WasArchivedCVarModifiedAfterLastWrite() override;
+	virtual void			WriteArchivedCVars( idFile *f ) override;
 
 	void					RegisterInternal( idCVar *cvar );
 	idCVar *				FindInternal( const char *name ) const;
@@ -321,13 +325,12 @@ public:
 
 private:
 	bool					initialized;
+
 	idList<idCVar*>			cvars;
 	idHashIndex				cvarHash;
 	mutable idSysMutex		mutex;			// protects list and hash table of cvars, but not contents of cvars
 
-							// use a static dictionary to MoveCVarsToDict can be used from game
-	static idDict			moveCVarsToDict;
-
+	std::atomic<bool>		wasArchivedCvarModifiedAfterLastWrite;
 
 private:
 	static void				Toggle_f( const idCmdArgs &args );
@@ -344,8 +347,6 @@ private:
 
 idCVarSystemLocal			localCVarSystem;
 idCVarSystem *				cvarSystem = &localCVarSystem;
-
-idDict						idCVarSystemLocal::moveCVarsToDict;
 
 #define NUM_COLUMNS				77		// 78 - 1
 #define NUM_NAME_CHARS			33
@@ -448,6 +449,7 @@ void idCVarSystemLocal::Init( void ) {
 	cmdSystem->AddCommand( "cvar_restart", Restart_f, CMD_FL_SYSTEM, "restart the cvar system" );
 
 	initialized = true;
+	wasArchivedCvarModifiedAfterLastWrite.store( false );
 }
 
 /*
@@ -463,7 +465,6 @@ void idCVarSystemLocal::Shutdown( void ) {
 	}
 	cvars.ClearFree();
 	cvarHash.ClearFree();
-	moveCVarsToDict.ClearFree();
 	initialized = false;
 }
 
@@ -667,71 +668,51 @@ void idCVarSystemLocal::ArgCompletion( const char *cmdString, void(*callback)( c
 
 /*
 ============
-idCVarSystemLocal::ResetFlaggedVariables
+idCVarSystemLocal::WasArchivedCVarModifiedAfterLastWrite
 ============
 */
-void idCVarSystemLocal::ResetFlaggedVariables( int flags ) {
-	idScopedCriticalSection lock( mutex );
-
-	for( int i = 0; i < cvars.Num(); i++ ) {
-		idCVar *cvar = cvars[i];
-		if ( cvar->GetFlags() & flags ) {
-			cvar->Set( NULL, true, true );
-		}
-	}
+bool idCVarSystemLocal::WasArchivedCVarModifiedAfterLastWrite() {
+	return wasArchivedCvarModifiedAfterLastWrite.load( std::memory_order_acquire );
+}
+void SetArchivedCVarModified() {
+	localCVarSystem.wasArchivedCvarModifiedAfterLastWrite.store( true, std::memory_order_release );
 }
 
 /*
 ============
-idCVarSystemLocal::RemoveFlaggedAutoCompletion
+idCVarSystemLocal::WriteArchivedCVars
 ============
 */
-void idCVarSystemLocal::RemoveFlaggedAutoCompletion( int flags ) {
+void idCVarSystemLocal::WriteArchivedCVars( idFile *f ) {
 	idScopedCriticalSection lock( mutex );
 
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
-		if ( cvar->GetFlags() & flags ) {
-			cvar->valueCompletion = NULL;
+		if ( cvar->GetFlags() & CVAR_ARCHIVE ) {
+			f->Printf( "seta %s \"%s\"\n", cvar->GetName(), cvar->GetString() );
 		}
 	}
+
+	wasArchivedCvarModifiedAfterLastWrite.store( false );
 }
 
-/*
-============
-idCVarSystemLocal::WriteFlaggedVariables
-
-Appends lines containing "set variable value" for all variables
-with the "flags" flag set to true.
-============
-*/
-void idCVarSystemLocal::WriteFlaggedVariables( int flags, const char *setCmd, idFile *f ) const {
-	idScopedCriticalSection lock( mutex );
-
-	for( int i = 0; i < cvars.Num(); i++ ) {
-		idCVar *cvar = cvars[i];
-		if ( cvar->GetFlags() & flags ) {
-			f->Printf( "%s %s \"%s\"\n", setCmd, cvar->GetName(), cvar->GetString() );
-		}
-	}
-}
 
 /*
 ============
 idCVarSystemLocal::MoveCVarsToDict
 ============
 */
-const idDict* idCVarSystemLocal::MoveCVarsToDict( int flags ) const {
+idDict idCVarSystemLocal::MoveCVarsToDict( int flags ) const {
 	idScopedCriticalSection lock( mutex );
 
-	moveCVarsToDict.Clear();
+	idDict dict;
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
 		if ( cvar->GetFlags() & flags ) {
-			moveCVarsToDict.Set( cvar->GetName(), cvar->GetString() );
+			dict.Set( cvar->GetName(), cvar->GetString() );
 		}
 	}
-	return &moveCVarsToDict;
+	return dict;
 }
 
 /*

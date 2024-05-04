@@ -93,7 +93,7 @@ Session_RescanSI_f
 =================
 */
 void Session_RescanSI_f( const idCmdArgs &args ) {
-	sessLocal.mapSpawnData.serverInfo = *cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
+	sessLocal.mapSpawnData.serverInfo = cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
 }
 
 /*
@@ -1110,10 +1110,10 @@ void idSessionLocal::StartNewGame( const char *mapName, bool devmap ) {
 	// clear the userInfo so the player starts out with the defaults
 	mapSpawnData.userInfo[0].Clear();
 	mapSpawnData.persistentPlayerInfo[0].Clear();
-	mapSpawnData.userInfo[0] = *cvarSystem->MoveCVarsToDict( CVAR_USERINFO );
+	mapSpawnData.userInfo[0] = cvarSystem->MoveCVarsToDict( CVAR_USERINFO );
 
 	mapSpawnData.serverInfo.Clear();
-	mapSpawnData.serverInfo = *cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
+	mapSpawnData.serverInfo = cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
 	mapSpawnData.serverInfo.Set( "si_gameType", "singleplayer" );
 
 	// set the devmap key so any play testing items will be given at
@@ -1123,7 +1123,7 @@ void idSessionLocal::StartNewGame( const char *mapName, bool devmap ) {
 	}
 
 	mapSpawnData.syncedCVars.Clear();
-	mapSpawnData.syncedCVars = *cvarSystem->MoveCVarsToDict( CVAR_NETWORKSYNC );
+	mapSpawnData.syncedCVars = cvarSystem->MoveCVarsToDict( CVAR_NETWORKSYNC );
 
 	MoveToNewMap( mapName );
 }
@@ -2199,13 +2199,13 @@ bool idSessionLocal::DoLoadGame( const char *saveName, const bool initializedLoa
 	// Start loading map
 	mapSpawnData.serverInfo.Clear();
 
-	mapSpawnData.serverInfo = *cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
+	mapSpawnData.serverInfo = cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
 	mapSpawnData.serverInfo.Set( "si_gameType", "singleplayer" );
 
 	mapSpawnData.serverInfo.Set( "si_map", saveMap );
 
 	mapSpawnData.syncedCVars.Clear();
-	mapSpawnData.syncedCVars = *cvarSystem->MoveCVarsToDict( CVAR_NETWORKSYNC );
+	mapSpawnData.syncedCVars = cvarSystem->MoveCVarsToDict( CVAR_NETWORKSYNC );
 
 	mapSpawnData.mapSpawnUsercmd[0] = usercmdGen->TicCmd( latchedTicNumber );
 	// make sure no buttons are pressed

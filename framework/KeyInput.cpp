@@ -185,6 +185,8 @@ public:
 bool		key_overstrikeMode = false;
 idKey *		keys = NULL;
 
+bool idKeyInput::wasModifiedAfterLastWrite = false;
+
 /*
 ===================
 idKeyInput::ArgCompletion_KeyName
@@ -383,6 +385,9 @@ void idKeyInput::SetBinding( int keynum, const char *binding ) {
 
 	// find the action for the async command generation
 	keys[keynum].usercmdAction = usercmdGen->CommandStringUsercmdData( binding );
+
+	// config will be written to file at the next opportunity
+	wasModifiedAfterLastWrite = true;
 }
 
 
@@ -519,11 +524,10 @@ Writes lines containing "bind key value"
 ============
 */
 void idKeyInput::WriteBindings( idFile *f ) {
-	int		i;
 
 	f->Printf( "unbindall\n" );
 
-	for ( i = 0; i < MAX_KEYS; i++ ) {
+	for ( int i = 0; i < MAX_KEYS; i++ ) {
 		if ( keys[i].binding.Length() ) {
 			const char *name = KeyNumToString( i, false );
 
@@ -535,6 +539,8 @@ void idKeyInput::WriteBindings( idFile *f ) {
 			}
 		}
 	}
+
+	wasModifiedAfterLastWrite = false;
 }
 
 /*

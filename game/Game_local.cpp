@@ -1830,7 +1830,7 @@ void idGameLocal::MapRestart( ) {
 	const idKeyValue *keyval, *keyval2;
 
 	{
-		newInfo = *cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
+		newInfo = cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
 		for ( i = 0; i < newInfo.GetNumKeyVals(); i++ ) {
 			keyval = newInfo.GetKeyVal( i );
 			keyval2 = serverInfo.FindKey( keyval->GetKey() );
@@ -7035,7 +7035,7 @@ bool idGameLocal::NeedRestart() {
 	idDict		newInfo;
 	const idKeyValue *keyval, *keyval2;
 
-	newInfo = *cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
+	newInfo = cvarSystem->MoveCVarsToDict( CVAR_SERVERINFO );
 
 	for ( int i = 0; i < newInfo.GetNumKeyVals(); i++ ) {
 		keyval = newInfo.GetKeyVal( i );

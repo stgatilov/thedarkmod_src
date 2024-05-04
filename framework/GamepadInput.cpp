@@ -151,6 +151,8 @@ void Gamepad_Unbind_f( const idCmdArgs &args ) {
 	idGamepadInput::UnbindAll();
 }
 
+bool idGamepadInput::wasModifiedAfterLastWrite = false;
+
 void idGamepadInput::Init() {
 	memset(axisState, 0, sizeof(axisState));
 	modifierButton = -1;
@@ -218,6 +220,9 @@ void idGamepadInput::UnbindAll() {
 		}
 	}
 	modifierButton = -1;
+
+	// config will be written to file at the next opportunity
+	wasModifiedAfterLastWrite = true;
 }
 
 void idGamepadInput::SetBinding( int button, int type, const idStr &binding ) {
@@ -250,6 +255,9 @@ void idGamepadInput::SetBinding( int button, int type, const idStr &binding ) {
 			modifierButton = -1;
 		}
 	}
+
+	// config will be written to file at the next opportunity
+	wasModifiedAfterLastWrite = true;
 }
 
 void idGamepadInput::SetButtonState( int button, bool pressed ) {
@@ -386,4 +394,6 @@ void idGamepadInput::WriteBindings( idFile *f ) {
 			}
 		}
 	}
+
+	wasModifiedAfterLastWrite = false;
 }
