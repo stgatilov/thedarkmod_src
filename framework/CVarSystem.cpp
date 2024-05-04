@@ -19,7 +19,6 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 
 idCVar * idCVar::staticVars = NULL;
-bool idCVar::blockVarsCreation = false;
 
 
 /*
@@ -66,10 +65,6 @@ void idCVar::RegisterStaticVars( void ) {
 	}
 }
 
-void idCVar::BlockVarsCreation( void ) {
-	blockVarsCreation = true;
-}
-
 /*
 ===============================================================================
 
@@ -78,7 +73,6 @@ void idCVar::BlockVarsCreation( void ) {
 ===============================================================================
 */
 
-#if 0
 /*
 ============
 idInternalCVar::idInternalCVar
@@ -101,7 +95,6 @@ idCVar *idCVar::InternalCreate( const char *newName, const char *newValue, int n
 	self->UpdateValue();
 	return self;
 }
-#endif
 
 /*
 ============
@@ -330,6 +323,8 @@ private:
 	bool					initialized;
 	idList<idCVar*>			cvars;
 	idHashIndex				cvarHash;
+	mutable idSysMutex		mutex;			// protects list and hash table of cvars, but not contents of cvars
+
 							// use a static dictionary to MoveCVarsToDict can be used from game
 	static idDict			moveCVarsToDict;
 
@@ -385,6 +380,7 @@ idCVarSystemLocal::FindInternal
 ============
 */
 idCVar *idCVarSystemLocal::FindInternal( const char *name ) const {
+	// note: mutex must be locked outside
 	int hash = cvarHash.GenerateKey( name, false );
 	for ( int i = cvarHash.First( hash ); i != -1; i = cvarHash.Next( i ) ) {
 		if ( cvars[i]->nameString.Icmp( name ) == 0 ) {
@@ -400,6 +396,8 @@ idCVarSystemLocal::SetInternal
 ============
 */
 void idCVarSystemLocal::SetInternal( const char *name, const char *value, int flags ) {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( name );
 
 	if ( internal ) {
@@ -414,20 +412,12 @@ void idCVarSystemLocal::SetInternal( const char *name, const char *value, int fl
             common->Warning("Attempt to modify read-only %s CVAR failed.", name);
         }
 	} else {
-		if ( idCVar::blockVarsCreation ) {
-			// #5600: creating cvars during gameplay is not threadsafe
-			common->Warning( "Setting unregistered cvar %s to \"%s\" ignored", name, value );
-		} else {
-			// this happens after switching versions/platforms because .cfg files contains unknown cvars
-			// perhaps we want to make unknown cvars created via "seta" as archivable?
-			// in that case it would make sense to uncomment this and actually create the cvar
-			// but right now even if we create cvar, it will disappear from .cfg on game exit
-#if 0
-			internal = idCVar::InternalCreate( name, value, flags );
-			int hash = cvarHash.GenerateKey( internal->nameString.c_str(), false );
-			cvarHash.Add( hash, cvars.Append( internal ) );
-#endif
-		}
+		// cvars can be created dynamically by game scripts of mods, although this is a rarely used feature...
+		// also this happens after switching versions/platforms because .cfg files contains unknown cvars
+		// perhaps we want to make unknown cvars created via "seta" as archivable?
+		internal = idCVar::InternalCreate( name, value, flags );
+		int hash = cvarHash.GenerateKey( internal->nameString.c_str(), false );
+		cvarHash.Add( hash, cvars.Append( internal ) );
 	}
 }
 
@@ -511,6 +501,7 @@ idCVarSystemLocal::Find
 ============
 */
 idCVar *idCVarSystemLocal::Find( const char *name ) {
+	idScopedCriticalSection lock( mutex );
 	return FindInternal( name );
 }
 
@@ -556,6 +547,8 @@ idCVarSystemLocal::GetCVarString
 ============
 */
 const char *idCVarSystemLocal::GetCVarString( const char *name ) const {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( name );
 	if ( internal ) {
 		return internal->GetString();
@@ -569,6 +562,8 @@ idCVarSystemLocal::GetCVarBool
 ============
 */
 bool idCVarSystemLocal::GetCVarBool( const char *name ) const {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( name );
 	if ( internal ) {
 		return internal->GetBool();
@@ -582,6 +577,8 @@ idCVarSystemLocal::GetCVarInteger
 ============
 */
 int idCVarSystemLocal::GetCVarInteger( const char *name ) const {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( name );
 	if ( internal ) {
 		return internal->GetInteger();
@@ -595,6 +592,8 @@ idCVarSystemLocal::GetCVarFloat
 ============
 */
 float idCVarSystemLocal::GetCVarFloat( const char *name ) const {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( name );
 	if ( internal ) {
 		return internal->GetFloat();
@@ -608,6 +607,8 @@ idCVarSystemLocal::Command
 ============
 */
 bool idCVarSystemLocal::Command( const idCmdArgs &args ) {
+	idScopedCriticalSection lock( mutex );
+
 	idCVar *internal = FindInternal( args.Argv( 0 ) );
 
 	if ( internal == NULL ) {
@@ -634,6 +635,8 @@ idCVarSystemLocal::CommandCompletion
 ============
 */
 void idCVarSystemLocal::CommandCompletion( void(*callback)( const char *s ) ) {
+	idScopedCriticalSection lock( mutex );
+
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		callback( cvars[i]->GetName() );
 	}
@@ -645,6 +648,8 @@ idCVarSystemLocal::ArgCompletion
 ============
 */
 void idCVarSystemLocal::ArgCompletion( const char *cmdString, void(*callback)( const char *s ) ) {
+	idScopedCriticalSection lock( mutex );
+
 	idCmdArgs args;
 
 	args.TokenizeString( cmdString, false );
@@ -666,6 +671,8 @@ idCVarSystemLocal::ResetFlaggedVariables
 ============
 */
 void idCVarSystemLocal::ResetFlaggedVariables( int flags ) {
+	idScopedCriticalSection lock( mutex );
+
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
 		if ( cvar->GetFlags() & flags ) {
@@ -680,6 +687,8 @@ idCVarSystemLocal::RemoveFlaggedAutoCompletion
 ============
 */
 void idCVarSystemLocal::RemoveFlaggedAutoCompletion( int flags ) {
+	idScopedCriticalSection lock( mutex );
+
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
 		if ( cvar->GetFlags() & flags ) {
@@ -697,6 +706,8 @@ with the "flags" flag set to true.
 ============
 */
 void idCVarSystemLocal::WriteFlaggedVariables( int flags, const char *setCmd, idFile *f ) const {
+	idScopedCriticalSection lock( mutex );
+
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
 		if ( cvar->GetFlags() & flags ) {
@@ -711,6 +722,8 @@ idCVarSystemLocal::MoveCVarsToDict
 ============
 */
 const idDict* idCVarSystemLocal::MoveCVarsToDict( int flags ) const {
+	idScopedCriticalSection lock( mutex );
+
 	moveCVarsToDict.Clear();
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
@@ -727,11 +740,11 @@ idCVarSystemLocal::SetCVarsFromDict
 ============
 */
 void idCVarSystemLocal::SetCVarsFromDict( const idDict &dict ) {
-	idCVar *internal;
+	idScopedCriticalSection lock( mutex );
 
 	for( int i = 0; i < dict.GetNumKeyVals(); i++ ) {
 		const idKeyValue *kv = dict.GetKeyVal( i );
-		internal = FindInternal( kv->GetKey() );
+		idCVar *internal = FindInternal( kv->GetKey() );
 		if ( internal ) {
 			internal->InternalServerSetString( kv->GetValue() );
 		}
@@ -756,6 +769,8 @@ void idCVarSystemLocal::Toggle_f( const idCmdArgs &args ) {
 			"   toggle <variable> [string 1] [string 2]...[string n] - cycles through all strings\n");
 		return;
 	}
+
+	idScopedCriticalSection lock( localCVarSystem.mutex );
 
 	idCVar *cvar = localCVarSystem.FindInternal( args.Argv( 1 ) );
 
@@ -878,6 +893,7 @@ void idCVarSystemLocal::Reset_f( const idCmdArgs &args ) {
 		common->Printf ("usage: reset <variable>\n");
 		return;
 	}
+	idScopedCriticalSection lock( localCVarSystem.mutex );
 	idCVar *cvar = localCVarSystem.FindInternal( args.Argv( 1 ) );
 	if ( !cvar ) {
 		return;
@@ -931,6 +947,7 @@ void idCVarSystemLocal::ListByFlags( const idCmdArgs &args, cvarFlags_t flags ) 
 		match = "";
 	}
 
+	idScopedCriticalSection lock( localCVarSystem.mutex );
 	idList<const idCVar *>cvarList;
 	for ( i = 0; i < localCVarSystem.cvars.Num(); i++ ) {
 		const idCVar *cvar = localCVarSystem.cvars[i];
@@ -1064,6 +1081,8 @@ idCVarSystemLocal::Restart_f
 ============
 */
 void idCVarSystemLocal::Restart_f( const idCmdArgs &args ) {
+	idScopedCriticalSection lock( localCVarSystem.mutex );
+
 	for ( int i = 0; i < localCVarSystem.cvars.Num(); i++ ) {
 		idCVar *cvar = localCVarSystem.cvars[i];
 
