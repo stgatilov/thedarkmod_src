@@ -1072,3 +1072,22 @@ idCVar tdm_vinearrow_numChildrenWater(
 	"tdm_vinearrow_numChildrenWater", "2", CVAR_GAME | CVAR_INTEGER,
 	"How many additional children vines to grow on water stim."
 );
+
+idCVar tdm_flashbomb_playerDistanceFullBlind(
+	"tdm_flashbomb_playerDistanceFullBlind", "200.0", CVAR_GAME | CVAR_FLOAT,
+	"Within this distance, the thief is fully blinded (if he faces the detonation)."
+);
+idCVar tdm_flashbomb_playerDistanceNoBlind(
+	"tdm_flashbomb_playerDistanceNoBlind", "500.0", CVAR_GAME | CVAR_FLOAT,
+	"Within this distance, the thief is softly blinded (if he faces the detonation).\n"
+	"Above this value, the player doesn't get blinded at all."
+);
+idCVar tdm_flashbomb_maxPlayerApexAngle(
+	"tdm_flashbomb_maxPlayerApexAngle", "55.0", CVAR_GAME | CVAR_FLOAT,
+	"This is the angle defining how much the player can face away from the detonation and still get blinded. "
+	"A value of 0 means that the player must look EXACTLY in the direction of the detonation."
+);
+idCVar tdm_flashbomb_lightTime(
+	"tdm_flashbomb_lightTime", "0.3", CVAR_GAME | CVAR_FLOAT,
+	"For how long the flash light is spawned."
+);
