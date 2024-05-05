@@ -1087,7 +1087,3 @@ idCVar tdm_flashbomb_maxPlayerApexAngle(
 	"This is the angle defining how much the player can face away from the detonation and still get blinded. "
 	"A value of 0 means that the player must look EXACTLY in the direction of the detonation."
 );
-idCVar tdm_flashbomb_lightTime(
-	"tdm_flashbomb_lightTime", "0.3", CVAR_GAME | CVAR_FLOAT,
-	"For how long the flash light is spawned."
-);
