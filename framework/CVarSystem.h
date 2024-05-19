@@ -266,6 +266,9 @@ public:
 
 	virtual bool			WasArchivedCVarModifiedAfterLastWrite() = 0;
 	virtual void			WriteArchivedCVars( idFile *f ) = 0;
+
+	virtual idDict			GetMissionOverrides() const = 0;
+	virtual void			SetMissionOverrides( const idDict &dict = {} ) = 0;
 };
 
 extern idCVarSystem *		cvarSystem;

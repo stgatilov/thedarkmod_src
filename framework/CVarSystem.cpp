@@ -352,6 +352,9 @@ public:
 	virtual bool			WasArchivedCVarModifiedAfterLastWrite() override;
 	virtual void			WriteArchivedCVars( idFile *f ) override;
 
+	virtual idDict			GetMissionOverrides() const override;
+	virtual void			SetMissionOverrides( const idDict &dict = {} ) override;
+
 	void					RegisterInternal( idCVar *cvar );
 	idCVar *				FindInternal( const char *name ) const;
 	void					SetInternal( const char *name, const char *value, int flags, bool mission );
@@ -759,7 +762,7 @@ void idCVarSystemLocal::WriteArchivedCVars( idFile *f ) {
 	for( int i = 0; i < cvars.Num(); i++ ) {
 		idCVar *cvar = cvars[i];
 		if ( cvar->GetFlags() & CVAR_ARCHIVE ) {
-			f->Printf( "seta %s \"%s\"\n", cvar->GetName(), cvar->GetString() );
+			f->Printf( "seta %s \"%s\"\n", cvar->GetName(), cvar->valueString.c_str() );
 		}
 	}
 
@@ -798,6 +801,48 @@ void idCVarSystemLocal::SetCVarsFromDict( const idDict &dict ) {
 		idCVar *internal = FindInternal( kv->GetKey() );
 		if ( internal ) {
 			internal->InternalServerSetString( kv->GetValue() );
+		}
+	}
+}
+
+/*
+============
+idCVarSystemLocal::GetMissionOverrides
+============
+*/
+idDict idCVarSystemLocal::GetMissionOverrides() const {
+	idScopedCriticalSection lock( mutex );
+
+	idDict dict;
+	for ( int i = 0; i < cvars.Num(); i++ ) {
+		idCVar *cvar = cvars[i];
+		if ( cvar->missionOverride ) {
+			dict.Set( cvar->GetName(), cvar->missionString );
+		}
+	}
+	return dict;
+}
+
+/*
+============
+idCVarSystemLocal::SetMissionOverrides
+============
+*/
+void idCVarSystemLocal::SetMissionOverrides( const idDict &dict ) {
+	idScopedCriticalSection lock( mutex );
+
+	for ( int i = 0; i < cvars.Num(); i++ ) {
+		idCVar *cvar = cvars[i];
+		if ( cvar->missionOverride ) {
+			cvar->InternalMissionSetString( nullptr );
+		}
+	}
+
+	for ( int i = 0; i < dict.GetNumKeyVals(); i++ ) {
+		const idKeyValue *kv = dict.GetKeyVal( i );
+		idCVar *internal = FindInternal( kv->GetKey() );
+		if ( internal ) {
+			internal->InternalMissionSetString( kv->GetValue() );
 		}
 	}
 }

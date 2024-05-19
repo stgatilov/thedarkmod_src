@@ -782,6 +782,10 @@ void idGameLocal::SaveGame( idFile *f ) {
 
 	savegame.WriteHeader();
 
+	// #5453: save mission overrides of all cvars
+	idDict cvarOverrides = cvarSystem->GetMissionOverrides();
+	savegame.WriteDict( &cvarOverrides );
+
 	// go through all entities and threads and add them to the object list
 	for (i = 0; i < MAX_GENTITIES; i++)
 	{
@@ -1914,6 +1918,9 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 
 	gamestate = GAMESTATE_STARTUP;
 
+	// #5453: reset all mission overrides
+	cvarSystem->SetMissionOverrides();
+
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
 
@@ -2005,8 +2012,13 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 // 		return false;
 // 	}
 
-	// Read and initialize  cache from file
+	// Read and initialize cache from file
 	savegame.InitializeCache();
+
+	// #5453: restore mission overrides of all cvars
+	idDict cvarOverrides;
+	savegame.ReadDict( &cvarOverrides );
+	cvarSystem->SetMissionOverrides( cvarOverrides );
 
 	// Create the list of all objects in the game
 	savegame.CreateObjects();
@@ -2515,6 +2527,9 @@ void idGameLocal::MapShutdown( void ) {
 
 	gameRenderWorld = NULL;
 	gameSoundWorld = NULL;
+
+	// #5453: reset all mission overrides
+	cvarSystem->SetMissionOverrides();
 
 	gamestate = GAMESTATE_NOMAP;
 
