@@ -83,8 +83,9 @@ idCVar *idCVar::InternalCreate( const char *newName, const char *newValue, int n
 	self->nameString = newName;
 	self->name = self->nameString.c_str();
 	self->valueString = newValue;
-	self->value = self->valueString.c_str();
 	self->resetString = newValue;
+	self->missionString = "";
+	self->missionOverride = false;
 	self->descriptionString = "";
 	self->description = self->descriptionString.c_str();
 	self->flags = ( newFlags & ~CVAR_STATIC ) | CVAR_MODIFIED;
@@ -105,8 +106,9 @@ void idCVar::InternalRegister( void ) {
 	nameString = name;
 	name = nameString.c_str();
 	valueString = value;
-	value = valueString.c_str();
 	resetString = value;
+	missionString = "";
+	missionOverride = false;
 	descriptionString = GetDescription();
 	description = descriptionString.c_str();
 	flags |= CVAR_MODIFIED;
@@ -121,12 +123,20 @@ idInternalCVar::UpdateValue
 void idCVar::UpdateValue( void ) {
 	bool clamped = false;
 
+	idStr *pActiveValue = nullptr;
+	if ( missionOverride ) {
+		pActiveValue = &missionString;
+	} else {
+		pActiveValue = &valueString;
+	}
+	value = pActiveValue->c_str();
+
 	if ( flags & CVAR_BOOL ) {
 		integerValue = ( atoi( value ) != 0 );
 		floatValue = integerValue;
 		if ( idStr::Icmp( value, "0" ) != 0 && idStr::Icmp( value, "1" ) != 0 ) {
-			valueString = idStr( (bool)( integerValue != 0 ) );
-			value = valueString.c_str();
+			*pActiveValue = idStr( (bool)( integerValue != 0 ) );
+			value = pActiveValue->c_str();
 		}
 	} else if ( flags & CVAR_INTEGER ) {
 		integerValue = (int)atoi( value );
@@ -140,8 +150,8 @@ void idCVar::UpdateValue( void ) {
 			}
 		}
 		if ( clamped || !idStr::IsNumeric( value ) || idStr::FindChar( value, '.' ) ) {
-			valueString = idStr( integerValue );
-			value = valueString.c_str();
+			*pActiveValue = idStr( integerValue );
+			value = pActiveValue->c_str();
 		}
 		floatValue = (float)integerValue;
 	} else if ( flags & CVAR_FLOAT ) {
@@ -156,23 +166,23 @@ void idCVar::UpdateValue( void ) {
 			}
 		}
 		if ( clamped || !idStr::IsNumeric( value ) ) {
-			valueString = idStr( floatValue );
-			value = valueString.c_str();
+			*pActiveValue = idStr( floatValue );
+			value = pActiveValue->c_str();
 		}
 		integerValue = (int)floatValue;
 	} else {
 		if ( valueStrings && valueStrings[0] ) {
 			integerValue = 0;
 			for ( int i = 0; valueStrings[i]; i++ ) {
-				if ( valueString.Icmp( valueStrings[i] ) == 0 ) {
+				if ( idStr::Icmp( value, valueStrings[i] ) == 0 ) {
 					integerValue = i;
 					break;
 				}
 			}
-			valueString = valueStrings[integerValue];
-			value = valueString.c_str();
+			*pActiveValue = valueStrings[integerValue];
+			value = pActiveValue->c_str();
 			floatValue = (float)integerValue;
-		} else if ( valueString.Length() < 32 ) {
+		} else if ( idStr::Length( value ) < 32 ) {
 			floatValue = (float)atof( value );
 			integerValue = (int)floatValue;
 		} else {
@@ -187,11 +197,7 @@ void idCVar::UpdateValue( void ) {
 idInternalCVar::Set
 ============
 */
-void idCVar::Set( const char *newValue, bool force, bool fromServer ) {
-	if ( !newValue ) {
-		newValue = resetString.c_str();
-	}
-
+void idCVar::Set( const char *newValue, bool force, bool fromServer, bool mission ) {
 	if ( !force ) {
 		if ( flags & CVAR_ROM ) {
 			common->Printf( "%s is read only.\n", nameString.c_str() );
@@ -204,18 +210,34 @@ void idCVar::Set( const char *newValue, bool force, bool fromServer ) {
 		}
 	}
 
-	if ( valueString.Icmp( newValue ) == 0 ) {
-		return;
+	idStr *pModifiedValue = nullptr;
+	if ( mission ) {
+		if ( !newValue ) {
+			// NULL -> unset mission override
+			missionOverride = false;
+			goto DoUpdate;
+		}
+		missionOverride = true;
+		pModifiedValue = &missionString;
+	} else {
+		if ( !newValue ) {
+			newValue = resetString.c_str();
+		}
+		missionOverride = false;
+		missionString.Clear();
+		pModifiedValue = &valueString;
 	}
 
-	valueString = newValue;
-	value = valueString.c_str();
+	*pModifiedValue = newValue;
+	value = pModifiedValue->c_str();
+
+DoUpdate:
 	UpdateValue();
 
 	SetModified();
 
 	extern void SetArchivedCVarModified();
-	if ( flags & CVAR_ARCHIVE )
+	if ( ( flags & CVAR_ARCHIVE ) && !mission )
 		SetArchivedCVarModified();
 }
 
@@ -226,7 +248,7 @@ idInternalCVar::Reset
 */
 void idCVar::Reset( void ) {
 	valueString = resetString;
-	value = valueString.c_str();
+	missionOverride = false;
 	UpdateValue();
 }
 
@@ -236,7 +258,7 @@ idInternalCVar::InternalSetString
 ============
 */
 void idCVar::InternalSetString( const char *newValue ) {
-	Set( newValue, true, false );
+	Set( newValue, true, false, false );
 }
 
 /*
@@ -245,7 +267,16 @@ idInternalCVar::InternalServerSetString
 ===============
 */
 void idCVar::InternalServerSetString( const char *newValue ) {
-	Set( newValue, true, true );
+	Set( newValue, true, true, false );
+}
+
+/*
+===============
+idInternalCVar::InternalMissionSetString
+===============
+*/
+void idCVar::InternalMissionSetString( const char *newValue ) {
+	Set( newValue, true, false, true );
 }
 
 /*
@@ -254,7 +285,7 @@ idInternalCVar::InternalSetBool
 ============
 */
 void idCVar::InternalSetBool( const bool newValue ) {
-	Set( idStr( newValue ), true, false );
+	Set( idStr( newValue ), true, false, false );
 }
 
 /*
@@ -263,7 +294,7 @@ idInternalCVar::InternalSetInteger
 ============
 */
 void idCVar::InternalSetInteger( const int newValue ) {
-	Set( idStr( newValue ), true, false );
+	Set( idStr( newValue ), true, false, false );
 }
 
 /*
@@ -272,7 +303,7 @@ idInternalCVar::InternalSetFloat
 ============
 */
 void idCVar::InternalSetFloat( const float newValue ) {
-	Set( idStr( newValue ), true, false );
+	Set( idStr( newValue ), true, false, false );
 }
 
 /*
@@ -301,6 +332,7 @@ public:
 	virtual void			SetCVarBool( const char *name, const bool value, int flags = 0 ) override;
 	virtual void			SetCVarInteger( const char *name, const int value, int flags = 0 ) override;
 	virtual void			SetCVarFloat( const char *name, const float value, int flags = 0 ) override;
+	virtual void			SetCVarMissionString( const char *name, const char *value ) override;
 
 	virtual const char *	GetCVarString( const char *name ) const override;
 	virtual bool			GetCVarBool( const char *name ) const override;
@@ -321,7 +353,7 @@ public:
 
 	void					RegisterInternal( idCVar *cvar );
 	idCVar *				FindInternal( const char *name ) const;
-	void					SetInternal( const char *name, const char *value, int flags );
+	void					SetInternal( const char *name, const char *value, int flags, bool mission );
 
 private:
 	bool					initialized;
@@ -340,6 +372,8 @@ private:
 	static void				SetT_f( const idCmdArgs &args );
 	static void				SetA_f( const idCmdArgs &args );
 	static void				Reset_f( const idCmdArgs &args );
+	static void				SetM_f( const idCmdArgs &args );
+	static void				UnSetM_f( const idCmdArgs &args );
 	static void				ListByFlags( const idCmdArgs &args, cvarFlags_t flags );
 	static void				List_f( const idCmdArgs &args );
 	static void				Restart_f( const idCmdArgs &args );
@@ -396,22 +430,26 @@ idCVar *idCVarSystemLocal::FindInternal( const char *name ) const {
 idCVarSystemLocal::SetInternal
 ============
 */
-void idCVarSystemLocal::SetInternal( const char *name, const char *value, int flags ) {
+void idCVarSystemLocal::SetInternal( const char *name, const char *value, int flags, bool mission ) {
 	idScopedCriticalSection lock( mutex );
 
 	idCVar *internal = FindInternal( name );
 
 	if ( internal ) {
-        // if a cvar is marked read-only and init, it should not be possible to modify 
-        // it using commandline arguments
-        int cvro = internal->flags & CVAR_ROM;
-        int cvinit = internal->flags & CVAR_INIT;
-        if ( !( cvro && cvinit ) ) {
-		    internal->InternalSetString( value );
-		    internal->flags |= flags & ~CVAR_STATIC;
-        } else {
-            common->Warning("Attempt to modify read-only %s CVAR failed.", name);
-        }
+		// if a cvar is marked read-only and init, it should not be possible to modify 
+		// it using commandline arguments
+		int cvro = internal->flags & CVAR_ROM;
+		int cvinit = internal->flags & CVAR_INIT;
+		if ( !( cvro && cvinit ) ) {
+			if ( mission ) {
+				internal->InternalMissionSetString( value );
+			} else {
+				internal->InternalSetString( value );
+				internal->flags |= flags & ~CVAR_STATIC;
+			}
+		} else {
+			common->Warning("Attempt to modify read-only %s CVAR failed.", name);
+		}
 	} else {
 		// cvars can be created dynamically by game scripts of mods, although this is a rarely used feature...
 		// also this happens after switching versions/platforms because .cfg files contains unknown cvars
@@ -444,6 +482,8 @@ void idCVarSystemLocal::Init( void ) {
 	cmdSystem->AddCommand( "setu", SetU_f, CMD_FL_SYSTEM, "sets a cvar and flags it as user info" );
 	cmdSystem->AddCommand( "sett", SetT_f, CMD_FL_SYSTEM, "sets a cvar and flags it as tool" );
 	cmdSystem->AddCommand( "seta", SetA_f, CMD_FL_SYSTEM, "sets a cvar and flags it as archive" );
+	cmdSystem->AddCommand( "setm", SetM_f, CMD_FL_SYSTEM, "sets a mission override value for cvar" );
+	cmdSystem->AddCommand( "unsetm", UnSetM_f, CMD_FL_SYSTEM, "unsets a mission override for cvar" );
 	cmdSystem->AddCommand( "reset", Reset_f, CMD_FL_SYSTEM, "resets a cvar" );
 	cmdSystem->AddCommand( "listCvars", List_f, CMD_FL_SYSTEM, "lists cvars" );
 	cmdSystem->AddCommand( "cvar_restart", Restart_f, CMD_FL_SYSTEM, "restart the cvar system" );
@@ -512,7 +552,16 @@ idCVarSystemLocal::SetCVarString
 ============
 */
 void idCVarSystemLocal::SetCVarString( const char *name, const char *value, int flags ) {
-	SetInternal( name, value, flags );
+	SetInternal( name, value, flags, false );
+}
+
+/*
+============
+idCVarSystemLocal::SetCVarMissionString
+============
+*/
+void idCVarSystemLocal::SetCVarMissionString( const char *name, const char *value ) {
+	SetInternal( name, value, 0, true );
 }
 
 /*
@@ -521,7 +570,7 @@ idCVarSystemLocal::SetCVarBool
 ============
 */
 void idCVarSystemLocal::SetCVarBool( const char *name, const bool value, int flags ) {
-	SetInternal( name, idStr( value ), flags );
+	SetInternal( name, idStr( value ), flags, false );
 }
 
 /*
@@ -530,7 +579,7 @@ idCVarSystemLocal::SetCVarInteger
 ============
 */
 void idCVarSystemLocal::SetCVarInteger( const char *name, const int value, int flags ) {
-	SetInternal( name, idStr( value ), flags );
+	SetInternal( name, idStr( value ), flags, false );
 }
 
 /*
@@ -539,7 +588,7 @@ idCVarSystemLocal::SetCVarFloat
 ============
 */
 void idCVarSystemLocal::SetCVarFloat( const char *name, const float value, int flags ) {
-	SetInternal( name, idStr( value ), flags );
+	SetInternal( name, idStr( value ), flags, false );
 }
 
 /*
@@ -618,14 +667,19 @@ bool idCVarSystemLocal::Command( const idCmdArgs &args ) {
 
 	if ( args.Argc() == 1 ) {
 		// print the variable
-		common->Printf( "\"%s\" is:\"%s\"" S_COLOR_WHITE " default:\"%s\"\n",
+		common->Printf( "\"%s\" is:\"%s\"" S_COLOR_WHITE " default:\"%s\"",
 					internal->nameString.c_str(), internal->valueString.c_str(), internal->resetString.c_str() );
+		if ( internal->missionOverride ) {
+			common->Printf( S_COLOR_MAGENTA " mission:\"%s\"", internal->missionString.c_str() );
+		}
+		common->Printf( "\n" );
+
 		if ( idStr::Length( internal->GetDescription() ) > 0 ) {
 			common->Printf( S_COLOR_WHITE "%s\n", internal->GetDescription() );
 		}
 	} else {
 		// set the value
-		internal->Set( args.Args(), false, false );
+		internal->Set( args.Args(), false, false, false );
 	}
 	return true;
 }
@@ -775,7 +829,7 @@ void idCVarSystemLocal::Toggle_f( const idCmdArgs &args ) {
 		}
 
 		common->Printf( "set %s = %s\n", args.Argv(1), args.Argv( i ) );
-		cvar->Set( va("%s", args.Argv( i ) ), false, false );
+		cvar->Set( va("%s", args.Argv( i ) ), false, false, false );
 	} else {
 		// toggle between 0 and 1
 		current = cvar->GetFloat();
@@ -790,7 +844,7 @@ void idCVarSystemLocal::Toggle_f( const idCmdArgs &args ) {
 			current = 0.0f;
 		}
 		common->Printf( "set %s = %f\n", args.Argv(1), current );
-		cvar->Set( idStr( current ), false, false );
+		cvar->Set( idStr( current ), false, false, false );
 	}
 }
 
@@ -882,6 +936,26 @@ void idCVarSystemLocal::Reset_f( const idCmdArgs &args ) {
 
 	cvar->Reset();
 }
+
+/*
+============
+idCVarSystemLocal::SetM_f
+============
+*/
+void idCVarSystemLocal::SetM_f( const idCmdArgs &args ) {
+	const char *str = args.Args( 2, args.Argc() - 1 );
+	localCVarSystem.SetCVarMissionString( args.Argv(1), str );
+}
+
+/*
+============
+idCVarSystemLocal::UnSetM_f
+============
+*/
+void idCVarSystemLocal::UnSetM_f( const idCmdArgs &args ) {
+	localCVarSystem.SetCVarMissionString( args.Argv(1), nullptr );
+}
+
 
 /*
 ============

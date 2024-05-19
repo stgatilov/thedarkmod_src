@@ -146,8 +146,10 @@ private:
 
 	// from idInternalCVar:
 	idStr					nameString;				// name
-	idStr					resetString;			// resetting will change to this value
-	idStr					valueString;			// value
+	idStr					resetString;			// default value (resetting will change to this)
+	idStr					valueString;			// main value
+	bool					missionOverride;		// if true, then "missionString" overrides main value,
+	idStr					missionString;
 	idStr					descriptionString;		// description
 	friend class idCVarSystemLocal;
 
@@ -158,12 +160,13 @@ private:
 									float valueMin, float valueMax, const char **valueStrings, argCompletion_t valueCompletion );
 
 	void					UpdateValue( void );
-	void					Set( const char *newValue, bool force, bool fromServer );
+	void					Set( const char *newValue, bool force, bool fromServer, bool mission );
 	void					Reset( void );
 
 	// from idInternalCVar:
 	void					InternalSetString( const char *newValue );
 	void					InternalServerSetString( const char *newValue );
+	void					InternalMissionSetString( const char *newValue );
 	void					InternalSetBool( const bool newValue );
 	void					InternalSetInteger( const int newValue );
 	void					InternalSetFloat( const float newValue );
@@ -237,6 +240,9 @@ public:
 	virtual void			SetCVarBool( const char *name, const bool value, int flags = 0 ) = 0;
 	virtual void			SetCVarInteger( const char *name, const int value, int flags = 0 ) = 0;
 	virtual void			SetCVarFloat( const char *name, const float value, int flags = 0 ) = 0;
+							// stgatilov #5453: override cvar value by mission
+							// value = NULL means: drop mission override
+	virtual void			SetCVarMissionString( const char *name, const char *value ) = 0;
 
 							// Gets the value of a CVar by name.
 	virtual const char *	GetCVarString( const char *name ) const = 0;
