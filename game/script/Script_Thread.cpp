@@ -1351,7 +1351,7 @@ idThread::Event_SetCvar
 ================
 */
 void idThread::Event_SetCvar( const char *name, const char *value ) const {
-	cvarSystem->SetCVarString( name, value );
+	cvarSystem->SetCVarMissionString( name, value );
 }
 
 /*
