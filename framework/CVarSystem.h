@@ -249,6 +249,8 @@ public:
 	virtual bool			GetCVarBool( const char *name ) const = 0;
 	virtual int				GetCVarInteger( const char *name ) const = 0;
 	virtual float			GetCVarFloat( const char *name ) const = 0;
+							// stgatilov #5453: returns mission override or NULL if there is none
+	virtual const char *	GetCVarMissionString( const char *name ) const = 0;
 
 							// Called by the command system when argv(0) doesn't match a known command.
 							// Returns true if argv(0) is a variable reference and prints or changes the CVar.

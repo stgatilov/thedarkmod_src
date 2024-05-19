@@ -338,6 +338,7 @@ public:
 	virtual bool			GetCVarBool( const char *name ) const override;
 	virtual int				GetCVarInteger( const char *name ) const override;
 	virtual float			GetCVarFloat( const char *name ) const override;
+	virtual const char *	GetCVarMissionString( const char *name ) const override;
 
 	virtual bool			Command( const idCmdArgs &args ) override;
 
@@ -604,6 +605,21 @@ const char *idCVarSystemLocal::GetCVarString( const char *name ) const {
 		return internal->GetString();
 	}
 	return "";
+}
+
+/*
+============
+idCVarSystemLocal::GetCVarMissionString
+============
+*/
+const char *idCVarSystemLocal::GetCVarMissionString( const char *name ) const {
+	idScopedCriticalSection lock( mutex );
+
+	idCVar *internal = FindInternal( name );
+	if ( internal && internal->missionOverride ) {
+		return internal->missionString.c_str();
+	}
+	return nullptr;
 }
 
 /*
@@ -1024,7 +1040,14 @@ void idCVarSystemLocal::ListByFlags( const idCmdArgs &args, cvarFlags_t flags ) 
 		case SHOW_VALUE: {
 			for ( i = 0; i < cvarList.Num(); i++ ) {
 				const idCVar *cvar = cvarList[i];
-				common->Printf( FORMAT_STRING S_COLOR_WHITE "\"%s\"\n", cvar->nameString.c_str(), cvar->valueString.c_str() );
+				common->Printf( FORMAT_STRING , cvar->nameString.c_str() );
+				if ( cvar->missionOverride ) {
+					assert( cvar->value == cvar->missionString.c_str() );
+					common->Printf( S_COLOR_MAGENTA "\"%s\"\n", cvar->value );
+				} else {
+					assert( cvar->value == cvar->valueString.c_str() );
+					common->Printf( S_COLOR_WHITE "\"%s\"\n", cvar->value );
+				}
 			}
 			break;
 		}
