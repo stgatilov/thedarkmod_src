@@ -78,15 +78,15 @@ void idCVar::RegisterStaticVars( void ) {
 idInternalCVar::idInternalCVar
 ============
 */
-idCVar *idCVar::InternalCreate( const char *newName, const char *newValue, int newFlags ) {
+idCVar *idCVar::InternalCreate( const char *newName, int newFlags ) {
 	idCVar *self = new idCVar();
 	self->nameString = newName;
 	self->name = self->nameString.c_str();
-	self->valueString = newValue;
-	self->resetString = newValue;
+	self->valueString = "";
+	self->resetString = "";
 	self->missionString = "";
 	self->missionOverride = false;
-	self->descriptionString = "";
+	self->descriptionString = "[created dynamically]";
 	self->description = self->descriptionString.c_str();
 	self->flags = ( newFlags & ~CVAR_STATIC ) | CVAR_MODIFIED;
 	self->valueMin = 1;
@@ -439,28 +439,28 @@ void idCVarSystemLocal::SetInternal( const char *name, const char *value, int fl
 
 	idCVar *internal = FindInternal( name );
 
-	if ( internal ) {
-		// if a cvar is marked read-only and init, it should not be possible to modify 
-		// it using commandline arguments
-		int cvro = internal->flags & CVAR_ROM;
-		int cvinit = internal->flags & CVAR_INIT;
-		if ( !( cvro && cvinit ) ) {
-			if ( mission ) {
-				internal->InternalMissionSetString( value );
-			} else {
-				internal->InternalSetString( value );
-				internal->flags |= flags & ~CVAR_STATIC;
-			}
-		} else {
-			common->Warning("Attempt to modify read-only %s CVAR failed.", name);
-		}
-	} else {
-		// cvars can be created dynamically by game scripts of mods, although this is a rarely used feature...
+	if ( !internal ) {
+		// cvars can be created dynamically by game scripts or mods, although this is a rarely used feature...
 		// also this happens after switching versions/platforms because .cfg files contains unknown cvars
 		// perhaps we want to make unknown cvars created via "seta" as archivable?
-		internal = idCVar::InternalCreate( name, value, flags );
+		internal = idCVar::InternalCreate( name, flags );
 		int hash = cvarHash.GenerateKey( internal->nameString.c_str(), false );
 		cvarHash.Add( hash, cvars.Append( internal ) );
+	}
+
+	// if a cvar is marked read-only and init, it should not be possible to modify 
+	// it using commandline arguments
+	int cvro = internal->flags & CVAR_ROM;
+	int cvinit = internal->flags & CVAR_INIT;
+	if ( !( cvro && cvinit ) ) {
+		if ( mission ) {
+			internal->InternalMissionSetString( value );
+		} else {
+			internal->InternalSetString( value );
+			internal->flags |= flags & ~CVAR_STATIC;
+		}
+	} else {
+		common->Warning("Attempt to modify read-only %s CVAR failed.", name);
 	}
 }
 

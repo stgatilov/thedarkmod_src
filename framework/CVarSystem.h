@@ -170,7 +170,7 @@ private:
 	void					InternalSetBool( const bool newValue );
 	void					InternalSetInteger( const int newValue );
 	void					InternalSetFloat( const float newValue );
-	static idCVar *			InternalCreate( const char *newName, const char *newValue, int newFlags );
+	static idCVar *			InternalCreate( const char *newName, int newFlags );
 	void					InternalRegister( void );
 
 	static idCVar *			staticVars;
