@@ -2595,9 +2595,13 @@ void idCommonLocal::Async( void ) {
 		return;
 	}
 
-	//stgatilov #4514: game tics happen even X microseconds (in cumulative sense)
-	//to see how often this function is called, see Sys_StartAsyncThread
-	static const int USERCMD_USEC = 16650;		// ~60.06 Hz --- a bit higher than vsync
+	// stgatilov #4514: game tics happen even X microseconds (in cumulative sense)
+	// to see how often this function is called, see Sys_StartAsyncThread
+	//static const int USERCMD_USEC = 16650;		// ~60.06 Hz --- a bit higher than vsync
+	
+	// stgatilov #5575: reverted back to Doom 3 time to ensure game & gui time is synchronized with sound time
+	// this produces a visible double-frame every 0.4 second =(
+	static const int USERCMD_USEC = 16000;			// 62.5 Hz --- a bit higher than vsync
 
 	const int64_t usec = Sys_GetTimeMicroseconds();
 	if ( !lastTicUsec ) {
