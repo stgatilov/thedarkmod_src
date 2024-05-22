@@ -60,7 +60,7 @@ Sys_GetTimeMicroseconds
 */
 uint64_t Sys_GetTimeMicroseconds( void ) {
 	static HMODULE hKernel32Dll = LoadLibrary("Kernel32.dll");
-	static auto GetSystemTimePreciseAsFileTime = (void(*)(LPFILETIME))GetProcAddress(hKernel32Dll, "GetSystemTimePreciseAsFileTime");
+	static auto GetSystemTimePreciseAsFileTime = (void(WINAPI *)(LPFILETIME))GetProcAddress(hKernel32Dll, "GetSystemTimePreciseAsFileTime");
 
 	FILETIME ft = {0};
 	// note: both functions return number of 100-nanosec intervals since January 1, 1601 (UTC)
