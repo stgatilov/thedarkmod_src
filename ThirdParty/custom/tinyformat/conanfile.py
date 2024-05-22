@@ -1,5 +1,6 @@
-from conans import ConanFile, CMake, tools
-import os
+from conan import ConanFile
+from conan.tools import files
+from os import path
 
 class TinyformatConan(ConanFile):
     name = "tinyformat"
@@ -9,11 +10,8 @@ class TinyformatConan(ConanFile):
     topics = ("format", "printf")
 
     def source(self):
-        # Download and extract tag tarball from github
-        tools.get(**self.conan_data["sources"][self.version])
-        extracted_dir = "tinyformat-" + self.version
-        os.rename(extracted_dir, "sources");
+        files.get(self, **self.conan_data["sources"][self.version], strip_root=True)
 
     def package(self):
-        self.copy("tinyformat.h", dst="include", src="sources")
-        self.copy("*LICENSE", dst="licenses", keep_path=False)
+        files.copy(self, "tinyformat.h", src = path.join(self.source_folder), dst = path.join(self.package_folder, "include"))
+        files.copy(self, "*LICENSE", src = path.join(self.source_folder), dst = path.join(self.package_folder, "licenses"), keep_path = False)

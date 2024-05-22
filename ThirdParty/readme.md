@@ -44,7 +44,7 @@ Conan builds packages inside a *local cache*, which by default is located somewh
 In order to make the cache truly local, you can set environment variable in the shell you are going to use:
 
     # set the path to a custom directory
-    set CONAN_USER_HOME=C:\tdm_conan
+    set CONAN_HOME=G:\tdm_conan
 
 Note that if you do so, you should ensure that this environment variable takes effect for all the conan commands you run later.
 Detailed explanation is available [here][4].

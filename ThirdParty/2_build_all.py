@@ -17,10 +17,10 @@ def check_msvc_env():
 def build_arch(*, host_profile, build_profile = None, options = {}):
     if build_profile is None:
         build_profile = host_profile
-    cmd = 'conan install . --profile:host=%s --profile:build=%s' % (host_profile, build_profile)
+    cmd = 'conan install . --profile:host=%s --profile:build=%s -of trash' % (host_profile, build_profile)
     for k,v in options.items():
         cmd += ' -o %s=%s' % (str(k), str(v))
-    cmd += ' --build outdated'
+    cmd += ' --build missing'
     print("CMD: %s" % cmd)
     if not unattended:
         yesno = input('continue? (yes/no):')
