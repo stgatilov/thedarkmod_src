@@ -270,6 +270,7 @@ static viewDef_t *R_XrayView() {
 	parms->renderView.viewID = VID_PLAYER_VIEW;	// clear to allow player bodies to show up, and suppress view weapons
 	parms->unlockedRenderView = nullptr;
 
+	parms->isXray = true;
 	parms->isSubview = true;
 	parms->isPortalSky = false;
 	parms->xrayEntityMask = XR_ONLY;

@@ -408,7 +408,7 @@ viewLight_t *R_SetLightDefViewLight( idRenderLightLocal *light ) {
 			vLight->volumetricNoshadows = true;
 		}
 	}
-	if ( tr.viewDef->isSubview && !tr.viewDef->xrayEntityMask ) {
+	if ( tr.viewDef->isSubview && !tr.viewDef->isXray ) {
 		// does not work in subviews, at least because currentDepth is not up-to-date
 		// note: somehow, the engine does not like different shadows implementation in main view and lightgem,
 		// so I placed this condition AFTER shadows implementation is chosen
