@@ -220,6 +220,7 @@ static viewDef_t *R_MirrorViewBySurface( drawSurf_t *drawSurf ) {
 	parms->isSubview = true;
 	parms->isMirror = true;
 	parms->isPortalSky = false;
+	parms->isXray = false;
 	parms->xrayEntityMask = XR_IGNORE;
 
 	// create plane axis for the portal we are seeing
@@ -297,7 +298,8 @@ static void R_RemoteRender( drawSurf_t *surf, textureStage_t *stage ) {
 	parms->isSubview = true;
 	parms->isMirror = false;
 	parms->isPortalSky = false;
-	// if we see remote screen in mirror, drop mirror's clip plane
+	parms->isXray = false;
+		// if we see remote screen in mirror, drop mirror's clip plane
 	parms->numClipPlanes = 0;
 	parms->xrayEntityMask = XR_IGNORE;
 
