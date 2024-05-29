@@ -803,7 +803,7 @@ TEST_CASE("Downloader") {
             if (blk == 1) {
                 CHECK(data2 == DataIdentityBin);
                 CHECK(data3 == DataSquaresTxt);
-                CHECK(progressCnt >= 100);
+                CHECK(progressCnt >= 50);   // number of calls depends on CURL default settings...
                 int sumSize = DataTestTxt.size() + DataIdentityBin.size() + DataSquaresTxt.size();
                 CHECK(totalDownloaded == sumSize);
             }

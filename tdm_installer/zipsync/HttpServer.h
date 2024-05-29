@@ -5,6 +5,7 @@
 
 struct MHD_Daemon;
 struct MHD_Connection;
+enum MHD_Result;
 
 //workaround for ssize_t-included errors on MSVC
 #ifdef _MSC_VER
@@ -63,7 +64,7 @@ private:
     class FileDownload;
     class MultipartDownload;
 
-    static int MhdFunction(
+    static MHD_Result MhdFunction(
         void *cls,
         MHD_Connection *connection,
         const char *url,
@@ -73,7 +74,7 @@ private:
         size_t *upload_data_size,
         void **ptr
     );
-    int AcceptCallback(
+    MHD_Result AcceptCallback(
         MHD_Connection *connection,
         const char *url,
         const char *method,
