@@ -26,7 +26,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #undef min
 #undef max
-#include <Tracy.hpp>
+#include <tracy/Tracy.hpp>
 
 #define ID_TIME_T time_t
 

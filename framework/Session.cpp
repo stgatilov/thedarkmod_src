@@ -2546,7 +2546,7 @@ void idSessionLocal::UpdateLoadingProgressBar( progressStage_t stage, float rati
 			globalRatio += StageWeights[s];
 		globalRatio += StageWeights[stage] * ratio;
 
-		TRACE_PLOT_FRACTION( "LoadingProgressBar", globalRatio );
+		TRACE_PLOT_SMOOTH_FRACTION( "LoadingProgressBar", globalRatio );
 
 		if ( stage == lastUpdateProgressBarStage && ratio == lastUpdateProgressBarRatio )
 			return;	// exactly same as previous update

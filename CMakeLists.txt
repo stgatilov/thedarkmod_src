@@ -239,9 +239,6 @@ include_directories(
 		"${PROJECT_SOURCE_DIR}/idlib"
 		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/doctest/include"
 		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/tracy/include"
-		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/tracy/include/common"
-		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/tracy/include/client"
-		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/tracy/include/libbacktrace"
 		${zlib_INCLUDE_DIRS}
 		${minizip_INCLUDE_DIRS}
 		${CURL_INCLUDE_DIRS}
