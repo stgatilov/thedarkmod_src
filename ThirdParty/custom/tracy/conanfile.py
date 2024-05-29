@@ -1,6 +1,7 @@
 from conan import ConanFile
 from conan.tools.layout import basic_layout
 from conan.tools.files import export_conandata_patches, apply_conandata_patches
+from conan.tools.scm import Version
 from conan.tools import files
 from os import path
 
@@ -26,17 +27,13 @@ class TracyConan(ConanFile):
         apply_conandata_patches(self)
         # replace glXXX with qglXXX
         for prefix in ['glGet', 'glGen', 'glQuery']:
-            files.replace_in_file(self, path.join(self.source_folder, "TracyOpenGL.hpp"), prefix, 'q' + prefix)
+            files.replace_in_file(self, path.join(self.source_folder, "public/tracy/TracyOpenGL.hpp"), prefix, 'q' + prefix)
 
     def package(self):
-        for dirname in ['client', 'common', 'libbacktrace']:
-            files.copy(self, "{0}/*.h".format(dirname), src=self.source_folder, dst=path.join(self.package_folder, "include"))
-            files.copy(self, "{0}/*.hpp".format(dirname), src=self.source_folder, dst=path.join(self.package_folder, "include"))
-            files.copy(self, "{0}/*.cpp".format(dirname), src=self.source_folder, dst=path.join(self.package_folder, "src"))
-        files.copy(self, 'TracyVersion.hpp', src=path.join(self.source_folder, 'server'), dst=path.join(self.package_folder, "include/common"))
-        for filename in ['Tracy.hpp', 'TracyC.h', 'TracyOpenGL.hpp']:
-            files.copy(self, filename, src=self.source_folder, dst=path.join(self.package_folder, "include"))
-        for filename in ['TracyClient.cpp']:
-            files.copy(self, filename, src=self.source_folder, dst=path.join(self.package_folder, "src"))
-        files.copy(self, "LICENSE", src=self.source_folder, dst=path.join(self.package_folder, "licenses"))
-        files.copy(self, "libbacktrace/LICENSE", src=self.source_folder, dst=path.join(self.package_folder, "licenses"))
+        for glob in ['*.h', '*.hpp', '*.cpp']:
+            files.copy(self, glob, src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "include"), excludes = "TracyClient.cpp")
+
+        files.copy(self, "TracyClient.cpp", src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "src"))
+
+        files.copy(self, "LICENSE", src = self.source_folder, dst = path.join(self.package_folder, "licenses"))
+        files.copy(self, "libbacktrace/LICENSE", src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "licenses"))

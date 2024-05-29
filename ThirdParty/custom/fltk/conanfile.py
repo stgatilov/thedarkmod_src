@@ -84,6 +84,8 @@ class FltkConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["OPTION_BUILD_SHARED_LIBS"] = self.options.shared
+        if self.settings.compiler == "msvc":
+            tc.variables["FLTK_MSVC_RUNTIME_DLL"] = (self.settings.compiler.runtime == "dynamic")
         tc.variables["FLTK_BUILD_TEST"] = False
         tc.variables["FLTK_BUILD_EXAMPLES"] = False
         tc.variables["OPTION_USE_GL"] = self.options.with_gl

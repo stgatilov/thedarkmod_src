@@ -9,20 +9,20 @@
 #       this is required for C++ libs because iterator debugging and runtime differences are not allowed by MSVC
 packages:
   - { name: tinyformat  , version: "2.3.0"    , local: True   , type: header }
-  - { name: doctest     , version: "2.4.8"    , local: False  , type: header }
-  - { name: tracy       , version: "0.8.1"    , local: True   , type: header }
-  - { name: zlib        , version: "1.2.11"   , local: False  , type: release }
-  - { name: minizip     , version: "1.2.11"   , local: False  , type: release }
-  - { name: libcurl     , version: "7.80.0"   , local: True   , type: release }
-  - { name: libjpeg     , version: "9d"       , local: True   , type: release }
-  - { name: libpng      , version: "1.6.39"   , local: False  , type: release }
-  - { name: ffmpeg      , version: "4.4.4"    , local: True   , type: release }
+  - { name: doctest     , version: "2.4.11"   , local: False  , type: header }
+  - { name: tracy       , version: "0.10"     , local: True   , type: header }
+  - { name: zlib        , version: "1.3.1"    , local: False  , type: release }
+  - { name: minizip     , version: "1.3.1"    , local: False  , type: release }
+  - { name: libcurl     , version: "8.6.0"    , local: True   , type: release }
+  - { name: libjpeg     , version: "9f"       , local: True   , type: release }
+  - { name: libpng      , version: "1.6.43"   , local: False  , type: release }
+  - { name: ffmpeg      , version: "6.1"      , local: True   , type: release }
   - { name: vorbis      , version: "1.3.7"    , local: False  , type: release }
-  - { name: fltk        , version: "1.3.8"    , local: True   , type: release }
+  - { name: fltk        , version: "1.3.9"    , local: True   , type: release }
   - { name: blake2      , version: "20190724" , local: True   , type: release }
-  - { name: glfw        , version: "3.3.6"    , local: False  , type: release }
-  - { name: openal      , version: "1.21.1"   , local: True   , type: vcdebug }
-  - { name: pugixml     , version: "1.12.1"   , local: False  , type: vcdebug }
+  - { name: glfw        , version: "3.4"      , local: False  , type: release }
+  - { name: openal      , version: "1.22.2"   , local: True   , type: vcdebug }
+  - { name: pugixml     , version: "1.14"     , local: False  , type: vcdebug }
   - { name: xorg        , version: "system"   , local: True   , type: header }  # Linux-only
 
 options:

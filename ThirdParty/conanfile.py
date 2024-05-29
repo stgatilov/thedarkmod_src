@@ -81,10 +81,11 @@ class TdmDepends(ConanFile):
             files.copy(self, "*.h"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
             files.copy(self, "*.H"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))    # FLTK =(
             files.copy(self, "*.hpp", src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
+            files.copy(self, "*.H"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))    # FLTK =(
+            files.copy(self, "*.cpp", src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
             files.copy(self, "*"    , src = path.join(pkgdir, "licenses"), dst = path.join(artdir, "artefacts/%s/licenses" % name))
             # source code files to be embedded into build (used by Tracy)
             files.copy(self, "*.cpp", src = path.join(pkgdir, "src")    , dst = path.join(artdir, "artefacts/%s/src" % name))
-            files.copy(self, "*.c"  , src = path.join(pkgdir, "src")    , dst = path.join(artdir, "artefacts/%s/src" % name))
             # compiled binaries are put under subdirectory named by build settings
             files.copy(self, "*.lib", src = path.join(pkgdir, "lib")    , dst = path.join(artdir, "artefacts/%s/lib/%s" % (name, platform)))
             files.copy(self, "*.a"  , src = path.join(pkgdir, "lib")    , dst = path.join(artdir, "artefacts/%s/lib/%s" % (name, platform)))
