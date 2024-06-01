@@ -331,7 +331,7 @@ void idSoundWorldLocal::ProcessDemoCommand( idDemoFile *readDemo ) {
 			readDemo->ReadInt( listenerId );
 			readDemo->ReadInt( gameTime );
 			
-			PlaceListener( origin, axis, listenerId, gameTime, "" );
+			PlaceListener( origin, axis, listenerId, gameTime, "", "");
 		};
 		break;
 	case SCMD_ALLOC_EMITTER:
@@ -1152,7 +1152,7 @@ idSoundWorldLocal::PlaceListener
 ===================
 */
 void idSoundWorldLocal::PlaceListener( const idVec3& origin, const idMat3& axis, 
-									const int listenerId, const int gameTime, const idStr& areaName  ) {
+									const int listenerId, const int gameTime, const idStr& areaName, const idStr& efxPreset) {
 
 	int current44kHzTime;
 
@@ -1199,6 +1199,7 @@ void idSoundWorldLocal::PlaceListener( const idVec3& origin, const idMat3& axis,
 	listenerPos = origin * DOOM_TO_METERS;			// meters
 	listenerAxis = axis;
 	listenerAreaName = areaName;
+	listenerAreaEfxPreset = efxPreset;
 
 	if ( rw ) {
 		listenerArea = rw->GetAreaAtPoint( listenerQU );	// where are we?
@@ -1573,7 +1574,7 @@ void idSoundWorldLocal::ReadFromSaveGame( idFile *savefile ) {
 	pause44kHz = currentSoundTime;
 
 	// place listener
-	PlaceListener( origin, axis, listenerId, gameTime, "Undefined" );
+	PlaceListener( origin, axis, listenerId, gameTime, "Undefined", "");
 
 	// make sure there are enough
 	// slots to read the saveGame in.  We don't shrink the list

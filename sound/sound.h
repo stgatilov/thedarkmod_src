@@ -222,7 +222,7 @@ public:
 	// listenerId allows listener-private and antiPrivate sounds to be filtered
 	// gameTime is in msec, and is used to time sound queries and removals so that they are independent
 	// of any race conditions with the async update
-	virtual	void			PlaceListener( const idVec3 &origin, const idMat3 &axis, const int listenerId, const int gameTime, const idStr& areaName ) = 0;
+	virtual	void			PlaceListener( const idVec3 &origin, const idMat3 &axis, const int listenerId, const int gameTime, const idStr& areaName, const idStr& efxPreset ) = 0;
 
 	// fade all sounds in the world with a given shader soundClass
 	// to is in Db (sigh), over is in seconds
