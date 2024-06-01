@@ -504,6 +504,7 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 	alListenerfv(AL_POSITION, listenerPosition);
 	alListenerfv(AL_ORIENTATION, listenerOrientation);
 
+	// TODO: remove this after checking it's definitely not needed
 	if (idSoundSystemLocal::useEFXReverb && soundSystemLocal.efxloaded) {
 		ALuint effect = AL_EFFECTSLOT_NULL;
 		idStr s(listenerArea);
@@ -515,18 +516,20 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 			soundSystemLocal.alAuxiliaryEffectSlotf(listenerSlot, AL_EFFECTSLOT_GAIN, gain);
 		}
 
-		// Look for effect based on area index (1, 2, etc.)
+		// Look for effect based on area index (1, 2, etc.). Does anyone actually do this?
 		bool found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
 
 		// Look for effect based on area (location) name
 		if (!found) {
 			s = listenerAreaName;
 
+			// found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
+
 			if (!listenerAreaEfxPreset.IsEmpty()) {
 				ALenum err;
-				soundSystemLocal.EFXDatabase.FindPreset(s, &effect, err);
+				soundSystemLocal.EFXDatabase.AddOrUpdatePreset(s, listenerAreaEfxPreset);
 			}
-			found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
+
 		}
 		if (!found) {
 			s = "default";

@@ -29,7 +29,7 @@ static inline ALfloat _mB_to_gain(ALfloat millibels, ALfloat min, ALfloat max) {
 }
 
 idSoundEffect::idSoundEffect() :
-effect(0) {
+	effect(0) {
 }
 
 idSoundEffect::~idSoundEffect() {
@@ -252,17 +252,49 @@ bool idEFXFile::ReadEffectLegacy(idLexer &src, idSoundEffect *effect) {
 	return true;
 }
 
-bool idEFXFile::FindPreset(idToken token, idSoundEffect* effect, ALenum err) {
+bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset) {
+
+	ALuint* effect = AL_EFFECTSLOT_NULL;
+	const bool found = FindEffect(areaName, effect);
+
+	if (!found) {
+		// we need to add this preset
+
+		idSoundEffect* soundEffect = new idSoundEffect;
+
+		if (!soundEffect->alloc()) {
+			delete soundEffect;
+			Clear();
+			return false;
+		}
+
+		ALenum err{};
+		bool ok;
+		ok = AddPreset(efxPreset, soundEffect, err);
+
+		if (!ok) {
+			return false;
+		}
+
+		effects.Append(soundEffect);
+	}
+
+	return true;
+}
+
+bool idEFXFile::AddPreset(idStr preset, idSoundEffect* effect, ALenum err) {
 
 	const EFXEAXREVERBPROPERTIES* props = NULL;
 	int k = 0;
 	for (k = 0; efxPresets[k].name[0]; k++)
-		if (efxPresets[k].name == token) {
+		if (efxPresets[k].name == preset) {
 			props = &efxPresets[k].props;
 			break;
 		}
-	if (!props && (token.type == TT_NUMBER)) {
-		int idx = token.GetIntValue();
+
+	// Reference the preset by index instead of name.
+	if (!props && idStr::IsNumeric(preset)) {
+		int idx = atoi(preset);
 		if (idx >= 0 && idx < k)
 			props = &efxPresets[idx].props;
 	}
@@ -312,7 +344,7 @@ bool idEFXFile::ReadEffectOpenAL(idLexer &src, idSoundEffect *effect) {
 	if (!src.ExpectTokenString("{"))
 		return false;
 
-	ALenum err;
+	ALenum err{};
 	alGetError();
 	common->Printf("Loading EFX effect for location '%s' (#%u)\n", name.c_str(), effect->effect);
 
@@ -333,10 +365,9 @@ bool idEFXFile::ReadEffectOpenAL(idLexer &src, idSoundEffect *effect) {
 				return false;
 			token.ToUpper();
 
-			if (!FindPreset(token, effect, err)) {
+			if (!AddPreset(token, effect, err)) {
 				return false;
 			}
-
 		} else if ( token == "DENSITY" ) {
 			efxf(AL_EAXREVERB_DENSITY, src.ParseFloat());
 		} else if ( token == "DIFFUSION" ) {
@@ -406,7 +437,9 @@ bool idEFXFile::LoadFile( const char *filename/*, bool OSPath*/ ) {
 	efxFilename = filename;
 	src.LoadFile( filename/*, OSPath*/ );
 	if ( !src.IsLoaded() ) {
-		return false;
+
+		// Just return true if file doesn't exist, as EFX can now be specified on location entities
+		return true;
 	}
 
 	if ( !src.ExpectTokenString( "Version" ) ) {

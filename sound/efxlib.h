@@ -47,7 +47,6 @@ public:
 	~idEFXFile();
 
 	bool FindEffect(idStr &name, ALuint *effect);
-	bool FindPreset(idToken token, idSoundEffect* effect, ALenum err);
 	bool LoadFile(const char *filename);
 	void Clear(void);
 
@@ -55,8 +54,11 @@ public:
 	bool Reload();
 	bool IsAfterReload();
 
+	bool AddOrUpdatePreset(idStr areaName, idStr efxPreset);
+
 private:
 	bool ReadEffectLegacy(idLexer &lexer, idSoundEffect *effect);
+	bool AddPreset(idStr token, idSoundEffect* effect, ALenum err);
 	bool ReadEffectOpenAL(idLexer &lexer, idSoundEffect *effect);
 
 	//filename initially passed to LoadFile (or empty if LoadFile never called)
