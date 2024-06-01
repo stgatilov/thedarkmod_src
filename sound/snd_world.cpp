@@ -515,9 +515,17 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 			soundSystemLocal.alAuxiliaryEffectSlotf(listenerSlot, AL_EFFECTSLOT_GAIN, gain);
 		}
 
+		// Look for effect based on area index (1, 2, etc.)
 		bool found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
+
+		// Look for effect based on area (location) name
 		if (!found) {
 			s = listenerAreaName;
+
+			if (!listenerAreaEfxPreset.IsEmpty()) {
+				ALenum err;
+				soundSystemLocal.EFXDatabase.FindPreset(s, &effect, err);
+			}
 			found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
 		}
 		if (!found) {
@@ -526,6 +534,7 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 		}
 
 		bool justReloaded = soundSystemLocal.EFXDatabase.IsAfterReload();
+
 		// only update if change in settings
 		if (listenerEffect != effect || justReloaded) {
 			common->Printf("Switching to EFX '%s' (#%u)\n", s.c_str(), effect);

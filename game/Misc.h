@@ -445,10 +445,6 @@ public:
 
 public:
 	/**
-	* EFX: Optional EFX preset (instead of using EFX file)
-	**/
-	idStr				m_EfxPreset;
-	/**
 	* Soundprop: Loss multiplier for atmospheric attenuation
 	**/
 	float				m_SndLossMult;

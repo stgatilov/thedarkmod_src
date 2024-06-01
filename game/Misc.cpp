@@ -2516,7 +2516,6 @@ void idLocationEntity::Spawn()
 		spawnArgs.Set( "location", name );
 	}
 
-	m_EfxPreset = spawnArgs.GetString("efx_preset");
 	m_SndLossMult = idMath::Fabs( spawnArgs.GetFloat("sound_loss_mult", "1.0") );
 	m_SndVolMod = spawnArgs.GetFloat( "sound_vol_offset", "0.0" );
 	m_ObjectiveGroup = spawnArgs.GetString( "objective_group", "" );

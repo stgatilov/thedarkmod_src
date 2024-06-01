@@ -47,6 +47,7 @@ public:
 	~idEFXFile();
 
 	bool FindEffect(idStr &name, ALuint *effect);
+	bool FindPreset(idToken token, idSoundEffect* effect, ALenum err);
 	bool LoadFile(const char *filename);
 	void Clear(void);
 

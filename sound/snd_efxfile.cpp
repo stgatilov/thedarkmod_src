@@ -252,6 +252,51 @@ bool idEFXFile::ReadEffectLegacy(idLexer &src, idSoundEffect *effect) {
 	return true;
 }
 
+bool idEFXFile::FindPreset(idToken token, idSoundEffect* effect, ALenum err) {
+
+	const EFXEAXREVERBPROPERTIES* props = NULL;
+	int k = 0;
+	for (k = 0; efxPresets[k].name[0]; k++)
+		if (efxPresets[k].name == token) {
+			props = &efxPresets[k].props;
+			break;
+		}
+	if (!props && (token.type == TT_NUMBER)) {
+		int idx = token.GetIntValue();
+		if (idx >= 0 && idx < k)
+			props = &efxPresets[idx].props;
+	}
+	if (!props) {
+		//src.Error("idEFXFile::ReadEffect: Unknown preset name %s", token.c_str());
+		return false;
+	}
+
+	efxf(AL_EAXREVERB_DENSITY, props->flDensity);
+	efxf(AL_EAXREVERB_DIFFUSION, props->flDiffusion);
+	efxf(AL_EAXREVERB_GAIN, props->flGain);
+	efxf(AL_EAXREVERB_GAINHF, props->flGainHF);
+	efxf(AL_EAXREVERB_GAINLF, props->flGainLF);
+	efxf(AL_EAXREVERB_DECAY_TIME, props->flDecayTime);
+	efxf(AL_EAXREVERB_DECAY_HFRATIO, props->flDecayHFRatio);
+	efxf(AL_EAXREVERB_DECAY_LFRATIO, props->flDecayLFRatio);
+	efxf(AL_EAXREVERB_REFLECTIONS_GAIN, props->flReflectionsGain);
+	efxf(AL_EAXREVERB_REFLECTIONS_DELAY, props->flReflectionsDelay);
+	efxfv(AL_EAXREVERB_REFLECTIONS_PAN, props->flReflectionsPan[0], props->flReflectionsPan[1], props->flReflectionsPan[2]);
+	efxf(AL_EAXREVERB_LATE_REVERB_GAIN, props->flLateReverbGain);
+	efxf(AL_EAXREVERB_LATE_REVERB_DELAY, props->flLateReverbDelay);
+	efxfv(AL_EAXREVERB_LATE_REVERB_PAN, props->flLateReverbPan[0], props->flLateReverbPan[1], props->flLateReverbPan[2]);
+	efxf(AL_EAXREVERB_ECHO_TIME, props->flEchoTime);
+	efxf(AL_EAXREVERB_ECHO_DEPTH, props->flEchoDepth);
+	efxf(AL_EAXREVERB_MODULATION_TIME, props->flModulationTime);
+	efxf(AL_EAXREVERB_MODULATION_DEPTH, props->flModulationDepth);
+	efxf(AL_EAXREVERB_AIR_ABSORPTION_GAINHF, props->flAirAbsorptionGainHF);
+	efxf(AL_EAXREVERB_HFREFERENCE, props->flHFReference);
+	efxf(AL_EAXREVERB_LFREFERENCE, props->flLFReference);
+	efxf(AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, props->flRoomRolloffFactor);
+	efxi(AL_EAXREVERB_DECAY_HFLIMIT, props->iDecayHFLimit);
+
+}
+
 bool idEFXFile::ReadEffectOpenAL(idLexer &src, idSoundEffect *effect) {
 	idToken token;
 
@@ -288,46 +333,9 @@ bool idEFXFile::ReadEffectOpenAL(idLexer &src, idSoundEffect *effect) {
 				return false;
 			token.ToUpper();
 
-			const EFXEAXREVERBPROPERTIES *props = NULL;
-			int k = 0;
-			for (k = 0; efxPresets[k].name[0]; k++)
-				if (efxPresets[k].name == token) {
-					props = &efxPresets[k].props;
-					break;
-				}
-			if (!props && (token.type == TT_NUMBER)) {
-				int idx = token.GetIntValue();
-				if (idx >= 0 && idx < k)
-					props = &efxPresets[idx].props;
-			}
-			if (!props) {
-				src.Error("idEFXFile::ReadEffect: Unknown preset name %s", token.c_str());
+			if (!FindPreset(token, effect, err)) {
 				return false;
 			}
-
-			efxf(AL_EAXREVERB_DENSITY, props->flDensity);
-			efxf(AL_EAXREVERB_DIFFUSION, props->flDiffusion);
-			efxf(AL_EAXREVERB_GAIN, props->flGain);
-			efxf(AL_EAXREVERB_GAINHF, props->flGainHF);
-			efxf(AL_EAXREVERB_GAINLF, props->flGainLF);
-			efxf(AL_EAXREVERB_DECAY_TIME, props->flDecayTime);
-			efxf(AL_EAXREVERB_DECAY_HFRATIO, props->flDecayHFRatio);
-			efxf(AL_EAXREVERB_DECAY_LFRATIO, props->flDecayLFRatio);
-			efxf(AL_EAXREVERB_REFLECTIONS_GAIN, props->flReflectionsGain);
-			efxf(AL_EAXREVERB_REFLECTIONS_DELAY, props->flReflectionsDelay);
-			efxfv(AL_EAXREVERB_REFLECTIONS_PAN, props->flReflectionsPan[0], props->flReflectionsPan[1], props->flReflectionsPan[2]);
-			efxf(AL_EAXREVERB_LATE_REVERB_GAIN, props->flLateReverbGain);
-			efxf(AL_EAXREVERB_LATE_REVERB_DELAY, props->flLateReverbDelay);
-			efxfv(AL_EAXREVERB_LATE_REVERB_PAN, props->flLateReverbPan[0], props->flLateReverbPan[1], props->flLateReverbPan[2]);
-			efxf(AL_EAXREVERB_ECHO_TIME, props->flEchoTime);
-			efxf(AL_EAXREVERB_ECHO_DEPTH, props->flEchoDepth);
-			efxf(AL_EAXREVERB_MODULATION_TIME, props->flModulationTime);
-			efxf(AL_EAXREVERB_MODULATION_DEPTH, props->flModulationDepth);
-			efxf(AL_EAXREVERB_AIR_ABSORPTION_GAINHF, props->flAirAbsorptionGainHF);
-			efxf(AL_EAXREVERB_HFREFERENCE, props->flHFReference);
-			efxf(AL_EAXREVERB_LFREFERENCE, props->flLFReference);
-			efxf(AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, props->flRoomRolloffFactor);
-			efxi(AL_EAXREVERB_DECAY_HFLIMIT, props->iDecayHFLimit);
 
 		} else if ( token == "DENSITY" ) {
 			efxf(AL_EAXREVERB_DENSITY, src.ParseFloat());
