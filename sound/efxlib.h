@@ -54,7 +54,7 @@ public:
 	bool Reload();
 	bool IsAfterReload();
 
-	bool AddOrUpdatePreset(idStr areaName, idStr efxPreset);
+	bool AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effect);
 
 private:
 	bool ReadEffectLegacy(idLexer &lexer, idSoundEffect *effect);

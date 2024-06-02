@@ -504,7 +504,6 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 	alListenerfv(AL_POSITION, listenerPosition);
 	alListenerfv(AL_ORIENTATION, listenerOrientation);
 
-	// TODO: remove this after checking it's definitely not needed
 	if (idSoundSystemLocal::useEFXReverb && soundSystemLocal.efxloaded) {
 		ALuint effect = AL_EFFECTSLOT_NULL;
 		idStr s(listenerArea);
@@ -527,7 +526,7 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 
 			if (!listenerAreaEfxPreset.IsEmpty()) {
 				ALenum err;
-				soundSystemLocal.EFXDatabase.AddOrUpdatePreset(s, listenerAreaEfxPreset);
+				found = soundSystemLocal.EFXDatabase.AddOrUpdatePreset(s, listenerAreaEfxPreset, &effect);
 			}
 
 		}

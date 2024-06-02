@@ -252,9 +252,8 @@ bool idEFXFile::ReadEffectLegacy(idLexer &src, idSoundEffect *effect) {
 	return true;
 }
 
-bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset) {
+bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effect) {
 
-	ALuint* effect = AL_EFFECTSLOT_NULL;
 	const bool found = FindEffect(areaName, effect);
 
 	if (!found) {
@@ -267,6 +266,8 @@ bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset) {
 			Clear();
 			return false;
 		}
+
+		soundEffect->name = areaName;
 
 		ALenum err{};
 		bool ok;
