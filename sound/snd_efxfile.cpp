@@ -104,6 +104,19 @@ bool idEFXFile::FindEffect(idStr &name, ALuint *effect) {
 	return false;
 }
 
+bool idEFXFile::GetEffect(idStr& name, idSoundEffect *soundEffect) {
+	int i;
+
+	for (i = 0; i < effects.Num(); i++) {
+		if (effects[i]->name.Icmp(name) == 0) {
+			*soundEffect = *effects[i];
+			return true;
+		}
+	}
+
+	return false;
+}
+
 #define efxi(param, value)													\
 	do {																	\
 		ALint _v = value;													\
@@ -254,12 +267,16 @@ bool idEFXFile::ReadEffectLegacy(idLexer &src, idSoundEffect *effect) {
 
 bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effect) {
 
-	const bool found = FindEffect(areaName, effect);
+	idSoundEffect* soundEffect = new idSoundEffect;
+
+	//ALuint effect = AL_EFFECTSLOT_NULL;
+	const bool found = GetEffect(areaName, soundEffect);
+	ALenum err{};
+	bool ok;
 
 	if (!found) {
-		// we need to add this preset
 
-		idSoundEffect* soundEffect = new idSoundEffect;
+		// we need to add this preset
 
 		if (!soundEffect->alloc()) {
 			delete soundEffect;
@@ -269,7 +286,7 @@ bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effec
 
 		soundEffect->name = areaName;
 
-		ALenum err{};
+		//ALenum err{};
 		bool ok;
 		ok = AddPreset(efxPreset, soundEffect, err);
 
@@ -279,7 +296,15 @@ bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effec
 
 		effects.Append(soundEffect);
 	}
+	else {
+		ok = AddPreset(efxPreset, soundEffect, err);
 
+		if (!ok) {
+			return false;
+		}
+	}
+
+	*effect = soundEffect->effect;
 	return true;
 }
 

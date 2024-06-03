@@ -58,7 +58,8 @@ public:
 
 private:
 	bool ReadEffectLegacy(idLexer &lexer, idSoundEffect *effect);
-	bool AddPreset(idStr token, idSoundEffect* effect, ALenum err);
+	bool AddPreset(idStr token, idSoundEffect *effect, ALenum err);
+	bool GetEffect(idStr& name, idSoundEffect * soundEffect);
 	bool ReadEffectOpenAL(idLexer &lexer, idSoundEffect *effect);
 
 	//filename initially passed to LoadFile (or empty if LoadFile never called)
