@@ -6,6 +6,11 @@ from conan.errors import ConanInvalidConfiguration
 required_conan_version = ">=1.50.0"
 
 
+def filter_list(elements, excluded_str):
+    excluded_list = str(excluded_str).split(',')
+    return [x for x in elements if x not in excluded_list]
+
+
 class XorgConan(ConanFile):
     name = "xorg"
     package_type = "shared-library"
@@ -17,10 +22,12 @@ class XorgConan(ConanFile):
     topics = ("x11", "xorg")
 
     options = {
-        "skip": [True, False],
+        "exclude_install": ["ANY"],
+        "exclude_lib": ["ANY"],
     }
     default_options = {
-        "skip": False,
+        "exclude_install": "",
+        "exclude_lib": "",
     }
 
     def validate(self):
@@ -35,7 +42,7 @@ class XorgConan(ConanFile):
             return
 
         apt = package_manager.Apt(self)
-        apt.install(["libx11-dev", "libx11-xcb-dev", "libfontenc-dev", "libice-dev", "libsm-dev", "libxau-dev", "libxaw7-dev",
+        apt.install(filter_list(["libx11-dev", "libx11-xcb-dev", "libfontenc-dev", "libice-dev", "libsm-dev", "libxau-dev", "libxaw7-dev",
                      "libxcomposite-dev", "libxcursor-dev", "libxdamage-dev", "libxdmcp-dev", "libxext-dev", "libxfixes-dev",
                      "libxi-dev", "libxinerama-dev", "libxkbfile-dev", "libxmu-dev", "libxmuu-dev",
                      "libxpm-dev", "libxrandr-dev", "libxrender-dev", "libxres-dev", "libxss-dev", "libxt-dev", "libxtst-dev",
@@ -44,44 +51,44 @@ class XorgConan(ConanFile):
                      "libxcb-keysyms1-dev", "libxcb-randr0-dev", "libxcb-shape0-dev", "libxcb-sync-dev", "libxcb-xfixes0-dev",
                      "libxcb-xinerama0-dev", "libxcb-dri3-dev", "uuid-dev", "libxcb-cursor-dev", "libxcb-dri2-0-dev",
                      "libxcb-dri3-dev", "libxcb-present-dev", "libxcb-composite0-dev", "libxcb-ewmh-dev",
-                     "libxcb-res0-dev"], update=True, check=True)
+                     "libxcb-res0-dev"], self.options.exclude_install), update=True, check=True)
         apt.install_substitutes(
             ["libxcb-util-dev"], ["libxcb-util0-dev"], update=True, check=True)
 
         yum = package_manager.Yum(self)
-        yum.install(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
+        yum.install(filter_list(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
                            "libXcursor-devel", "libXdmcp-devel", "libXtst-devel", "libXinerama-devel",
                            "libxkbfile-devel", "libXrandr-devel", "libXres-devel", "libXScrnSaver-devel",
                            "xcb-util-wm-devel", "xcb-util-image-devel", "xcb-util-keysyms-devel",
                            "xcb-util-renderutil-devel", "libXdamage-devel", "libXxf86vm-devel", "libXv-devel",
-                           "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], update=True, check=True)
+                           "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], self.options.exclude_install), update=True, check=True)
 
         dnf = package_manager.Dnf(self)
-        dnf.install(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
+        dnf.install(filter_list(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
                            "libXcursor-devel", "libXdmcp-devel", "libXtst-devel", "libXinerama-devel",
                            "libxkbfile-devel", "libXrandr-devel", "libXres-devel", "libXScrnSaver-devel",
                            "xcb-util-wm-devel", "xcb-util-image-devel", "xcb-util-keysyms-devel",
                            "xcb-util-renderutil-devel", "libXdamage-devel", "libXxf86vm-devel", "libXv-devel",
-                           "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], update=True, check=True)
+                           "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], self.options.exclude_install), update=True, check=True)
 
         zypper = package_manager.Zypper(self)
-        zypper.install(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
+        zypper.install(filter_list(["libxcb-devel", "libfontenc-devel", "libXaw-devel", "libXcomposite-devel",
                               "libXcursor-devel", "libXdmcp-devel", "libXtst-devel", "libXinerama-devel",
                               "libxkbfile-devel", "libXrandr-devel", "libXres-devel", "libXss-devel",
                               "xcb-util-wm-devel", "xcb-util-image-devel", "xcb-util-keysyms-devel",
                               "xcb-util-renderutil-devel", "libXdamage-devel", "libXxf86vm-devel", "libXv-devel",
-                              "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], update=True, check=True)
+                              "xcb-util-devel", "libuuid-devel", "xcb-util-cursor-devel"], self.options.exclude_install), update=True, check=True)
 
         pacman = package_manager.PacMan(self)
-        pacman.install(["libxcb", "libfontenc", "libice", "libsm", "libxaw", "libxcomposite", "libxcursor",
+        pacman.install(filter_list(["libxcb", "libfontenc", "libice", "libsm", "libxaw", "libxcomposite", "libxcursor",
                               "libxdamage", "libxdmcp", "libxtst", "libxinerama", "libxkbfile", "libxrandr", "libxres",
                               "libxss", "xcb-util-wm", "xcb-util-image", "xcb-util-keysyms", "xcb-util-renderutil",
-                              "libxxf86vm", "libxv", "xcb-util", "util-linux-libs", "xcb-util-cursor"], update=True, check=True)
+                              "libxxf86vm", "libxv", "xcb-util", "util-linux-libs", "xcb-util-cursor"], self.options.exclude_install), update=True, check=True)
 
-        package_manager.Pkg(self).install(["libX11", "libfontenc", "libice", "libsm", "libxaw", "libxcomposite", "libxcursor",
+        package_manager.Pkg(self).install(filter_list(["libX11", "libfontenc", "libice", "libsm", "libxaw", "libxcomposite", "libxcursor",
                            "libxdamage", "libxdmcp", "libxtst", "libxinerama", "libxkbfile", "libxrandr", "libxres",
                            "libXScrnSaver", "xcb-util-wm", "xcb-util-image", "xcb-util-keysyms", "xcb-util-renderutil",
-                           "libxxf86vm", "libxv", "xkeyboard-config", "xcb-util", "xcb-util-cursor"], update=True, check=True)
+                           "libxxf86vm", "libxv", "xkeyboard-config", "xcb-util", "xcb-util-cursor"], self.options.exclude_install), update=True, check=True)
 
     def package_info(self):
         if conan_version.major >= 2:
@@ -89,7 +96,7 @@ class XorgConan(ConanFile):
             self.cpp_info.includedirs = []
             self.cpp_info.libdirs = []
 
-        for name in ["x11", "x11-xcb", "fontenc", "ice", "sm", "xau", "xaw7",
+        components_list = filter_list(["x11", "x11-xcb", "fontenc", "ice", "sm", "xau", "xaw7",
                      "xcomposite", "xcursor", "xdamage", "xdmcp", "xext", "xfixes", "xi",
                      "xinerama", "xkbfile", "xmu", "xmuu", "xpm", "xrandr", "xrender", "xres",
                      "xscrnsaver", "xt", "xtst", "xv", "xxf86vm",
@@ -97,7 +104,8 @@ class XorgConan(ConanFile):
                      "xcb-renderutil", "xcb-shape", "xcb-shm", "xcb-sync", "xcb-xfixes",
                      "xcb-xinerama", "xcb", "xcb-atom", "xcb-aux", "xcb-event", "xcb-util",
                      "xcb-dri3", "xcb-cursor", "xcb-dri2", "xcb-dri3", "xcb-glx", "xcb-present",
-                     "xcb-composite", "xcb-ewmh", "xcb-res"] + ([] if self.settings.os == "FreeBSD" else ["uuid"]):
+                     "xcb-composite", "xcb-ewmh", "xcb-res"] + ([] if self.settings.os == "FreeBSD" else ["uuid"]), self.options.exclude_lib)
+        for name in components_list:
             pkg_config = PkgConfig(self, name)
             pkg_config.fill_cpp_info(
                 self.cpp_info.components[name], is_system=self.settings.os != "FreeBSD")

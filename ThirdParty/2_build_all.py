@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os, platform, subprocess, sys, re
 
-unattended = '--unattended' in sys.argv[1:]
 
 def check_msvc_env():
     try:
@@ -14,30 +13,61 @@ def check_msvc_env():
     print("CL compiler: version [%s], arch [%s]" % res)
     return res
 
-def build_arch(*, host_profile, build_profile = None, options = {}):
-    if build_profile is None:
-        build_profile = host_profile
-    cmd = 'conan install . --profile:host=%s --profile:build=%s -of trash' % (host_profile, build_profile)
-    for k,v in options.items():
-        cmd += ' -o %s=%s' % (str(k), str(v))
-    cmd += ' --build missing'
-    print("CMD: %s" % cmd)
-    if not unattended:
-        yesno = input('continue? (yes/no):')
-        assert yesno == 'yes', 'Cancelled by user'
-    ret = os.system(cmd)
-    if unattended:
-        assert ret == 0, 'Nonzero return code: stop'
+
+def create_build_cmd(*, os, arch_host, build_libs, build_tdm):
+    cmd = 'conan install .'
+
+    cmd += ' -pr:b profiles/base_%s' % os
+    cmd += ' -pr profiles/os_%s' % os
+    cmd += ' -pr profiles/arch_%s' % arch_host
+    cmd += ' -pr profiles/build_%s' % build_libs
+    cmd += ' -s thedarkmod/*:build_type=%s' % build_tdm
+
+    cmd += ' -of artefacts/%s_%s' % (os, arch_host)
+    cmd += ' -d tdm_deploy'
+    cmd += ' -b missing'
+
+    return cmd
+
+
+commands = []
 
 assert platform.machine().endswith('64'), "Use 64-bit OS for builds"
-
 sysname = platform.system().lower()
-if 'windows' in sysname:
+
+if 'windows' in sysname:    # Windows
     assert check_msvc_env() == None, "Run build in command line without VC vars!"
-    build_arch(host_profile = 'profiles/win64', build_profile = 'profiles/win64')
-    build_arch(host_profile = 'profiles/win64_dbg', build_profile = 'profiles/win64_dbg', options = {'with_header':False,'with_release':False})
-    build_arch(host_profile = 'profiles/win32', build_profile = 'profiles/win64')
-    build_arch(host_profile = 'profiles/win32_dbg', build_profile = 'profiles/win64_dbg', options = {'with_header':False,'with_release':False})
-else:
-    build_arch(host_profile = 'profiles/linux64', build_profile = 'profiles/linux64')
-    build_arch(host_profile = 'profiles/linux32', build_profile = 'profiles/linux64')
+
+    for bitness in ['64', '32']:
+        for config in ['Release', 'Debug']:
+            commands.append(create_build_cmd(
+                os = 'windows',
+                arch_host = bitness,
+                build_libs = {'Debug': 'debugfast', 'Release': 'release'}[config],
+                build_tdm = config,
+            ))
+
+else:   # Linux
+    for bitness in ['64', '32']:
+        for config in ['Release', 'Debug']:
+            commands.append(create_build_cmd(
+                os = 'linux',
+                arch_host = bitness,
+                build_libs = 'release',
+                build_tdm = config,
+            ))
+
+
+unattended = '--unattended' in sys.argv[1:]
+
+print("Commands to execute:")
+for cmd in commands:
+    print("  %s" % cmd)
+
+if not unattended:
+    yesno = input('continue? (yes/no):')
+    assert yesno == 'yes', 'Cancelled by user'
+
+for cmd in commands:
+    ret = os.system(cmd)
+    assert ret == 0, 'Stopped due to error for: %s' % cmd

@@ -31,9 +31,7 @@ class TracyConan(ConanFile):
 
     def package(self):
         for glob in ['*.h', '*.hpp', '*.cpp']:
-            files.copy(self, glob, src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "include"), excludes = "TracyClient.cpp")
-
-        files.copy(self, "TracyClient.cpp", src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "src"))
+            files.copy(self, glob, src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "include"))
 
         files.copy(self, "LICENSE", src = self.source_folder, dst = path.join(self.package_folder, "licenses"))
         files.copy(self, "libbacktrace/LICENSE", src = path.join(self.source_folder, "public"), dst = path.join(self.package_folder, "licenses"))

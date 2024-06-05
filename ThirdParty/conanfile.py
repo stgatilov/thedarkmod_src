@@ -1,65 +1,56 @@
 from conan import ConanFile
 from conan.tools import files
+from conan.tools.cmake import CMakeDeps, CMakeToolchain, CMake
+from conan.tools.microsoft import MSBuildDeps, MSBuild
 import yaml
+import re
 from os import path
 
 
-def get_platform_name(settings, shared=False):
-    os = {'Windows': 'win', 'Linux': 'lnx'}[str(settings.os)]
-    bitness = {'x86': '32', 'x86_64': '64'}[str(settings.arch)]
-    dynamic = 'd' if shared else 's'
-    compiler = {'msvc': 'vc', 'gcc': 'gcc'}[str(settings.compiler)]
-    # GCC 5-10 are binary compatible, MSVC 2015-2019 are compatible too
-    # see also: https://forums.thedarkmod.com/index.php?/topic/20940-unable-to-link-openal-during-compilation/
-    ### if compiler in ['vc', 'gcc']:
-    ###     compiler += str(settings.compiler.version)
-    buildtype = {'Release': 'rel', 'Debug': 'dbg', 'RelWithDebInfo': 'rwd'}[str(settings.build_type)]
-    stdlib = '?'
-    if compiler.startswith('vc'):
-        stdlib = 'm'
-        stdlib += {'static': 't', 'dynamic': 'd'}[str(settings.compiler.runtime)]
-        stdlib += {'Release': '', 'Debug': 'd'}[str(settings.compiler.runtime_type)]
-    elif compiler.startswith('gcc'):
-        stdlib = {'libstdc++': 'stdcpp'}[str(settings.compiler.libcxx)]
-    return '%s%s_%s_%s_%s_%s' % (os, bitness, dynamic, compiler, buildtype, stdlib)
-
-
 class TdmDepends(ConanFile):
+    name = "thedarkmod"
     settings = "os", "compiler", "build_type", "arch"
     options = {
-        "with_header": [True, False],
-        "with_release": [True, False],
-        "with_vcdebug": [True, False],
-        "platform_name": [None, "ANY"],
+        "build_game": [False, True],
+        "build_game_vcxproj": [False, True],
+        "build_installer": [False, True],
+        "build_packager": [False, True],
     }
     default_options = {
-        "with_header": True,
-        "with_release": True,
-        "with_vcdebug": True,
-        "platform_name": None,
+        "build_game": False,
+        "build_game_vcxproj": False,
+        "build_installer": False,
+        "build_packager": False,
     }
 
-    def set_requirements(self, only_require):
+    def layout(self):
+        self.folders.root = ".."
+        self.folders.source = "."
+
+    def set_requirements(self, do_require):
         with open("packages.yaml", "r") as f:
             doc = yaml.safe_load(f)
 
         for dep in doc["packages"]:
             pkgname = dep["name"]
-            optname = "with_" + dep["type"]
-            if pkgname == 'xorg' and self.settings.os == "Windows":
-                continue      # Linux-only
 
-            if getattr(self.options, optname):
-                if only_require:
-                    ref = dep["name"] + '/' + dep["version"]
-                    if dep["local"]:
-                        ref += "@thedarkmod"
-                    self.requires(ref, force = True)
-                else:
-                    options = doc["options"].get(pkgname, {})
-                    for k,v in options.items():
-                        print("OPT %s = %s on %s" % (k, v, pkgname))
-                        setattr(self.options[pkgname], k, v)
+            # ignore os-specific packages if os does not match
+            if "os" in dep and str(self.settings.os) not in dep["os"]:
+                continue
+
+            if do_require:
+                ref = dep["name"] + '/' + dep["version"]
+                if dep["local"]:
+                    ref += "@thedarkmod"
+                # force flag allows to resolve version conflicts
+                self.requires(ref, force = True)
+
+            else:
+                # pass package options from yaml
+                options = doc["options"].get(pkgname, {})
+                for k,v in options.items():
+                    print("OPT %s = %s on %s" % (k, v, pkgname))
+                    setattr(self.options[pkgname], k, v)
 
     def requirements(self):
         self.set_requirements(True)
@@ -67,30 +58,68 @@ class TdmDepends(ConanFile):
         self.set_requirements(False)
 
     def generate(self):
-        if str(self.options.platform_name) == "None":
-            self.options.platform_name = get_platform_name(self.settings, False)
-        platform = self.options.platform_name
+        # cmake can be used on all platforms
+        cmake = CMakeDeps(self)
+        # don't forget to pass -s thedarkmod/*:build_type=XXX to select which TDM config to generate deps for
+        cmake.configuration = str(self.settings.build_type)
+        cmake.generate()
 
-        for dep in self.dependencies.values():
-            name = str(dep).split('/')[0]
-            pkgdir = dep.package_folder
-            artdir = path.abspath("..")
+        # for building with MSVC project directly (Windows only)
+        if self.settings.compiler == 'msvc':
+            assert str(self.settings.build_type) == str(self.settings.compiler.runtime_type), "Forgot to set -s thedarkmod/*:build_type=XXX ?"
+            if self.settings.build_type == 'Debug':
+                configs = ['Debug', 'Debug Editable']
+            else:
+                configs = ['Release', 'Debug Fast', 'Sanitize']
+            for cfg in configs:
+                msbuild = MSBuildDeps(self)
+                msbuild.configuration = cfg
+                msbuild.generate()
 
-            print("{} -> {}".format(pkgdir, path.join(artdir, "artefacts/%s/lib/%s" % (name, platform))))
-            # note: we assume recipes are sane, and the set of headers does not depend on compiler/arch
-            files.copy(self, "*.h"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
-            files.copy(self, "*.H"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))    # FLTK =(
-            files.copy(self, "*.hpp", src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
-            files.copy(self, "*.H"  , src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))    # FLTK =(
-            files.copy(self, "*.cpp", src = path.join(pkgdir, "include") , dst = path.join(artdir, "artefacts/%s/include" % name))
-            files.copy(self, "*"    , src = path.join(pkgdir, "licenses"), dst = path.join(artdir, "artefacts/%s/licenses" % name))
-            # source code files to be embedded into build (used by Tracy)
-            files.copy(self, "*.cpp", src = path.join(pkgdir, "src")    , dst = path.join(artdir, "artefacts/%s/src" % name))
-            # compiled binaries are put under subdirectory named by build settings
-            files.copy(self, "*.lib", src = path.join(pkgdir, "lib")    , dst = path.join(artdir, "artefacts/%s/lib/%s" % (name, platform)))
-            files.copy(self, "*.a"  , src = path.join(pkgdir, "lib")    , dst = path.join(artdir, "artefacts/%s/lib/%s" % (name, platform)))
-            # while we don't use dynamic libraries, some packages provide useful executables (e.g. FLTK gives fluid.exe)
-            files.copy(self, "*.dll", src = path.join(pkgdir, "bin")    , dst = path.join(artdir, "artefacts/%s/bin/%s" % (name, platform)))
-            files.copy(self, "*.so" , src = path.join(pkgdir, "bin")    , dst = path.join(artdir, "artefacts/%s/bin/%s" % (name, platform)))
-            files.copy(self, "*.exe", src = path.join(pkgdir, "bin")    , dst = path.join(artdir, "artefacts/%s/bin/%s" % (name, platform)))
-            files.copy(self, "*.bin", src = path.join(pkgdir, "bin")    , dst = path.join(artdir, "artefacts/%s/bin/%s" % (name, platform)))
+    # note: conan build is an optional step
+    # for normal builds, better use cmake or MSVC directly
+    def build(self):
+        suffix = ''
+        if self.settings.compiler != "msvc":
+            suffix += '_%s' % str(self.settings.build_type)
+        suffix = re.escape(suffix).lower()
+
+        if self.options.build_game:
+            self.folders.build = "build_game" + suffix
+            tc = CMakeToolchain(self)
+            tc.generate()
+            cmake = CMake(self)
+            variables = {
+                'TDM_THIRDPARTY_ARTEFACTS': 'OFF',
+                'COPY_EXE': 'OFF'
+            }
+            cmake.configure(build_script_folder = '.', variables = variables)
+            cmake.build()
+
+        if self.options.build_installer:
+            self.folders.build = "build_installer" + suffix
+            tc = CMakeToolchain(self)
+            tc.generate()
+            cmake = CMake(self)
+            variables = {
+                'TDM_THIRDPARTY_ARTEFACTS': 'OFF',
+            }
+            cmake.configure(build_script_folder = 'tdm_installer', variables = variables)
+            cmake.build()
+
+        if self.options.build_packager:
+            self.folders.build = "build_packager" + suffix
+            tc = CMakeToolchain(self)
+            tc.generate()
+            cmake = CMake(self)
+            variables = {
+                'TDM_THIRDPARTY_ARTEFACTS': 'OFF',
+            }
+            cmake.configure(build_script_folder = 'tdm_package', variables = variables)
+            cmake.build()
+
+        if self.options.build_game_vcxproj:
+            self.folders.build = "ignored"
+            msbuild = MSBuild(self)
+            msbuild.platform = {'x86': 'Win32', 'x86_64': 'x64'}[str(self.settings.arch)]
+            msbuild.build(path.abspath(path.join(self.recipe_folder, "..", "TheDarkMod.sln")))

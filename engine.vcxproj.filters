@@ -3361,9 +3361,6 @@
     <ClCompile Include="idlib\Timer.cpp">
       <Filter>Idlib</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\artefacts\tracy\src\TracyClient.cpp">
-      <Filter>Idlib</Filter>
-    </ClCompile>
     <ClCompile Include="game\EntityList.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -3615,6 +3612,9 @@
     </ClCompile>
     <ClCompile Include="ui\GameWindow.cpp">
       <Filter>Ui</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\TracingEmbeddedSourceCode.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

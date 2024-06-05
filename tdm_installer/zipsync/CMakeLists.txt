@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ZIPSYNC_OPTION_BUILD_TESTS "build executable with unit tests" ON)
 option(ZIPSYNC_OPTION_BUILD_TOOL "build command-line zipsync tool" ON)
-option(ZIPSYNC_OPTION_THIRDPARTY_MODULE_MODE "link third-party libs using module mode of find_package" OFF)
 
 set(lib_sources
     minizip_extra.c
@@ -68,21 +67,16 @@ set(zipsynccmd_sources
 if(MSVC)
     add_compile_options("/W2")
     add_compile_options("$<$<CONFIG:RelWithDebInfo>:/Ob2>")
+    add_compile_options("$<$<CONFIG:Release>:/Zi>")
 endif()
 
 
-find_package(zlib REQUIRED)
-find_package(minizip REQUIRED)
-find_package(CURL REQUIRED)
-find_package(blake2 REQUIRED)
+find_package(minizip REQUIRED CONFIG)
+find_package(CURL REQUIRED CONFIG)
+find_package(blake2 REQUIRED CONFIG)
 
 add_library(libzipsync STATIC ${lib_sources})
-if(ZIPSYNC_OPTION_THIRDPARTY_MODULE_MODE)
-    target_include_directories(libzipsync PUBLIC ${minizip_INCLUDE_DIRS} ${zlib_INCLUDE_DIRS} ${BLAKE2_INCLUDE_DIRS} PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(libzipsync PRIVATE ${minizip_LIBRARIES} ${zlib_LIBRARIES} ${BLAKE2_LIBRARIES} ${CURL_LIBRARIES})
-else()
-    target_link_libraries(libzipsync PUBLIC minizip::minizip blake2::blake2 PRIVATE CURL::libcurl)
-endif()
+target_link_libraries(libzipsync PUBLIC minizip::minizip blake2::blake2 PRIVATE CURL::libcurl)
 
 add_library(libzipsyncextra STATIC ${extralib_sources})
 target_link_libraries(libzipsyncextra PUBLIC libzipsync)

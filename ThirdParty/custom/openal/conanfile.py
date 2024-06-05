@@ -142,12 +142,12 @@ class OpenALConan(ConanFile):
         self.cpp_info.set_property("cmake_find_mode", "both")
         self.cpp_info.set_property("cmake_file_name", "OpenAL")
         self.cpp_info.set_property("cmake_target_name", "OpenAL::OpenAL")
-        self.cpp_info.set_property("cmake_build_modules", [self._module_file_rel_path])
+        #self.cpp_info.set_property("cmake_build_modules", [self._module_file_rel_path])
         self.cpp_info.set_property("pkg_config_name", "openal")
 
         self.cpp_info.names["cmake_find_package"] = "OpenAL"
         self.cpp_info.names["cmake_find_package_multi"] = "OpenAL"
-        self.cpp_info.build_modules["cmake_find_package"] = [self._module_file_rel_path]
+        #self.cpp_info.build_modules["cmake_find_package"] = [self._module_file_rel_path]
 
         self.cpp_info.libs = collect_libs(self)
         self.cpp_info.includedirs.append(os.path.join("include", "AL"))

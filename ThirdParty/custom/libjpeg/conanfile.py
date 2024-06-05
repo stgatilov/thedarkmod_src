@@ -118,10 +118,10 @@ class LibjpegConan(ConanFile):
                 )
 
                 # TDM: disable whole program optimization in all builds, even in Release!
-                replace_in_file(self, jpeg_vcxproj, "<WholeProgramOptimization>true", "<WholeProgramOptimization>False")
+                replace_in_file(self, jpeg_vcxproj, "<WholeProgramOptimization>true", "<WholeProgramOptimization>false")
 
                 # Patch settings for a different build type
-                if self.settings.build_type is not "Release":
+                if self.settings.build_type != "Release":
                     replacements = {
                         "Release": str(self.settings.build_type)
                     }
@@ -134,6 +134,10 @@ class LibjpegConan(ConanFile):
                         replace_in_file(self, jpeg_vcxproj, key, value)
 
                     replace_in_file(self, os.path.join(self.source_folder, "jpeg.sln"), "Release", str(self.settings.build_type))
+                else:
+                    # TDM: disable generation of debug symbols in release
+                    # we don't copy pdb, and thus get "missing PDB" warning when linking TDM
+                    replace_in_file(self, jpeg_vcxproj, "</ClCompile>", "<DebugInformationFormat>None</DebugInformationFormat></ClCompile>", strict = True)
 
                 msbuild = MSBuild(self)
                 if self.settings.arch == "x86":

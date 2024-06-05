@@ -14,10 +14,10 @@ elseif(MSVC)
 	set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 endif()
 
+option(TDM_THIRDPARTY_ARTEFACTS "Use prebuilt artefacts at ThirdParty/artefacts?" ON)
+
 # find ordinary cmake includes
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/sys/cmake")
-# find third-party package modules
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/ThirdParty/cmake_find_package")
 
 include(CMakeDependentOption)
 include(ucm)
@@ -29,6 +29,9 @@ include(CheckPIESupported)
 project(TheDarkMod)
 # note: must be after project: https://gitlab.kitware.com/cmake/cmake/-/issues/14983
 check_pie_supported()
+if(TDM_THIRDPARTY_ARTEFACTS)
+	include(ThirdParty/use_artefacts.cmake)
+endif()
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,7 +40,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 cmake_dependent_option(WITH_TOOLS "Compile with Tools" ON "MSVC" OFF)
 set(GAME_DIR "${PROJECT_SOURCE_DIR}/../darkmod" CACHE STRING "The directory where the game assets are stored")
 option(COPY_EXE "Copy executable to GAME_DIR after build" ON)
-set(THIRDPARTY_PLATFORM_OVERRIDE "" CACHE STRING "If you build conan dependencies yourself with custom platform_name, pass platform_name string here")
 option(ENABLE_TRACY "Enable tracy profiling support. Needs to be activated ingame by enabling the cvar com_enableTracing." ON)
 
 if (UNIX)
@@ -119,7 +121,6 @@ ucm_add_files(
 	"sys/sys_padinput.cpp"
 	"sys/sys_padinput.h"
 	"sys/sys_cpu.cpp"
-	"ThirdParty/artefacts/tracy/src/TracyClient.cpp"
 TO TDM_SOURCE_FILES)
 
 if (WITH_TOOLS)
@@ -176,16 +177,16 @@ endif ()
 # note TypeInfo.cpp must be excluded from precompiled header because it uses some dirty hacks
 add_precompiled_header(TheDarkMod
 		"idlib/precompiled.h" "idlib/precompiled.cpp" "precompiled.h"
-		EXCLUDE "game/gamesys/TypeInfo.cpp" "idlib/Token.cpp" "idlib/bv/Frustum_gcc.cpp" "sys/win32/rc/CreateResourceIDs.cpp" "ThirdParty/artefacts/tracy/src/TracyClient.cpp"
+		EXCLUDE
+		"game/gamesys/TypeInfo.cpp"
+		"idlib/Token.cpp"
+		"sys/win32/win_shared.cpp"
+		"sys/win32/rc/CreateResourceIDs.cpp"
+		"framework/TracingEmbeddedSourceCode.cpp"
 )
 
 add_compile_definitions(
 		"ExtLibs="
-		IL_STATIC_LIB
-		__DOOM__
-		CURL_STATICLIB
-		LIBJPEG_STATIC
-		AL_LIBTYPE_STATIC
 )
 if (ENABLE_TRACY)
 	add_compile_definitions(
@@ -198,13 +199,7 @@ if (ENABLE_TRACY)
 	)
 endif()
 
-if (THIRDPARTY_PLATFORM_OVERRIDE)
-	if (UNIX)
-		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.custom")
-	elseif (MSVC)
-		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod_custom.exe")
-	endif ()
-elseif (UNIX)
+if (UNIX)
 	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set_target_properties(TheDarkMod PROPERTIES OUTPUT_NAME "thedarkmod.x64")
 	else ()
@@ -221,54 +216,41 @@ endif ()
 set_target_properties(TheDarkMod PROPERTIES POSITION_INDEPENDENT_CODE OFF)	# see also CMP0083
 ucm_set_runtime(STATIC)
 
-find_package(zlib REQUIRED)
-find_package(minizip REQUIRED)
-find_package(CURL REQUIRED)
-find_package(openal REQUIRED)
-find_package(ogg REQUIRED)
-find_package(vorbis REQUIRED)
-find_package(libjpeg REQUIRED)
-find_package(ffmpeg REQUIRED)
-find_package(pugixml REQUIRED)
-find_package(libpng REQUIRED)
-find_package(mbedtls REQUIRED)
-find_package(glfw REQUIRED)
-
 include_directories(
 		"${PROJECT_SOURCE_DIR}"
 		"${PROJECT_SOURCE_DIR}/idlib"
-		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/doctest/include"
-		"${PROJECT_SOURCE_DIR}/ThirdParty/artefacts/tracy/include"
-		${zlib_INCLUDE_DIRS}
-		${minizip_INCLUDE_DIRS}
-		${CURL_INCLUDE_DIRS}
-		${openal_INCLUDE_DIRS}
-		${ogg_INCLUDE_DIRS}
-		${vorbis_INCLUDE_DIRS}
-		${devil_INCLUDE_DIRS}
-		${libjpeg_INCLUDE_DIRS}
-		${ffmpeg_INCLUDE_DIRS}
-		${pugixml_INCLUDE_DIRS}
-		${libpng_INCLUDE_DIRS}
-		${mbedtls_INCLUDE_DIRS}
-		${glfw_INCLUDE_DIRS}
 )
 
+find_package(ZLIB REQUIRED CONFIG)
+find_package(minizip REQUIRED CONFIG)
+find_package(CURL REQUIRED CONFIG)
+find_package(OpenAL REQUIRED CONFIG)
+find_package(Ogg REQUIRED CONFIG)
+find_package(Vorbis REQUIRED CONFIG)
+find_package(JPEG REQUIRED CONFIG)
+find_package(PNG REQUIRED CONFIG)
+find_package(ffmpeg REQUIRED CONFIG)
+find_package(pugixml REQUIRED CONFIG)
+find_package(mbedtls REQUIRED CONFIG)
+find_package(glfw3 REQUIRED CONFIG)
+find_package(doctest REQUIRED CONFIG)
+find_package(tracy REQUIRED CONFIG)
+
 target_link_libraries(TheDarkMod
-		${zlib_LIBRARIES}
-		${minizip_LIBRARIES}
-		${CURL_LIBRARIES}
-		${openal_LIBRARIES}
-		${vorbis_LIBRARIES}
-		${ogg_LIBRARIES}
-		${devil_LIBRARIES}
-		${libjpeg_LIBRARIES}
-		${ffmpeg_LIBRARIES}
-		${libpng_LIBRARIES}
-		${mbedtls_LIBRARIES}
-		${glfw_LIBRARIES}
+		ZLIB::ZLIB
+		minizip::minizip
+		CURL::libcurl
+		OpenAL::OpenAL
+		vorbis::vorbis
+		Ogg::ogg
+		JPEG::JPEG
+		PNG::PNG
+		ffmpeg::ffmpeg
+		glfw
+		pugixml::pugixml
+		doctest::doctest
+		tracy::tracy
 )
-target_link_libraries(TheDarkMod debug ${pugixml_LIBRARIES_D} optimized ${pugixml_LIBRARIES})
 
 if (WIN32)
 	target_link_libraries(TheDarkMod ws2_32 iphlpapi winmm bcrypt dinput8 dbghelp)

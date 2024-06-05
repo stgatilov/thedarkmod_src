@@ -1,0 +1,6 @@
+# note: pass as build profile on Linux
+[settings]
+os=Linux
+compiler=gcc
+arch=x86_64
+build_type=Release

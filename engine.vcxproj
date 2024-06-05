@@ -122,72 +122,72 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Editable|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x86.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x86.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugEditable.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Fast|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x86.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x86.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
-    <Import Project="sys\msvc\properties\_DebugFast.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugFast.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Sanitize|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x86.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x86.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
-    <Import Project="sys\msvc\properties\_DebugFast.props" />
-    <Import Project="sys\msvc\properties\AddressSanitizer.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugFast.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/AddressSanitizer.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Editable|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x64.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x64.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugEditable.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Fast|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x64.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x64.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
-    <Import Project="sys\msvc\properties\_DebugFast.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugFast.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Sanitize|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x64.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x64.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
-    <Import Project="sys\msvc\properties\_DebugFast.props" />
-    <Import Project="sys\msvc\properties\AddressSanitizer.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/_DebugFast.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/AddressSanitizer.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x86.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x86.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Release.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x64.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x64.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Release.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x86.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x86.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Debug.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Common.props" />
-    <Import Project="sys\msvc\properties\Common_x64.props" />
+    <Import Project="$(SolutionDir)/sys/msvc/properties/Common_x64.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_DoomDLL.props" />
     <Import Project="$(SolutionDir)/sys/msvc/properties/_Debug.props" />
   </ImportGroup>
@@ -908,6 +908,9 @@
     <ClCompile Include="framework\Session.cpp" />
     <ClCompile Include="framework\Session_menu.cpp" />
     <ClCompile Include="framework\Tracing.cpp" />
+    <ClCompile Include="framework\TracingEmbeddedSourceCode.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="framework\UsercmdGen.cpp" />
     <ClCompile Include="game\AbsenceMarker.cpp" />
     <ClCompile Include="game\Actor.cpp" />
@@ -1330,9 +1333,6 @@
     <ClCompile Include="sys\win32\win_wndproc.cpp" />
     <ClCompile Include="sys\win32\rc\CreateResourceIDs.cpp" />
     <ClCompile Include="tests\TestRun.cpp" />
-    <ClCompile Include="ThirdParty\artefacts\tracy\src\TracyClient.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="tools\af\DialogAF.cpp" />
     <ClCompile Include="tools\af\DialogAFBody.cpp" />
     <ClCompile Include="tools\af\DialogAFConstraint.cpp" />
