@@ -3,10 +3,14 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
     <TdmExecutableName>TheDarkModx64</TdmExecutableName>
+    <TdmBitness>64</TdmBitness>
   </PropertyGroup>
   <ItemGroup>
     <BuildMacro Include="TdmExecutableName">
       <Value>$(TdmExecutableName)</Value>
+    </BuildMacro>
+    <BuildMacro Include="TdmBitness">
+      <Value>$(TdmBitness)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>

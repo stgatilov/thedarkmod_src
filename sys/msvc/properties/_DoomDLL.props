@@ -7,17 +7,17 @@
     <TargetName>$(TdmExecutableName)</TargetName>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_pugixml.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_openal.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_vorbis.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_ffmpeg.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_glfw.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_libcurl.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_libjpeg.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_libpng.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_minizip.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_tracy.props" />
-    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows/conan_doctest.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_pugixml.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_openal.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_vorbis.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_ffmpeg.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_glfw.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_libcurl.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_libjpeg.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_libpng.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_minizip.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_tracy.props" />
+    <Import Project="$(SolutionDir)/ThirdParty/artefacts/windows_$(TdmBitness)/conan_doctest.props" />
   </ImportGroup>
   <ItemGroup>
   </ItemGroup>
