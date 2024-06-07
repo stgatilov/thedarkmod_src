@@ -353,6 +353,8 @@ bool idEFXFile::AddPreset(idStr preset, idSoundEffect* effect, ALenum err) {
 	efxf(AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, props->flRoomRolloffFactor);
 	efxi(AL_EAXREVERB_DECAY_HFLIMIT, props->iDecayHFLimit);
 
+	return true;
+
 }
 
 bool idEFXFile::ReadEffectOpenAL(idLexer &src, idSoundEffect *effect) {

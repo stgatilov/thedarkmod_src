@@ -10,3 +10,5 @@ ipch/
 Darkmod.log
 
 ThirdParty/artefacts/
+
+MayaImport.vcxproj.user
