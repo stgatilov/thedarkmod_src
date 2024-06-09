@@ -1849,18 +1849,11 @@ void idMaterial::SortInteractionStages() {
 			}
 		}
 
-		// bubble sort everything bump / diffuse / specular
-		for ( int l = 1 ; l < j-i ; l++ ) {
-			for ( int k = i ; k < j-l ; k++ ) {
-				if ( pd->parseStages[k].lighting > pd->parseStages[k+1].lighting ) {
-					shaderStage_t	temp;
-
-					temp = pd->parseStages[k];
-					pd->parseStages[k] = pd->parseStages[k+1];
-					pd->parseStages[k+1] = temp;
-				}
-			}
-		}
+		// sort the interaction block in order: bump / diffuse / specular
+		// stgatilov #5718: replaced hand-written bubble sort
+		std::stable_sort( pd->parseStages + i, pd->parseStages + j, [](const shaderStage_t &a, const shaderStage_t &b) {
+			return a.lighting < b.lighting;
+		});
 	}
 }
 
