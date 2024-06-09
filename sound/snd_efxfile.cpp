@@ -265,18 +265,25 @@ bool idEFXFile::ReadEffectLegacy(idLexer &src, idSoundEffect *effect) {
 	return true;
 }
 
+/*
+===============
+idEFXFile::AddOrUpdatePreset
+
+Checks the internal list of location:sound effect mappings to see if a mapping exists for this location.
+If it doesn't exist, create a new object and add to the list.
+If it does exist, use the existing sound effect mapping.
+In both cases, the EFX database gets updated with the current preset for the location
+===============
+*/
 bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effect) {
 
 	idSoundEffect* soundEffect = new idSoundEffect;
 
-	//ALuint effect = AL_EFFECTSLOT_NULL;
 	const bool found = GetEffect(areaName, soundEffect);
 	ALenum err{};
 	bool ok;
 
 	if (!found) {
-
-		// we need to add this preset
 
 		if (!soundEffect->alloc()) {
 			delete soundEffect;
@@ -285,26 +292,19 @@ bool idEFXFile::AddOrUpdatePreset(idStr areaName, idStr efxPreset, ALuint* effec
 		}
 
 		soundEffect->name = areaName;
-
-		//ALenum err{};
-		bool ok;
-		ok = AddPreset(efxPreset, soundEffect, err);
-
-		if (!ok) {
-			return false;
-		}
-
 		effects.Append(soundEffect);
 	}
-	else {
-		ok = AddPreset(efxPreset, soundEffect, err);
 
-		if (!ok) {
-			return false;
-		}
+	// update EFX database
+	ok = AddPreset(efxPreset, soundEffect, err);
+
+	if (!ok) {
+		return false;
 	}
 
+	// update effect - this is what's checked for change later
 	*effect = soundEffect->effect;
+
 	return true;
 }
 
