@@ -5,7 +5,7 @@ shallow_clone: true
 # configure matrix of builds
 image:
   - Visual Studio 2022
-  - Ubuntu1804
+  - Ubuntu2004
 platform:
   - 64
   - 32
@@ -22,9 +22,9 @@ environment:
 matrix:
   exclude:
     - configuration: msvc_main
-      image: Ubuntu1804
+      image: Ubuntu2004
     - configuration: msvc_extra
-      image: Ubuntu1804
+      image: Ubuntu2004
     - configuration: msvc_main
       thirdparty: conan
     - configuration: msvc_extra
