@@ -4,15 +4,17 @@ def execute(cmd):
     print("CMD: " + cmd)
     assert os.system(cmd) == 0
 
+try:
+    bitness = sys.argv[1]
+except:
+    bitness = os.environ['PLATFORM']
+assert bitness in ['64', '32']
 
 sysname = platform.system().lower()
 if 'windows' in sysname:
     osname = 'windows'
 else:
     osname = 'linux'
-
-bitness = sys.argv[1]
-assert bitness in ['64', '32']
 
 
 os.chdir('../ThirdParty')

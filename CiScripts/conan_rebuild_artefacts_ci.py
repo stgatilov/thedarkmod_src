@@ -26,4 +26,4 @@ shutil.rmtree(tdm_copy_dir, ignore_errors = True)   # readonly .svn
 shutil.rmtree('conanhome', ignore_errors = True)    # readonly cert?
 
 os.environ['CONAN_HOME'] = 'wrong_conan_home_path'
-os.chdir('tdm/CiScripts')
+os.chdir(f'{tdm_dir}/CiScripts')

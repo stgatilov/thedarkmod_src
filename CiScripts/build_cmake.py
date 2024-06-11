@@ -4,7 +4,13 @@ def execute(cmd):
     print("CMD: " + cmd)
     assert os.system(cmd) == 0
 
-bitness = sys.argv[1]
+try:
+    bitness = sys.argv[1]
+except:
+    bitness = os.environ['PLATFORM']
+assert bitness in ['64', '32']
+
+
 projects = {
     'game': '..',
     'installer': '../tdm_installer',
@@ -13,10 +19,10 @@ projects = {
 
 sysname = platform.system().lower()
 if 'windows' in sysname:
-    platform = {'32': 'Win32', '64': 'x64'}[bitness]
+    arch = {'32': 'Win32', '64': 'x64'}[bitness]
 
     for proj,cmakedir in projects.items():
-        execute(f'cmake {cmakedir} -B {proj}_win_{bitness} -A {platform} -DCOPY_EXE=OFF')
+        execute(f'cmake {cmakedir} -B {proj}_win_{bitness} -A {arch} -DCOPY_EXE=OFF')
         execute(f'cmake --build {proj}_win_{bitness} --config Release')
         execute(f'cmake --build {proj}_win_{bitness} --config Debug')
 

@@ -40,9 +40,9 @@ for:
           configuration: msvc_main
           thirdparty: artefacts
     build_script:
-      - cmd: |
+      - |
           cd CiScripts
-          build_msvc_main.cmd ${PLATFORM}
+          build_msvc_main.cmd
 
   - matrix:
       only:
@@ -50,9 +50,9 @@ for:
           configuration: msvc_extra
           thirdparty: artefacts
     build_script:
-      - cmd: |
+      - |
           cd CiScripts
-          build_msvc_extra.cmd ${PLATFORM}
+          build_msvc_extra.cmd
 
   - matrix:
       only:
@@ -62,19 +62,19 @@ for:
     install:
       - pip install conan
     build_script:
-      - cmd: |
+      - |
           cd CiScripts
           python conan_rebuild_artefacts_ci.py force
-          build_msvc_extra.cmd ${PLATFORM}
+          build_msvc_main.cmd
 
   - matrix:
       only:
         - configuration: cmake
           thirdparty: artefacts
     build_script:
-      - sh: |
+      - |
           cd CiScripts
-          python ./build_cmake.py ${PLATFORM}
+          python ./build_cmake.py
 
   - matrix:
       only:
@@ -83,10 +83,10 @@ for:
     install:
       - pip install conan
     build_script:
-      - cmd: |
+      - |
           cd CiScripts
           python ./conan_rebuild_artefacts_ci.py force
-          python ./build_cmake.py ${PLATFORM}
+          python ./build_cmake.py
 
   - matrix:
       only:
@@ -95,6 +95,6 @@ for:
     install:
       - pip install conan
     build_script:
-      - cmd: |
+      - |
           cd CiScripts
-          python conan_build.py ${PLATFORM}
+          python ./conan_build.py
