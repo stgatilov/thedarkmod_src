@@ -75,6 +75,7 @@ for:
     build_script:
       - |
           cd CiScripts
+          python --version
           python ./build_cmake.py
 
   - matrix:
