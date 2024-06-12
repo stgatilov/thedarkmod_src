@@ -33,6 +33,9 @@ matrix:
     - configuration: msvc_extra
       thirdparty: rebuild
 
+# Linux-only: don't use Python 2 please =)
+stack: python 3.8
+
 # build scripts
 for:
   - matrix:
