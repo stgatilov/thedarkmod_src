@@ -1,5 +1,7 @@
 import os, platform, sys
 
+print(sys.version)
+
 def execute(cmd):
     print("CMD: " + cmd)
     assert os.system(cmd) == 0

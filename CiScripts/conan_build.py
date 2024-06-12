@@ -28,9 +28,9 @@ for config in ['Release', 'Debug']:
     cmd += f' -pr profiles/build_{config}' # note: third-party are built as full Debug
     cmd += f' -of build_{osname}_{bitness}_{config}'
     cmd += ' -b missing'
-    cmd += ' -o build_game=True'
-    cmd += ' -o build_installer=True'
-    cmd += ' -o build_packager=True'
+    cmd += ' -o thedarkmod/*:build_game=True'
+    cmd += ' -o thedarkmod/*:build_installer=True'
+    cmd += ' -o thedarkmod/*:build_packager=True'
     execute(cmd)
 
 os.chdir('../CiScripts')
