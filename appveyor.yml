@@ -78,7 +78,7 @@ for:
     build_script:
       - |
           cd CiScripts
-          python --version
+          python ./linux_install.py
           python ./build_cmake.py
 
   - matrix:
@@ -90,6 +90,7 @@ for:
     build_script:
       - |
           cd CiScripts
+          python ./linux_install.py
           python ./conan_rebuild_artefacts_ci.py force
           python ./build_cmake.py
 
@@ -102,4 +103,5 @@ for:
     build_script:
       - |
           cd CiScripts
+          python ./linux_install.py
           python ./conan_build.py
