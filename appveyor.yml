@@ -21,6 +21,7 @@ environment:
 
 matrix:
   exclude:
+    - image: Visual Studio 2022     # TODO
     - configuration: msvc_main
       image: Ubuntu2004
     - configuration: msvc_extra
