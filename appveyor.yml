@@ -7,7 +7,7 @@ image:
   - Visual Studio 2022
   - Ubuntu2004
 platform:
-#  - 64 # TODO
+  - 64
   - 32
 configuration:
   - msvc_main     # build Debug + Release on vcxproj
@@ -16,12 +16,14 @@ configuration:
 environment:
   matrix:
     - thirdparty: artefacts     # use artefacts from SVN (conan-less)
-#    - thirdparty: rebuild       # regenerate artefacts using conan then use them
-#    - thirdparty: conan         # conan build
+    - thirdparty: rebuild       # regenerate artefacts using conan then use them
+    - thirdparty: conan         # conan build
 
 matrix:
   exclude:
     - image: Visual Studio 2022     # TODO
+    - image: Ubuntu2004     # too hard to use cross-compilation
+      platform: 32
     - configuration: msvc_main
       image: Ubuntu2004
     - configuration: msvc_extra
