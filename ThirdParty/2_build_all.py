@@ -44,7 +44,7 @@ if 'windows' in sysname:    # Windows
                 os = 'windows',
                 arch_host = bitness,
                 build_libs = {'Debug': 'debugfast', 'Release': 'release'}[config],
-                build_tdm = config,
+                build_tdm = config.lower(),
             ))
 
 else:   # Linux
@@ -54,7 +54,7 @@ else:   # Linux
                 os = 'linux',
                 arch_host = bitness,
                 build_libs = 'release',
-                build_tdm = config,
+                build_tdm = config.lower(),
             ))
 
 
