@@ -14,4 +14,5 @@ if 'windows' not in sysname:
     os.system('sudo dpkg --add-architecture i386')
     os.system('sudo apt-get update')
     os.system('sudo apt-get -y install gcc-multilib g++-multilib')
-    os.system('sudo apt-get -y install mesa-common-dev:i386 libglu1-mesa-dev:i386 libxcb-*-dev:i386 libx11-xcb-dev:i386 libxxf86vm-dev:i386 libxext-dev:i386')
+    os.system('sudo apt-get -y install mesa-common-dev:i386 libglu1-mesa-dev:i386')
+    os.system('sudo apt-get -y install libxcb-*-dev:i386 libx11-xcb-dev:i386 libxxf86vm-dev:i386 libxext-dev:i386')
