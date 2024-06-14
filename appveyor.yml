@@ -21,8 +21,7 @@ environment:
 
 matrix:
   exclude:
-    - image: Visual Studio 2022     # TODO
-    - image: Ubuntu1604     # too hard to use cross-compilation
+    - image: Ubuntu1604         # too hard to configure cross-compilation for 32-bit on Linux
       platform: 32
     - configuration: msvc_main
       image: Ubuntu1604
