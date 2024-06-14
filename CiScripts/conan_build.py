@@ -20,7 +20,7 @@ else:
 os.chdir('../ThirdParty')
 execute('python ./1_export_custom.py --unattended')
 
-for config in ['Release', 'Debug']:
+for config in ['release', 'debug']:
     cmd = 'conan build .'
     cmd += f' -pr:b profiles/base_{osname}'
     cmd += f' -pr profiles/os_{osname}'
