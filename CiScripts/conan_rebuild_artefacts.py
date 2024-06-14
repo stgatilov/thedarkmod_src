@@ -5,12 +5,17 @@ def execute(cmd):
     assert os.system(cmd) == 0
 
 
+try:
+    bitnessArg = '--bitness=' + os.environ['PLATFORM']
+except:
+    bitnessArg = ""
+
 print('CONAN_HOME = ' + os.environ['CONAN_HOME'])
 
 os.chdir('../ThirdParty')
 
 shutil.rmtree('artefacts', ignore_errors = True)
 execute('python ./1_export_custom.py --unattended')
-execute('python ./2_build_all.py --unattended')
+execute(f'python ./2_build_all.py --unattended {bitnessArg}')
 
 os.chdir('../CiScripts')
