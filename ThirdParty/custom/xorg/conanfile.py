@@ -38,9 +38,6 @@ class XorgConan(ConanFile):
         self.info.clear()
 
     def system_requirements(self):
-        if self.options["skip"]:
-            return
-
         apt = package_manager.Apt(self)
         apt.install(filter_list(["libx11-dev", "libx11-xcb-dev", "libfontenc-dev", "libice-dev", "libsm-dev", "libxau-dev", "libxaw7-dev",
                      "libxcomposite-dev", "libxcursor-dev", "libxdamage-dev", "libxdmcp-dev", "libxext-dev", "libxfixes-dev",

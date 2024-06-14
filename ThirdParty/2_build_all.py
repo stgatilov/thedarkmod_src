@@ -30,6 +30,13 @@ def create_build_cmd(*, os, arch_host, build_libs, build_tdm):
     return cmd
 
 
+if '--bitness=64' in sys.argv[1:]:
+    bitnessList = ['64']
+elif '--bitness=32' in sys.argv[1:]:
+    bitnessList = ['32']
+else:
+    bitnessList = ['64', '32']
+
 commands = []
 
 assert platform.machine().endswith('64'), "Use 64-bit OS for builds"
@@ -38,7 +45,7 @@ sysname = platform.system().lower()
 if 'windows' in sysname:    # Windows
     assert check_msvc_env() == None, "Run build in command line without VC vars!"
 
-    for bitness in ['64', '32']:
+    for bitness in bitnessList:
         for config in ['Release', 'Debug']:
             commands.append(create_build_cmd(
                 os = 'windows',
@@ -48,7 +55,7 @@ if 'windows' in sysname:    # Windows
             ))
 
 else:   # Linux
-    for bitness in ['64', '32']:
+    for bitness in bitnessList:
         for config in ['Release', 'Debug']:
             commands.append(create_build_cmd(
                 os = 'linux',

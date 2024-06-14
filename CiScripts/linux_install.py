@@ -10,9 +10,5 @@ if 'windows' not in sysname:
     # this is enough for 64 bit 
     os.system('sudo apt-get update')
     os.system('sudo apt-get -y install mesa-common-dev libglu1-mesa-dev xorg-dev libxcb-*-dev libx11-xcb-dev libxxf86vm-dev libxext-dev')
-    # for 32 bit
-    os.system('sudo dpkg --add-architecture i386')
-    os.system('sudo apt-get update')
-    os.system('sudo apt-get -y install gcc-multilib g++-multilib')
-    os.system('sudo apt-get -y install mesa-common-dev:i386 libglu1-mesa-dev:i386 libglu1-mesa:i386 libgl1-mesa-dev:i386')
-    os.system('sudo apt-get -y install libxcb-*-dev:i386 libx11-xcb-dev:i386 libxxf86vm-dev:i386 libxext-dev:i386')
+    # workaround for FLTK build broken due to: https://github.com/appveyor/ci/issues/3842
+    os.system('sudo rm -f /usr/local/bin/doxygen')

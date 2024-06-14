@@ -5,7 +5,7 @@ shallow_clone: true
 # configure matrix of builds
 image:
   - Visual Studio 2022
-  - Ubuntu1804
+  - Ubuntu1604
 platform:
 #  - 64 # TODO
   - 32
@@ -21,11 +21,12 @@ environment:
 
 matrix:
   exclude:
-    - image: Visual Studio 2022     # TODO
+    - image: Ubuntu1604         # too hard to configure cross-compilation for 32-bit on Linux
+      platform: 32
     - configuration: msvc_main
-      image: Ubuntu1804
+      image: Ubuntu1604
     - configuration: msvc_extra
-      image: Ubuntu1804
+      image: Ubuntu1604
     - configuration: msvc_main
       thirdparty: conan
     - configuration: msvc_extra
