@@ -475,7 +475,14 @@
   <Type Name="idClipModel">
     <DisplayString>cm {entity,na}</DisplayString>
   </Type>
-  
+
+  <Type Name="contactInfo_t">
+    <Expand>
+      <ExpandedItem>this,!</ExpandedItem>
+      <Item Name="[entity]">gameLocal.entities[entityNum]</Item>
+    </Expand>
+  </Type>
+
   <Type Name="idBoxOctree">
     <DisplayString>octree #nodes={nodes.num} #chunks={allocator.active}</DisplayString>
   </Type>
