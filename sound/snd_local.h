@@ -546,7 +546,7 @@ public:
 
 	// where is the camera/microphone
 	// listenerId allows listener-private sounds to be added
-	virtual void			PlaceListener( const idVec3 &origin, const idMat3 &axis, const int listenerId, const int gameTime, const idStr& areaName ) override;
+	virtual void			PlaceListener( const idVec3 &origin, const idMat3 &axis, const int listenerId, const int gameTime, const idStr& areaName, const idStr& efxPreset) override;
 
 	// fade all sounds in the world with a given shader soundClass
 	// to is in Db (sigh), over is in seconds
@@ -618,6 +618,7 @@ public:
 	idVec3					listenerQU;			// position in "quake units"
 	int						listenerArea;
 	idStr					listenerAreaName;
+	idStr					listenerAreaEfxPreset;
 	ALuint					listenerEffect;
 	ALuint					listenerSlot;
 	ALuint					listenerFilter;

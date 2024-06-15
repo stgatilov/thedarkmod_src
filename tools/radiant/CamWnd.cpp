@@ -950,7 +950,7 @@ void CCamWnd::Cam_Draw() {
 	// set the sound origin for both simple draw and rendered mode
 	// the editor uses opposite pitch convention
 	idMat3	axis = idAngles( -m_Camera.angles.pitch, m_Camera.angles.yaw, m_Camera.angles.roll ).ToMat3();
-	g_qeglobals.sw->PlaceListener( m_Camera.origin, axis, 0, Sys_Milliseconds(), "Undefined" );
+	g_qeglobals.sw->PlaceListener( m_Camera.origin, axis, 0, Sys_Milliseconds(), "Undefined", "");
 
 	if (renderMode) {
 		Cam_Render();
