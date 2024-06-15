@@ -178,6 +178,8 @@ void idSoundChannel::Clear( void ) {
 	openalStreamingOffset = 0;
 	openalStreamingBuffer[0] = openalStreamingBuffer[1] = openalStreamingBuffer[2] = 0;
 	lastopenalStreamingBuffer[0] = lastopenalStreamingBuffer[1] = lastopenalStreamingBuffer[2] = 0;
+
+	currentSampleVolume = 0.0f;
 }
 
 /*
@@ -190,6 +192,7 @@ void idSoundChannel::Start( void ) {
 	if ( decoder == NULL ) {
 		decoder = idSampleDecoder::Alloc();
 	}
+	currentSampleVolume = 0.0f;
 }
 
 /*

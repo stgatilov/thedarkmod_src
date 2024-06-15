@@ -2146,8 +2146,9 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 			destSubtitles[i].spatializedDirection.Zero();
 			if ( !(global || omni) )
 				destSubtitles[i].spatializedDirection = ( listenerAxis.Transpose() * ( spatializedOriginInMeters - listenerPos ) ).Normalized() * totalSoundDistance;
-			// TODO: formula, lower limit, dependency on sample amplitude?
-			destSubtitles[i].volume = idMath::ClampFloat( 0.1f, 1.0f, volume / 0.1f );
+			float unitSampleVolume = ( chan->currentSampleVolume / 32768.0f );
+			assert( unitSampleVolume <= 1.01f );
+			destSubtitles[i].volume = volume * unitSampleVolume;
 		}
 
 		if ( !alIsSource( chan->openalSource ) ) {
@@ -2234,11 +2235,15 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 
 				for ( j = 0; j < finishedbuffers; j++ ) {
 					chan->GatherChannelSamples( chan->openalStreamingOffset * sample->objectInfo.nChannels, MIXBUFFER_SAMPLES * sample->objectInfo.nChannels, inputSamplesFloat );
+					float maxValue = 0.0f;
 					for ( int i = 0; i < ( MIXBUFFER_SAMPLES * sample->objectInfo.nChannels ); i++ ) {
 						inputSamplesShort[i] = idMath::FtoiRound( idMath::ClampFloat( -32768.0f, 32767.0f, inputSamplesFloat[i] ) );
+						maxValue = idMath::Fmax( maxValue, idMath::Fabs(inputSamplesFloat[i]) );
 					}
 					alBufferData( buffers[j], chan->leadinSample->objectInfo.nChannels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16, inputSamplesShort, MIXBUFFER_SAMPLES * sample->objectInfo.nChannels * sizeof( short ), 44100 );
 					chan->openalStreamingOffset += MIXBUFFER_SAMPLES;
+					// stgatilov #6491: update current sample volume for subtitles
+					chan->currentSampleVolume = chan->currentSampleVolume * 0.85f + maxValue * 0.15f;	// fades to 20% after second
 				}
 
 				if ( finishedbuffers ) {

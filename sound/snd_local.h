@@ -396,6 +396,7 @@ public:
 	ALuint				openalStreamingOffset;
 	ALuint				openalStreamingBuffer[3];
 	ALuint				lastopenalStreamingBuffer[3];
+	float				currentSampleVolume;	// stgatilov #6491: estimated from currently streamed data
 
 	bool				disallowSlow;
 };
