@@ -165,6 +165,8 @@ void IdleState::Init(idAI* owner)
 	// Push the regular patrol barking to the list too
 	if (owner->spawnArgs.GetBool("drunk", "0"))
 	{
+		 idleBarkIntervalMin = SEC2MS(owner->spawnArgs.GetInt("idle_bark_interval_min_drunk", "15"));
+		 idleBarkIntervalMax = SEC2MS(owner->spawnArgs.GetInt("idle_bark_interval_max_drunk", "40"));
 		owner->commSubsystem->AddCommTask(
 			CommunicationTaskPtr(new RepeatedBarkTask("snd_drunk", idleBarkIntervalMin, idleBarkIntervalMax))
 		);
