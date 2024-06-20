@@ -13617,11 +13617,6 @@ bool idAI::CanGreet() // grayman #3338
 		return false;
 	}
 
-	// Amadeus #6507 - Check if the AI is drunk, as drunk AI shouldn't greet because wrong vocal set is used.
-	if (spawnArgs.GetBool("drunk", "0"))
-	{
-		return false;
-	}
 
 	// grayman #3448 - no greeting if involved in a conversation
 	// grayman #3559 - use simpler method
