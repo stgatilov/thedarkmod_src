@@ -3977,6 +3977,12 @@ void idActor::LoadVocalSet()
 	// Try to look up the entityDef
 	idStr vocalSet = spawnArgs.GetString("def_vocal_set");
 
+	// #6507 Amadeus - Check if AI is drunk to change vocal sets
+	if (spawnArgs.GetBool("drunk", "0"))
+	{
+		vocalSet = (spawnArgs.GetString("def_vocal_set_drunk"));
+	}
+
 	if (vocalSet.IsEmpty())
 	{
 		m_isMute = true; // grayman #3202
