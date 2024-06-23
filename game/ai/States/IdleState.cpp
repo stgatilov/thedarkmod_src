@@ -121,15 +121,15 @@ void IdleState::Init(idAI* owner)
 	owner->actionSubsystem->ClearTasks();
 	owner->senseSubsystem->ClearTasks();
 
-	// angua: drunken AIs won't do any head turning and idle anims for now
-	if (owner->spawnArgs.GetBool("drunk", "0") == false)
-	{
-		// The action subsystem plays the idle anims (scratching, yawning...)
-		owner->actionSubsystem->PushTask(IdleAnimationTask::CreateInstance());
+	
+	
+	
+	// The action subsystem plays the idle anims (scratching, yawning...)
+	owner->actionSubsystem->PushTask(IdleAnimationTask::CreateInstance());
 
-		// The sensory system does its Idle tasks
-		owner->senseSubsystem->PushTask(RandomHeadturnTask::CreateInstance());
-	}
+	// The sensory system does its Idle tasks
+	owner->senseSubsystem->PushTask(RandomHeadturnTask::CreateInstance());
+	
 
 	InitialiseMovement(owner);
 
