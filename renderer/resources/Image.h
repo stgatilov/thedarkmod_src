@@ -424,6 +424,9 @@ public:
 	// reloads all apropriate images after a vid_restart
 	void				ReloadAllImages();
 
+	// add CPU residency bit and make sure cpuData is valid
+	void				EnsureImageCpuResident( idImageAsset *image );
+
 	// Mark all file based images as currently unused,
 	// but don't free anything.  Calls to ImageFromFile() will
 	// either mark the image as used, or create a new image without
@@ -436,6 +439,15 @@ public:
 	// worth of data present at one time.
 	// Called only by renderSystem::EndLevelLoad
 	void				EndLevelLoad();
+
+	// execute image-related function in the nearest future when modifications are thread-safe
+	// it is usually deferred until the next in-between frames moment, when only one thread is active
+	void				ExecuteWhenSingleThreaded( std::function<void(void)> callback );
+
+	// Called regularly from backend thread when frontend thread is idle.
+	// This allows to do execute delayed functions, which could otherwise cause race condition
+	void				UpdateSingleThreaded();
+
 
 	// used to clear and then write the dds conversion batch file
 	void				StartBuild();
@@ -514,6 +526,10 @@ public:
 	float				textureLODBias;
 
 	idImage *			imageHashTable[FILE_HASH_SIZE];
+
+	// ExecuteWhenSingleThreaded adds callbacks to this queue in thread-safe way
+	idSysMutex			delayedFunctionsMutex;
+	idList<std::function<void(void)>>	delayedFunctionsQueue;
 };
 
 extern idImageManager	*globalImages;		// pointer to global list for the rest of the system

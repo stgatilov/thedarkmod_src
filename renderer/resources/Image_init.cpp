@@ -1555,6 +1555,45 @@ void idImageManager::ReloadAllImages() {
 
 /*
 ===============
+EnsureImageCpuResident
+===============
+*/
+void idImageManager::EnsureImageCpuResident( idImageAsset *image ) {
+	if ( image->residency & IR_CPU )
+		return;	// cpuData is either valid or will be valid next frame
+
+	image->residency = imageResidency_t( image->residency | IR_CPU );
+	image->Reload( false, true );
+	assert( image->cpuData.IsValid() );
+}
+
+/*
+===============
+ExecuteWhenSingleThreaded
+===============
+*/
+void idImageManager::ExecuteWhenSingleThreaded( std::function<void(void)> callback ) {
+	idScopedCriticalSection lock( delayedFunctionsMutex );
+	delayedFunctionsQueue.Append( callback );
+}
+
+/*
+===============
+UpdateSingleThreaded
+===============
+*/
+void idImageManager::UpdateSingleThreaded() {
+	// note: taking lock is excessive: no other thread must be active!
+	idScopedCriticalSection lock( delayedFunctionsMutex );
+	assert( !session->IsFrontend() );
+
+	for ( auto func : delayedFunctionsQueue )
+		func();
+	delayedFunctionsQueue.Clear();
+}
+
+/*
+===============
 R_CombineCubeImages_f
 
 Used to combine animations of six separate tga files into

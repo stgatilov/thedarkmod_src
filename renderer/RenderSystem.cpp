@@ -780,6 +780,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	}
 
 	session->ExecuteDelayedFrameCommands();
+	globalImages->UpdateSingleThreaded();
 
 	// check for dynamic changes that require some initialization
 	R_CheckCvars();
