@@ -372,6 +372,11 @@ idVec4 idImageAsset::Sample(float s, float t) const {
 	assert(!cpuData.IsCubemap());
 	return cpuData.Sample(s, t, filter, repeat, 0);
 }
+idVec4 idImageAsset::Sample(float x, float y, float z) const {
+	assert(residency & IR_CPU);
+	assert(cpuData.IsCubemap());
+	return cpuData.SampleCube(idVec3(x, y, z), filter);
+}
 
 idImage::idImage() {
 	texnum = static_cast< GLuint >( TEXTURE_NOT_LOADED );

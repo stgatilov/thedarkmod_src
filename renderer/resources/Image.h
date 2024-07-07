@@ -306,7 +306,8 @@ public:
 
 	virtual void Print() const override;
 
-	idVec4 Sample(float s, float t) const;
+	idVec4 Sample(float s, float t) const;	//  2D texture only
+	idVec4 Sample(float x, float y, float z) const;	// cubemap only
 
 	void GetDownsize( int &scaled_width, int &scaled_height ) const;
 	void WritePrecompressedImage();
