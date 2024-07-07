@@ -1165,6 +1165,7 @@
     <ClCompile Include="idlib\bv\Frustum.cpp" />
     <ClCompile Include="idlib\bv\Sphere.cpp" />
     <ClCompile Include="idlib\CmdArgs.cpp" />
+    <ClCompile Include="idlib\containers\BinSearch.cpp" />
     <ClCompile Include="idlib\containers\BitArray.cpp" />
     <ClCompile Include="idlib\containers\DisjointSets.cpp" />
     <ClCompile Include="idlib\containers\HashIndex.cpp" />

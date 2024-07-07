@@ -3616,6 +3616,9 @@
     <ClCompile Include="framework\TracingEmbeddedSourceCode.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="idlib\containers\BinSearch.cpp">
+      <Filter>Idlib\Containers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sys\win32\rc\res\BEVEL.BMP">
