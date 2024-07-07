@@ -577,7 +577,8 @@ Copies the contents and size attributes of another list.
 */
 template< class type >
 ID_INLINE idList<type> &idList<type>::operator=( const idList<type> &other ) {
-	int	i;
+	if ( this == &other)
+		return *this;
 
 	ClearFree();
 
@@ -587,7 +588,7 @@ ID_INLINE idList<type> &idList<type>::operator=( const idList<type> &other ) {
 
 	if ( size ) {
 		list = new type[ size ];
-		for( i = 0; i < num; i++ ) {
+		for( int i = 0; i < num; i++ ) {
 			list[ i ] = other.list[ i ];
 		}
 	}
