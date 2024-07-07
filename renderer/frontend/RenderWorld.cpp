@@ -2430,19 +2430,17 @@ idRenderWorldLocal::DebugBounds
 ====================
 */
 void idRenderWorldLocal::DebugBounds( const idVec4 &color, const idBounds &bounds, const idVec3 &org, const int lifetime ) {
-	int i;
-	idVec3 v[8];
-
 	if ( bounds.IsCleared() ) {
 		return;
 	}
 
-	for ( i = 0; i < 8; i++ ) {
+	idVec3 v[8];
+	for ( int i = 0; i < 8; i++ ) {
 		v[i][0] = org[0] + bounds[(i^(i>>1))&1][0];
 		v[i][1] = org[1] + bounds[(i>>1)&1][1];
 		v[i][2] = org[2] + bounds[(i>>2)&1][2];
 	}
-	for ( i = 0; i < 4; i++ ) {
+	for ( int i = 0; i < 4; i++ ) {
 		DebugLine( color, v[i], v[(i+1)&3], lifetime );
 		DebugLine( color, v[4+i], v[4+((i+1)&3)], lifetime );
 		DebugLine( color, v[i], v[4+i], lifetime );
@@ -2455,14 +2453,43 @@ idRenderWorldLocal::DebugBox
 ====================
 */
 void idRenderWorldLocal::DebugBox( const idVec4 &color, const idBox &box, const int lifetime ) {
-	int i;
 	idVec3 v[8];
-
 	box.ToPoints( v );
-	for ( i = 0; i < 4; i++ ) {
+	for ( int i = 0; i < 4; i++ ) {
 		DebugLine( color, v[i], v[(i+1)&3], lifetime );
 		DebugLine( color, v[4+i], v[4+((i+1)&3)], lifetime );
 		DebugLine( color, v[i], v[4+i], lifetime );
+	}
+}
+
+/*
+====================
+idRenderWorldLocal::DebugFilledBox
+====================
+*/
+void idRenderWorldLocal::DebugFilledBox( const idVec4 &color, const idBox &box, const int lifetime, const bool depthTest ) {
+	// get box vertexes in order of binary encoding
+	idVec3 v[8];
+	box.ToPoints( v );
+	idSwap(v[2], v[3]);
+	idSwap(v[6], v[7]);
+
+	idWinding w;
+	w.SetNumPoints( 4 );
+	for ( int i : { 0, 7 } ) {
+		for ( int j = 0; j < 3; j++ ) {
+			int a = 1 << j;
+			int b = 1 << ((j + 1) % 3);
+			int quad[4] = { i, i ^ a, i ^ a ^ b, i ^ b };
+			if ( i ) {
+				idSwap( quad[0], quad[3] );
+				idSwap( quad[1], quad[2] );
+			}
+			for ( int k = 0; k < 4; k++ ) {
+				w[k] = v[quad[k]];
+			}
+			DebugPolygon( color, w, lifetime, depthTest );
+		}
 	}
 }
 

@@ -183,6 +183,7 @@ public:
 	virtual void			DebugSphere( const idVec4 &color, const idSphere &sphere, const int lifetime = 0, bool depthTest = false ) override;
 	virtual void			DebugBounds( const idVec4 &color, const idBounds &bounds, const idVec3 &org = vec3_origin, const int lifetime = 0 ) override;
 	virtual void			DebugBox( const idVec4 &color, const idBox &box, const int lifetime = 0 ) override;
+	virtual void			DebugFilledBox( const idVec4 &color, const idBox &box, const int lifetime = 0, const bool depthTest = false ) override;
 	virtual void			DebugFrustum( const idVec4 &color, const idFrustum &frustum, const bool showFromOrigin = false, const int lifetime = 0 ) override;
 	virtual void			DebugCone( const idVec4 &color, const idVec3 &apex, const idVec3 &dir, float radius1, float radius2, const int lifetime = 0 ) override;
 	void					DebugScreenRect( const idVec4 &color, const idScreenRect &rect, const viewDef_t *viewDef, const int lifetime = 0 );
