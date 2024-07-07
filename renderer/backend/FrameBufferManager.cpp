@@ -422,7 +422,7 @@ idList<renderCrop_t> FrameBufferManager::CreateShadowMapPages( const idList<int>
 	// initially, all lights have no window (i.e. no shadows)
 	idList<renderCrop_t> result;
 	result.SetNum( n );
-	memset( result.Ptr(), 0, result.Allocated() );
+	result.FillZero();
 
 	for ( int currentRatio = denominator; currentRatio >= minRatio; currentRatio >>= 1 ) {
 		for ( int i = 0; i < n; i++ ) {
