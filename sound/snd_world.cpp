@@ -523,7 +523,6 @@ void idSoundWorldLocal::MixLoopInternal( int current44kHz, int numSpeakers, floa
 			s = listenerAreaName;
 
 			if (!listenerAreaEfxPreset.IsEmpty()) {
-				ALenum err;
 				found = soundSystemLocal.EFXDatabase.AddOrUpdatePreset(s, listenerAreaEfxPreset, &effect);
 			}
 			else {
