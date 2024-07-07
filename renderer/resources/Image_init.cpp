@@ -274,7 +274,7 @@ idVec4 imageBlock_s::Sample(float s, float t, textureFilter_t filter, textureRep
 		int it = int(t) - (t < 0.0f);	//
 		return GetPixelRepeat(is, it);
 	}
-	else if (filter == TF_LINEAR) {
+	else if (filter == TF_LINEAR || filter == TF_DEFAULT) {
 		s += 0.5f;
 		t += 0.5f;
 		int is = int(s) - (s < 0.0f);	// fast floor
