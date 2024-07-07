@@ -2173,8 +2173,6 @@ void RB_ShowDebugPolygons( void ) {
 	//qglDisable( GL_TEXTURE_2D );
 	qglDisable( GL_STENCIL_TEST );
 
-	qglEnable( GL_DEPTH_TEST );
-
 	if ( r_debugPolygonFilled.GetBool() ) {
 		GL_State( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHMASK );
 		qglPolygonOffset( -1, -2 );
@@ -2185,9 +2183,13 @@ void RB_ShowDebugPolygons( void ) {
 		qglEnable( GL_POLYGON_OFFSET_LINE );
 	}
 	
+	qglDisable( GL_DEPTH_TEST );
+
 	ImmediateRendering ir;
 	for ( int i = 0 ; i < rb_debug.polygons.Num(); i++ ) {
 		debugPolygon_t *poly = rb_debug.polygons.Draw(i);
+		if ( poly->depthTest != false )
+			continue;
 		ir.glColor4fv( poly->rgb.ToFloatPtr() );
 
 		ir.glBegin( GL_POLYGON );
@@ -2197,6 +2199,23 @@ void RB_ShowDebugPolygons( void ) {
 		ir.glEnd();
 	}
 	ir.Flush();
+
+	qglEnable( GL_DEPTH_TEST );
+
+	for ( int i = 0 ; i < rb_debug.polygons.Num(); i++ ) {
+		debugPolygon_t *poly = rb_debug.polygons.Draw(i);
+		if ( poly->depthTest != true )
+			continue;
+		ir.glColor4fv( poly->rgb.ToFloatPtr() );
+
+		ir.glBegin( GL_POLYGON );
+		for ( int j = 0; j < poly->winding.GetNumPoints(); j++) {
+			ir.glVertex3fv( poly->winding[j].ToFloatPtr() );
+		}
+		ir.glEnd();
+	}
+	ir.Flush();
+
 	GL_State( GLS_DEFAULT );
 
 	if ( r_debugPolygonFilled.GetBool() ) {
