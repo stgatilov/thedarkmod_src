@@ -579,6 +579,7 @@
     <ClInclude Include="idlib\math\Ode.h" />
     <ClInclude Include="idlib\math\Plane.h" />
     <ClInclude Include="idlib\math\Pluecker.h" />
+    <ClInclude Include="idlib\math\PoissonSampling.h" />
     <ClInclude Include="idlib\math\Polynomial.h" />
     <ClInclude Include="idlib\math\Quat.h" />
     <ClInclude Include="idlib\math\Random.h" />
@@ -1205,6 +1206,7 @@
     <ClCompile Include="idlib\math\Ode.cpp" />
     <ClCompile Include="idlib\math\Plane.cpp" />
     <ClCompile Include="idlib\math\Pluecker.cpp" />
+    <ClCompile Include="idlib\math\PoissonSampling.cpp" />
     <ClCompile Include="idlib\math\Polynomial.cpp" />
     <ClCompile Include="idlib\math\Quat.cpp" />
     <ClCompile Include="idlib\math\Rotation.cpp" />

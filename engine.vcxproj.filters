@@ -1645,6 +1645,9 @@
     <ClInclude Include="idlib\containers\ProducerConsumerQueue.h">
       <Filter>Idlib\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="idlib\math\PoissonSampling.h">
+      <Filter>Idlib\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cm\CollisionModel_contacts.cpp">
@@ -3618,6 +3621,9 @@
     </ClCompile>
     <ClCompile Include="idlib\containers\BinSearch.cpp">
       <Filter>Idlib\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="idlib\math\PoissonSampling.cpp">
+      <Filter>Idlib\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
