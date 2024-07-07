@@ -1457,6 +1457,9 @@ bool idRenderWorldLocal::TraceAll( modelTrace_t &trace, const idVec3 &start, con
 	trace.point = end;
 	idVec3 radiusVec(radius, radius, radius);
 
+	if ((end - start).LengthSqr() <= 1e-10f)
+		return false;	// guard against division by zero in GetInverseMovementVelocity
+
 	// stgatilov: this is almost the same algorithm that I put into idClip
 
 	// bounds for the whole trace
