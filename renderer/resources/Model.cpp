@@ -49,6 +49,7 @@ idRenderModelStatic::idRenderModelStatic() {
 	reloadable = true;
 	levelLoadReferenced = false;
 	timeStamp = 0;
+	loadVersion = 0;
 }
 
 /*
@@ -333,6 +334,7 @@ idRenderModelStatic::LoadModel
 void idRenderModelStatic::LoadModel() {
 	PurgeModel();
 	InitFromFile( name );
+	loadVersion++;
 }
 
 /*
@@ -385,6 +387,15 @@ idRenderModelStatic::Timestamp
 */
 ID_TIME_T idRenderModelStatic::Timestamp() const {
 	return timeStamp;
+}
+
+/*
+================
+idRenderModelStatic::GetLoadVersion
+================
+*/
+int idRenderModelStatic::GetLoadVersion() const {
+	return loadVersion;
 }
 
 /*

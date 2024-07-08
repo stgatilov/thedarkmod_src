@@ -249,6 +249,10 @@ public:
 	// for reloadModels
 	virtual ID_TIME_T				Timestamp() const = 0;
 
+	// stgatilov: load version is incremented every time LoadModel is called
+	// this allows game code to learn if the model has been reloaded in "pull fashion"
+	virtual int					GetLoadVersion() const = 0;
+
 	// returns the number of surfaces
 	virtual int					NumSurfaces() const = 0;
 

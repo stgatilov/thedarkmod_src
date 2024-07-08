@@ -50,6 +50,7 @@ public:
 	virtual void				List() const override;
 	virtual int					Memory() const override;
 	virtual ID_TIME_T			Timestamp() const override;
+	virtual int					GetLoadVersion() const override;
 	virtual int					NumSurfaces() const override;
 	virtual int					NumBaseSurfaces() const override;
 	virtual const modelSurface_t *Surface( int surfaceNum ) const override;
@@ -111,6 +112,7 @@ protected:
 	bool						reloadable;				// if not, reloadModels won't check timestamp
 	bool						levelLoadReferenced;	// for determining if it needs to be freed
 	ID_TIME_T					timeStamp;
+	int							loadVersion;			// stgatilov: how many times this model was loaded
 	idStr						proxySourceName;		// stgatilov #4970: name of the source model (only for proxy models)
 
 	static idCVar				r_mergeModelSurfaces;	// combine model surfaces with the same material
