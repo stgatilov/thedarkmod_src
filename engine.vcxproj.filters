@@ -1642,8 +1642,14 @@
     <ClInclude Include="ui\GameWindow.h">
       <Filter>Ui</Filter>
     </ClInclude>
+    <ClInclude Include="game\LightEstimateSystem.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="idlib\containers\ProducerConsumerQueue.h">
       <Filter>Idlib\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\frontend\LightQuerySystem.h">
+      <Filter>Renderer\Frontend</Filter>
     </ClInclude>
     <ClInclude Include="idlib\math\PoissonSampling.h">
       <Filter>Idlib\Math</Filter>
@@ -3613,11 +3619,17 @@
     <ClCompile Include="game\Turret.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="game\LightEstimateSystem.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
     <ClCompile Include="ui\GameWindow.cpp">
       <Filter>Ui</Filter>
     </ClCompile>
     <ClCompile Include="framework\TracingEmbeddedSourceCode.cpp">
       <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer\frontend\LightQuerySystem.cpp">
+      <Filter>Renderer\Frontend</Filter>
     </ClCompile>
     <ClCompile Include="idlib\containers\BinSearch.cpp">
       <Filter>Idlib\Containers</Filter>

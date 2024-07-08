@@ -162,6 +162,8 @@ typedef std::shared_ptr<CShop> CShopPtr;
 
 class CSearchManager; // grayman #3857
 
+class LightEstimateSystem;
+
 const int MAX_GAME_MESSAGE_SIZE		= 8192;
 const int MAX_ENTITY_STATE_SIZE		= 512;
 //const int ENTITY_PVS_SIZE			= ((MAX_GENTITIES+31)>>5);
@@ -604,6 +606,9 @@ public:
 	// The singleton connection object
 	CHttpConnectionPtr		m_HttpConnection;
 	
+	// stgatilov #6546: aka "lightgem for bodies"
+	LightEstimateSystem *m_LightEstimateSystem;
+
 	/**
 	* Temporary storage of the walkspeed.  This is a workaround
 	*	because the walkspeed keeps getting reset.

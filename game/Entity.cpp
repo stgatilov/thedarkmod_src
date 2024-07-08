@@ -33,6 +33,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "Objectives/MissionData.h"
 #include <algorithm>
 #include "LodComponent.h"
+#include "LightEstimateSystem.h"
 
 /*
 ===============================================================================
@@ -3126,8 +3127,19 @@ void idEntity::SetSolid( bool solidity ) {
 
 }
 
+idCVar g_lightQuotientAlgo(
+	"g_lightQuotientAlgo", "0", CVAR_BOOL | CVAR_GAME,
+	"If set to 0, then use old LAS-based code.\n"
+	"If set to 1, then use new code in renderer frontend\n"
+);
+
 float idEntity::GetLightQuotient()
 {
+	if (g_lightQuotientAlgo.GetBool()) {
+		float value = gameLocal.m_LightEstimateSystem->GetLightOnEntity(this);
+		return value;
+	}
+
 	if (m_LightQuotientLastEvalTime < gameLocal.time)
 	{
 		idPhysics* physics = GetPhysics();
@@ -3190,6 +3202,19 @@ float idEntity::GetLightQuotient()
 
 	// Return the cached result
 	return m_LightQuotient;
+}
+
+bool idEntity::DebugGetLightQuotient(float &result) const {
+	if (g_lightQuotientAlgo.GetBool()) {
+		return gameLocal.m_LightEstimateSystem->DebugGetLightOnEntity(this, result);
+	}
+
+	if (m_LightQuotientLastEvalTime >= gameLocal.time - 300) {
+		result = m_LightQuotient;
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /*

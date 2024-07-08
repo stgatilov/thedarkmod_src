@@ -128,6 +128,8 @@ private:
 	idHashMap<int, idInteraction*> SHT_table;
 };
 
+class LightQuerySystem;
+
 class idRenderWorldLocal : public idRenderWorld {
 public:
 							idRenderWorldLocal();
@@ -174,6 +176,11 @@ public:
 	virtual bool			FastWorldTrace( modelTrace_t &trace, const idVec3 &start, const idVec3 &end ) const override;
 	virtual bool			MaterialTrace( const idVec3 &p, const idMaterial *mat, idStr &matName ) const override;
 	virtual bool			TraceAll( modelTrace_t &trace, const idVec3 &start, const idVec3 &end, bool fastWorld = false, float radius = 0.0f, TraceFilterFunc filterCallback = nullptr, void *context = nullptr ) const override;
+
+	// stgatilov #6546: querying light value at various points in space
+	virtual lightQuery_t	LightAtPointQuery_AddQuery( qhandle_t onEntity, const samplePointOnModel_t &point, const idList<qhandle_t> &ignoredEntities ) override;
+	virtual bool			LightAtPointQuery_CheckResult( lightQuery_t query, idVec3 &outputValue, idVec3& outputPosition ) const override;
+	virtual void			LightAtPointQuery_Forget( lightQuery_t query ) override;
 
 	virtual void			DebugClearLines( int time ) override;
 	virtual void			DebugLine( const idVec4 &color, const idVec3 &start, const idVec3 &end, const int lifetime = 0, const bool depthTest = false ) override;
@@ -229,6 +236,8 @@ public:
 
 
 	bool					generateAllInteractionsCalled;
+
+	LightQuerySystem *		lightQuerySystem;
 
 	typedef idFlexList<int, 128> AreaList;
 

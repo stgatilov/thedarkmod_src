@@ -564,6 +564,7 @@ public:
 	 * is cached, to save it from being recalculated for multiple AI each frame.
 	 */
 	float					GetLightQuotient();
+	bool					DebugGetLightQuotient(float &result) const;
 
 	// TDM: SZ: January 9, 2006 Made virtual to handle unique behavior in descendents
 	virtual void			UpdateVisuals( void );

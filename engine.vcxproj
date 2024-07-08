@@ -424,6 +424,7 @@
     <ClInclude Include="game\Item.h" />
     <ClInclude Include="game\Light.h" />
     <ClInclude Include="game\LightController.h" />
+    <ClInclude Include="game\LightEstimateSystem.h" />
     <ClInclude Include="game\LightGem.h" />
     <ClInclude Include="game\Liquid.h" />
     <ClInclude Include="game\Listener.h" />
@@ -637,6 +638,7 @@
     <ClInclude Include="renderer\backend\stages\VolumetricStage.h" />
     <ClInclude Include="renderer\frontend\GuiModel.h" />
     <ClInclude Include="renderer\frontend\Interaction.h" />
+    <ClInclude Include="renderer\frontend\LightQuerySystem.h" />
     <ClInclude Include="renderer\frontend\RenderWorld.h" />
     <ClInclude Include="renderer\frontend\RenderWorld_local.h" />
     <ClInclude Include="renderer\RenderSystem.h" />
@@ -1070,6 +1072,7 @@
     <ClCompile Include="game\Item.cpp" />
     <ClCompile Include="game\Light.cpp" />
     <ClCompile Include="game\LightController.cpp" />
+    <ClCompile Include="game\LightEstimateSystem.cpp" />
     <ClCompile Include="game\LightGem.cpp" />
     <ClCompile Include="game\Liquid.cpp" />
     <ClCompile Include="game\Listener.cpp" />
@@ -1265,6 +1268,7 @@
     <ClCompile Include="renderer\backend\tr_rendertools.cpp" />
     <ClCompile Include="renderer\frontend\GuiModel.cpp" />
     <ClCompile Include="renderer\frontend\Interaction.cpp" />
+    <ClCompile Include="renderer\frontend\LightQuerySystem.cpp" />
     <ClCompile Include="renderer\frontend\RenderEntity.cpp" />
     <ClCompile Include="renderer\frontend\RenderWorld.cpp" />
     <ClCompile Include="renderer\frontend\RenderWorld_demo.cpp" />

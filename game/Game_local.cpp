@@ -48,6 +48,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "StdString.h"
 #include "framework/Session_local.h"
 #include "framework/Common.h"
+#include "LightEstimateSystem.h"
 
 #include <chrono>
 #include <iostream>
@@ -553,6 +554,8 @@ void idGameLocal::Init( void ) {
 	m_LightController = CLightControllerPtr(new CLightController);
 	m_LightController->Init();
 
+	m_LightEstimateSystem = new LightEstimateSystem();
+
 	// greebo: Create the persistent inventory - will be handled by game state changing code
 	persistentPlayerInventory.reset(new CInventory);
 
@@ -698,6 +701,9 @@ void idGameLocal::Shutdown( void ) {
 
 	// Destroy the light controller
 	m_LightController.reset();
+
+	delete m_LightEstimateSystem;
+	m_LightEstimateSystem = nullptr;
 
 	// Clear http connection
 	m_HttpConnection.reset();
@@ -2488,6 +2494,11 @@ void idGameLocal::MapShutdown( void ) {
 	*/
 	LAS.shutDown();
 
+	if (m_LightEstimateSystem)
+	{
+		m_LightEstimateSystem->Clear();
+	}
+
 	pvs.Shutdown();
 
 	// Remove the grabber entity itself (note that it's safe to pass NULL pointers to delete)
@@ -3423,6 +3434,11 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds, int timestepMs,
 
 			// free the player pvs
 			FreePlayerPVS();
+
+			// stgatilov #6546: work on light queries from game
+			m_LightEstimateSystem->Think();
+			if ( idMath::Abs( g_showLightQuotient.GetInteger() ) == 3 )
+				m_LightEstimateSystem->DebugVisualize();
 
 			if ( cv_music_volume.IsModified() ) {  //SnoopJeDi, fade that sound!
 				float music_vol = cv_music_volume.GetFloat();
@@ -5273,6 +5289,46 @@ void idGameLocal::RunDebugInfo( void ) {
 
 			seekPos = player->GetPhysics()->GetOrigin() + player->viewAxis[0] * 200.0f;
 			idAI::FindPathAroundObstacles( player->GetPhysics(), aas, NULL, player->GetPhysics()->GetOrigin(), seekPos, path, player );
+		}
+	}
+
+	if ( g_showLightQuotient.GetInteger() != 0 ) {
+		idBounds viewBounds( origin );
+		viewBounds.ExpandSelf( 256.0f );
+		idMat3 axis = player->viewAngles.ToMat3();
+
+		for( ent = spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next() ) {
+			if ( m_LightEstimateSystem->DebugIgnorePlayer(ent) )
+				continue;
+			if ( ent->GetModelDefHandle() < 0 )
+				continue;	// no visual representation
+
+			const idBounds &entBounds = ent->GetPhysics()->GetAbsBounds();
+			if ( !viewBounds.IntersectsBounds( entBounds ) )
+				continue;	// too far away
+
+			bool tracked;
+			float value;
+			if ( g_showLightQuotient.GetInteger() < 0 ) {
+				tracked = ent->DebugGetLightQuotient( value );
+			} else {
+				tracked = true;
+				value = ent->GetLightQuotient();
+			}
+			if (!tracked)
+				continue;
+
+			idStr text = va("%0.3f", value);
+
+			int mode = idMath::Abs( g_showLightQuotient.GetInteger() );
+			if ( mode != 3 ) {
+				gameRenderWorld->DebugBounds( colorCyan, entBounds );
+			}
+			if ( mode == 2 ) {
+				gameRenderWorld->DebugText( va( "%s:\n%s", ent->name.c_str(), text.c_str() ), entBounds.GetCenter(), 0.1f, colorWhite, axis, 1 );
+			} else {
+				gameRenderWorld->DebugText( va( "%s", text.c_str() ), entBounds.GetCenter(), 0.1f, colorWhite, axis, 1 );
+			}
 		}
 	}
 

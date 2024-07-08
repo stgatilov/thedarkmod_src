@@ -722,6 +722,15 @@ idCVar g_showcamerainfo(			"g_showcamerainfo",			"0",			CVAR_GAME | CVAR_ARCHIVE
 idCVar g_showTestModelFrame(		"g_showTestModelFrame",		"0",			CVAR_GAME | CVAR_BOOL, "displays the current animation and frame # for testmodels" );
 idCVar g_showActiveEntities(		"g_showActiveEntities",		"0",			CVAR_GAME | CVAR_BOOL, "draws boxes around thinking entities.  dormant entities (outside of pvs) are drawn yellow.  non-dormant are green." );
 idCVar g_showEnemies(				"g_showEnemies",			"0",			CVAR_GAME | CVAR_BOOL, "draws boxes around monsters that have targeted the the player" );
+idCVar g_showLightQuotient(
+	"g_showLightQuotient", "0",	CVAR_GAME | CVAR_INTEGER,
+	"Displays current m_LightQuotient for nearby entities:\n"
+	"  1/-1 - value and bbox\n"
+	"  2/-2 - name, value, bbox\n"
+	"  3/-3 - value and samples\n"
+	"  negative - display where queried\n"
+	"  positive - force display for all entities"
+);
 
 idCVar g_frametime(					"g_frametime",				"0",			CVAR_GAME | CVAR_BOOL, "displays timing information for each game frame" );
 

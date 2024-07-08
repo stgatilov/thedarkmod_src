@@ -20,6 +20,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "renderer/tr_local.h"
 #include "math/Line.h"
+#include "LightQuerySystem.h"
 
 idCVarInt r_useAreaLocks( "r_useAreaLocks", "3", CVAR_RENDERER, "1 - suppress multiple entity/area refs, 2 - lights, 3 - both" );
 
@@ -266,6 +267,9 @@ idRenderWorldLocal::idRenderWorldLocal() {
 	//numInterAreaPortals = 0;
 
 	interactionTable.Init();
+
+	lightQuerySystem = new LightQuerySystem();
+	lightQuerySystem->Init( this );
 }
 
 /*
@@ -281,6 +285,8 @@ idRenderWorldLocal::~idRenderWorldLocal() {
 	R_ClearDebugPolygons( 0 );
 	R_ClearDebugLines( 0 );
 	R_ClearDebugText( 0 );
+
+	delete lightQuerySystem;
 }
 
 /*
@@ -863,6 +869,11 @@ void idRenderWorldLocal::RenderScene( const renderView_t &renderView ) {
 	if ( r_useInteractionTable.IsModified() ) {
 		PutAllInteractionsIntoTable(true);
 		r_useInteractionTable.ClearModified();
+	}
+
+	// stgatilov #6546: process light queries from game on CPU
+	if ( lightQuerySystem ) {
+		lightQuerySystem->Think( parms );
 	}
 
 	// save this world for use by some console commands
@@ -1741,6 +1752,19 @@ bool idRenderWorldLocal::FastWorldTrace( modelTrace_t &results, const idVec3 &st
 		return ( results.fraction < 1.0f );
 	}
 	return false;
+}
+
+idRenderWorld::lightQuery_t idRenderWorldLocal::LightAtPointQuery_AddQuery( qhandle_t onEntityId, const samplePointOnModel_t &point, const idList<qhandle_t> &ignoredEntities ) {
+	const idRenderEntityLocal *onEntity = entityDefs[onEntityId];
+	return lightQuerySystem->AddQuery(onEntity, point, ignoredEntities );
+}
+
+bool idRenderWorldLocal::LightAtPointQuery_CheckResult( lightQuery_t query, idVec3 &outputValue, idVec3& outputPosition ) const {
+	return lightQuerySystem->CheckResult( query, outputValue, outputPosition );
+}
+
+void idRenderWorldLocal::LightAtPointQuery_Forget( lightQuery_t query ) {
+	lightQuerySystem->Forget( query );
 }
 
 /*

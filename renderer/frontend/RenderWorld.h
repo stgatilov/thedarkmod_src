@@ -451,7 +451,11 @@ public:
 		TraceFilterFunc filterCallback = nullptr, void *context = nullptr
 	) const = 0;
 
-
+	// stgatilov #6546: querying light value at various points in space
+	typedef int lightQuery_t;
+	virtual lightQuery_t	LightAtPointQuery_AddQuery( qhandle_t onEntity, const samplePointOnModel_t &point, const idList<qhandle_t> &ignoredEntities ) = 0;
+	virtual bool			LightAtPointQuery_CheckResult( lightQuery_t query, idVec3 &outputValue, idVec3& outputPosition ) const = 0;
+	virtual void			LightAtPointQuery_Forget( lightQuery_t query ) = 0;
 
 	//-------------- Demo Control  -----------------
 
