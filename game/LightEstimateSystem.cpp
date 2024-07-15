@@ -61,6 +61,15 @@ void LightEstimateSystem::Clear() {
 void LightEstimateSystem::Think() {
 	TRACE_CPU_SCOPE("LES::Think")
 
+	if (loadedEntities.Num() > 0) {
+		// post-restore processing
+		for (int i = 0; i < loadedEntities.Num(); i++) {
+			TrackedEntity &trackedEnt = FindOrAddEntity(loadedEntities[i].entity.GetEntity());
+			trackedEnt.trackedUntil = loadedEntities[i].trackedUntil;
+		}
+		loadedEntities.Clear();
+	}
+
 	bool needClear = false;
 	for (idCVar *pvar : cvarsToClearOnChange) {
 		if (pvar->IsModified()) {
@@ -420,4 +429,35 @@ LightEstimateSystem::ModelCache &LightEstimateSystem::FindOrAddModel(const idRen
 	mcache.approxAreaPerSample /= idMath::Imax(n, 1);
 
 	return mcache;
+}
+
+void LightEstimateSystem::Save(idSaveGame *savegame) const {
+	savegame->WriteInt(lastThinkTime);
+
+	savegame->WriteInt(trackedEntities.Num());
+
+	for (int i = 0; i < trackedEntities.Num(); i++) {
+		const TrackedEntity &trent = trackedEntities[i];
+		trent.entity.Save(savegame);
+		savegame->WriteInt(trent.trackedUntil);
+		// we don't save other information
+		// it is model-dependent and will be recomputed on load
+	}
+}
+
+void LightEstimateSystem::Restore(idRestoreGame *savegame) {
+	Clear();
+
+	savegame->ReadInt(lastThinkTime);
+
+	int trackedNum;
+	savegame->ReadInt(trackedNum);
+	loadedEntities.SetNum(trackedNum);
+
+	for (int i = 0; i < trackedNum; i++) {
+		// this info will get applied on next Think
+		loadedEntities[i].entity.Restore(savegame);
+		savegame->ReadInt(loadedEntities[i].trackedUntil);
+		// other model-dependent information will get recomputed in one period
+	}
 }

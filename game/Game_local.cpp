@@ -892,6 +892,8 @@ void idGameLocal::SaveGame( idFile *f ) {
 
 	lodSystem.Save( savegame );
 
+	m_LightEstimateSystem->Save(&savegame);
+
 	// tels: save the list of music speakers
 	savegame.WriteInt( musicSpeakers.Num() );
 	for( i = 0; i < musicSpeakers.Num(); i++ ) {
@@ -2142,6 +2144,8 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	activeEntities.Restore( savegame );
 
 	lodSystem.Restore( savegame );
+
+	m_LightEstimateSystem->Restore(&savegame);
 
 	// tels: restore the list of music speakers
 	savegame.ReadInt( num );

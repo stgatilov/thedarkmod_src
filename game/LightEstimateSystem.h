@@ -24,6 +24,8 @@ public:
 
 	// must be called once per frame to do internal bookkeeping
 	void Think();
+	void Save(idSaveGame *savegame) const;
+	void Restore(idRestoreGame *savegame);
 
 	// get current lighting conditions on the entity
 	// also tracks the entity for the nearest future
@@ -70,6 +72,12 @@ private:
 		float approxAreaPerSample = 0.0f;		// for debug visualization
 	};
 
+	// reduced version of TrackedEntity loaded from save
+	struct LoadedEntityInfo {
+		idEntityPtr<const idEntity> entity;
+		int trackedUntil = -1;
+	};
+
 	void ForgetAllQueries(TrackedEntity &trackedEnt);
 	int ReceiveQueryResults(TrackedEntity &trackedEnt);
 	int StartNewQueries(TrackedEntity &trackedEnt);
@@ -86,4 +94,7 @@ private:
 	int lastThinkTime = -1;
 	idList<TrackedEntity> trackedEntities;
 	idList<ModelCache> modelsCache;
+
+	// only valid immediately after game load
+	idList<LoadedEntityInfo> loadedEntities;
 };
