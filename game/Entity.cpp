@@ -12137,17 +12137,6 @@ bool idEntity::canSeeEntity(idEntity* target, const int useLighting)
 
 		if (useLighting)
 		{
-			/* grayman #3584 - GetLightQuotient() now does the following code:
-
-			idBounds entityBounds = target->GetPhysics()->GetAbsBounds();
-			entityBounds.ExpandSelf (0.1f); // A single point doesn't work with ellipse intersection
-
-			idVec3 bottomPoint = entityBounds[0];
-			idVec3 topPoint = entityBounds[1];
-			entity->GetLightQuotient()
-			float lightQuotient = LAS.queryLightingAlongLine (bottomPoint, topPoint, this, true);
-			*/
-
 			float lightQuotient = target->GetLightQuotient();
 
 			// Return TRUE if the lighting exceeds the threshold.
