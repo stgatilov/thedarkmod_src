@@ -33,8 +33,9 @@ public:
 	float GetLightOnEntity(const idEntity *entity);
 
 	// make sure to track entity for a given time (in milliseconds) since now
+	// -1 means "default duration" like in GetLightOnEntity
 	// note: tracking takes CPU time for evaluating light samples
-	void TrackEntity(const idEntity *entity, int duration);
+	void TrackEntity(const idEntity *entity, int duration = -1);
 
 	void DebugVisualize();
 	bool DebugIgnorePlayer(const idEntity *entity) const;

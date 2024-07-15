@@ -245,6 +245,8 @@ void LightEstimateSystem::TrackEntity(const idEntity *entity, int duration) {
 	const char *single = g_lesSingleEntity.GetString();
 	if (single[0] && idStr::Icmp(entity->GetName(), single))
 		return;
+	if (duration < 0)
+		duration = g_lesDefaultTrackDuration.GetInteger();
 	int nowTime = gameLocal.time;
 	TrackedEntity& trackedEnt = FindOrAddEntity(entity);
 	trackedEnt.trackedUntil = idMath::Imax(trackedEnt.trackedUntil, nowTime + duration);

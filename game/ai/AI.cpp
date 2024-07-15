@@ -66,6 +66,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "Tasks/PlayAnimationTask.h" // #3597
 
+#include "game/LightEstimateSystem.h" // #6546
+
 const int AUD_ALERT_DELAY_MIN =  500; // grayman #3356 - min amount of time delay (ms) before processing an audio alert
 const int AUD_ALERT_DELAY_MAX = 1500; // grayman #3356 - max amount of time delay (ms) before processing an audio alert
 
@@ -5933,6 +5935,9 @@ void idAI::DeadMove( void ) {
 	physicsObj.SetDelta( delta );
 
 	RunPhysics();
+
+	// stgatilov #6546: keep light quotient always valid for AI bodies
+	gameLocal.m_LightEstimateSystem->TrackEntity( this );
 
 	//moveResult = physicsObj.GetMoveResult();
 	AI_ONGROUND = physicsObj.OnGround();
@@ -12802,6 +12807,8 @@ void idAI::DropOnRagdoll( void )
 			pWeap->DeactivateAttack();
 			pWeap->DeactivateParry();
 			pWeap->ClearOwner();
+			// stgatilov #6546: track dropped melee weapon forever
+			gameLocal.m_LightEstimateSystem->TrackEntity( ent, 1000000000 );
 		}
 
 		// greebo: Check if we should set some attachments to nonsolid
