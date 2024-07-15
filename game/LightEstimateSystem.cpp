@@ -18,7 +18,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/tr_local.h"
 
 idCVar g_lesDefaultTrackDuration(
-	"g_lesDefaultTrackDuration", "300", CVAR_GAME | CVAR_INTEGER,
+	"g_lesDefaultTrackDuration", "10000", CVAR_GAME | CVAR_INTEGER,
 	"For how long LightEstimateSystem tracks something due to light value query (in ms)"
 );
 idCVar g_lesEvaluationPeriod(
