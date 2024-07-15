@@ -465,7 +465,7 @@ void idImageAsset::MakeDefault() {
 	PurgeImage();
 	defaulted = true;
 	cpuData = R_DefaultImage();
-	GenerateImage( cpuData.pic[0], cpuData.width, cpuData.height, filter, allowDownSize, repeat, depth, residency );
+	GenerateImage( cpuData.pic[0], cpuData.width, cpuData.height, filter, allowDownSize, repeat, depth, IR_BOTH );
 }
 
 static imageBlock_t R_WhiteImage() {
