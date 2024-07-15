@@ -1520,7 +1520,7 @@ bool idRenderWorldLocal::TraceAll( modelTrace_t &trace, const idVec3 &start, con
 				continue;
 
 			// filter 1: by entity
-			if ( filterCallback && !filterCallback(context, &def->parms, nullptr, nullptr) )
+			if ( filterCallback && !filterCallback(context, &entityIdx, &def->parms, nullptr, nullptr) )
 				continue;
 
 			model = R_EntityDefDynamicModel( def );
@@ -1528,7 +1528,7 @@ bool idRenderWorldLocal::TraceAll( modelTrace_t &trace, const idVec3 &start, con
 				continue;
 
 			// filter 2: by entity & model
-			if ( filterCallback && !filterCallback(context, &def->parms, model, nullptr) )
+			if ( filterCallback && !filterCallback(context, &entityIdx, &def->parms, model, nullptr) )
 				continue;
 
 			idBounds entityBounds;
@@ -1557,7 +1557,7 @@ bool idRenderWorldLocal::TraceAll( modelTrace_t &trace, const idVec3 &start, con
 					continue;	// no intersection
 
 				// filter 3: by entity & model & material
-				if ( filterCallback && !filterCallback( context, &def->parms, model, material ) )
+				if ( filterCallback && !filterCallback( context, &entityIdx, &def->parms, model, material ) )
 					continue;
 
 				bool duplicate = false;
@@ -1640,7 +1640,7 @@ const char* playerMaterialExcludeList[] = {
 };
 
 bool idRenderWorldLocal::Trace( modelTrace_t &trace, const idVec3 &start, const idVec3 &end, const float radius, bool skipDynamic, bool skipPlayer /*_D3XP*/ ) const {
-	auto filter = [&](const renderEntity_t *renderEntity, const idRenderModel *renderModel, const idMaterial *material) -> bool {
+	auto filter = [&](const qhandle_t *handle, const renderEntity_t *renderEntity, const idRenderModel *renderModel, const idMaterial *material) -> bool {
 		if (material) {
 			/* _D3XP addition. */
 			if ( skipPlayer ) {

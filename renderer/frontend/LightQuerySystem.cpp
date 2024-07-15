@@ -285,15 +285,17 @@ idVec3 LightQuerySystem::ComputeQueryLightStage( const LightQuery &query, Contex
 
 	bool lightNoShadows = light->parms.noShadows || !light->lightShader->LightCastsShadows();
 	if ( !lightNoShadows ) {
-		auto Filter = [&](const renderEntity_t *rent, const idRenderModel *rmodel, const idMaterial *material) -> bool {
+		auto Filter = [&](const qhandle_t *rhandle, const renderEntity_t *rent, const idRenderModel *rmodel, const idMaterial *material) -> bool {
+			// ignore entity? (e.g. checking illumination of body with attachments)
+			if ( rhandle ) {
+				if ( query.ignoredEntities.Find( *rhandle ) )
+					return false;
+			}
+
 			if ( rent ) {
 				// noshadows on entity?
 				if ( rent->noShadow )
 					return false;
-				// ignore entity? (e.g. checking illumination of body with attachments)
-				for ( qhandle_t hdl : query.ignoredEntities )
-					if ( hdl >= 0 && world->GetRenderEntity( hdl ) == rent )
-						return false;
 				// suppress settings (e.g. player shadow)
 				// note: see similar code in idInteraction::AddActiveInteraction
 				if ( rent->suppressShadowInViewID && rent->suppressShadowInViewID == ctx.viewDef->renderView.viewID )

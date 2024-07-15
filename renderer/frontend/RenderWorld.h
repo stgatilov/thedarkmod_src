@@ -438,7 +438,7 @@ public:
 
 	virtual bool			MaterialTrace( const idVec3 &p, const idMaterial *mat, idStr &matName ) const = 0;
 
-	typedef bool (*TraceFilterFunc)(void *context, const renderEntity_t *, const idRenderModel *, const idMaterial *);
+	typedef bool (*TraceFilterFunc)(void *context, const qhandle_t *, const renderEntity_t *, const idRenderModel *, const idMaterial *);
 	// stgatilov: traces the whole rendered world with flexible filtering
 	// if fastWorld is true, then:
 	//    1) filter is not called for world-area models (defaults to true)
