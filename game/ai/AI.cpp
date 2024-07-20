@@ -5184,7 +5184,11 @@ bool idAI::CanSeeTargetPoint( idVec3 point, idEntity* target , bool checkLightin
 	if ( checkLighting )
 	{
 		idVec3 topPoint = point - (physicsObj.GetGravityNormal() * 32.0);
-		float maxDistanceToObserve = GetMaximumObservationDistanceForPoints(point, topPoint);
+		float maxDistanceToObserve;
+		if ( g_lightQuotientAlgo.GetInteger() > 0 )
+			maxDistanceToObserve = GetMaximumObservationDistance( target );
+		else
+			maxDistanceToObserve = GetMaximumObservationDistanceForPoints(point, topPoint);
 		idVec3 ownOrigin = physicsObj.GetOrigin();
 
 		return ( ( ( point - ownOrigin).LengthSqr() ) < Square(maxDistanceToObserve) ); // grayman #2866

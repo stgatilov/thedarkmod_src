@@ -398,6 +398,7 @@ extern idCVar cv_lg_screen_height;
 extern idCVar cv_lg_velocity_mod_min_velocity;
 extern idCVar cv_lg_velocity_mod_max_velocity;
 extern idCVar cv_lg_velocity_mod_amount;
+extern idCVar g_lightQuotientAlgo;
 
 extern idCVar cv_lg_fade_delay;						// Added by  J.C.Denton
 

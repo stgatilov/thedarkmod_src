@@ -3127,12 +3127,6 @@ void idEntity::SetSolid( bool solidity ) {
 
 }
 
-idCVar g_lightQuotientAlgo(
-	"g_lightQuotientAlgo", "0", CVAR_BOOL | CVAR_GAME,
-	"If set to 0, then use old LAS-based code.\n"
-	"If set to 1, then use new code in renderer frontend\n"
-);
-
 float idEntity::GetLightQuotient()
 {
 	if (g_lightQuotientAlgo.GetBool()) {
