@@ -18,6 +18,11 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 // samples on the wall up to this tolerance should be treated as not occluded by the wall
 static const float POS_TOLERANCE = 0.1f;
 
+idCVar r_lqsParallel(
+	"r_lqsParallel", "1", CVAR_BOOL | CVAR_RENDERER, 
+	"Process queries in LightQuerySystem in parallel?"
+);
+
 // ==================================================================================
 
 idRenderWorld::lightQuery_t LightQuerySystem::AddQuery( const idRenderEntityLocal *onEntity, const samplePointOnModel_t &point, const idList<qhandle_t> &ignoredEntities ) {
@@ -67,15 +72,43 @@ void LightQuerySystem::Forget( lightQuery_t query ) {
 
 void LightQuerySystem::Think( const viewDef_t *viewDef ) {
 	TRACE_CPU_SCOPE( "LQS::Think" );
-	int count[3] = {0};
 
+	struct Job {
+		const LightQuerySystem *system;
+		const viewDef_t *viewDef;
+		LightQuery *query;
+
+		void Run() const {
+			system->RecomputeQuery( *query, viewDef );
+		}
+		static void Invoke( void *param ) {
+			const Job *job = (const Job*)(param);
+			job->Run();
+		}
+	};
+
+	idList<Job> jobs;
+	jobs.Reserve( queries.Num() );
+
+	int count[3] = {0};
 	for ( int i = 0; i < queries.Num(); i++ ) {
 		LightQuery &qr = queries[i];
 		count[qr.status + 1]++;
 		if ( qr.status != 0 )
 			continue;
+		jobs.AddGrow( { this, viewDef, &qr } );
+	}
 
-		RecomputeQuery( qr, viewDef );
+	if ( r_lqsParallel.GetBool() ) {
+		RegisterJob( Job::Invoke, "lightQuery" );
+		idParallelJobList *joblist = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, jobs.Num(), 0, nullptr );
+		for ( Job &j : jobs )
+			joblist->AddJob( Job::Invoke, &j );
+		joblist->Submit( nullptr, JOBLIST_PARALLELISM_REALTIME );
+		parallelJobManager->FreeJobList( joblist );
+	} else {
+		for ( Job &j : jobs )
+			j.Run();
 	}
 
 	TRACE_ATTACH_FORMAT( "dead: %d\npending: %d\nfinished: %d\n", count[0], count[1], count[2] )
@@ -86,7 +119,8 @@ void LightQuerySystem::Think( const viewDef_t *viewDef ) {
 void LightQuerySystem::RecomputeQuery( LightQuery &query, const viewDef_t *viewDef ) const {
 	TRACE_CPU_SCOPE_TEXT( "LQS::RecomputeQuery", GetTraceLabel( query.entity->parms ) )
 	query.position = UpdateSamplePos( query );
-	Context &ctx = globalContext;
+	// this temporary variable must be independent in each parallel thread
+	static thread_local Context ctx;
 	ctx.viewDef = viewDef;
 	query.resultValue = ComputeQuery( query, ctx );
 	query.status = 1;

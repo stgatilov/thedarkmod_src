@@ -58,7 +58,6 @@ private:
 	idVec3 UpdateSamplePos( const LightQuery &query ) const;
 
 	const idRenderWorldLocal *world = nullptr;
-	mutable Context globalContext;	// used by all queries for now...
 	idList<LightQuery> queries;
 	idList<int> deadQueryList;		// to accelerate AddQuery
 };
