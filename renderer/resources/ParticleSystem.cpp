@@ -297,7 +297,9 @@ bool idParticle_FindCutoffTextureSubregion(const idPartStageData &stg, const srf
 		idBounds texBounds;
 		texBounds.Clear();
 		for (int i = 0; i < tri->numIndexes; i++) {
-			idVec2 tc = tri->verts[tri->indexes[i]].st;
+			//VC 2022 optimizer breaks this code, so we use volatile as workaround
+			//See bug report: https://developercommunity.visualstudio.com/t/Optimization-bug-with-scalar-SSE/10707188
+			volatile idVec2 tc = tri->verts[tri->indexes[i]].st;
 			texBounds.AddPoint(idVec3(tc.x, tc.y, 0.0));
 		}
 		texBounds.IntersectsBounds(bounds_zeroOneCube);
