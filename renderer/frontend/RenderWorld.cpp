@@ -1523,18 +1523,19 @@ bool idRenderWorldLocal::TraceAll( modelTrace_t &trace, const idVec3 &start, con
 			if ( filterCallback && !filterCallback(context, &entityIdx, &def->parms, nullptr, nullptr) )
 				continue;
 
+			// note: def->referenceBounds is set in UpdateEntityDef -> R_CreateEntityDefs + R_DeriveEntityData
+			// we should use these conservative bounds to avoid generating MD5 models without need
+			const idBounds &entityBounds = def->globalReferenceBounds;
+			// if the model bounds do not overlap with the trace bounds
+			if ( !traceBounds.IntersectsBounds( entityBounds ) || !entityBounds.LineIntersection( start, trace.point )  )
+				continue;
+
 			model = R_EntityDefDynamicModel( def );
 			if ( !model )
 				continue;
 
 			// filter 2: by entity & model
 			if ( filterCallback && !filterCallback(context, &entityIdx, &def->parms, model, nullptr) )
-				continue;
-
-			idBounds entityBounds;
-			entityBounds.FromTransformedBounds( model->Bounds( &def->parms ), def->parms.origin, def->parms.axis );
-			// if the model bounds do not overlap with the trace bounds
-			if ( !traceBounds.IntersectsBounds( entityBounds ) || !entityBounds.LineIntersection( start, trace.point )  )
 				continue;
 
 			for ( int s = 0; s < model->NumSurfaces(); s++ ) {
