@@ -19,7 +19,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 static const float POS_TOLERANCE = 0.1f;
 
 idCVar r_lqsParallel(
-	"r_lqsParallel", "1", CVAR_BOOL | CVAR_RENDERER, 
+	"r_lqsParallel", "0", CVAR_BOOL | CVAR_RENDERER, 
 	"Process queries in LightQuerySystem in parallel?"
 );
 
@@ -101,11 +101,11 @@ void LightQuerySystem::Think( const viewDef_t *viewDef ) {
 
 	if ( r_lqsParallel.GetBool() ) {
 		RegisterJob( Job::Invoke, "lightQuery" );
-		idParallelJobList *joblist = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, jobs.Num(), 0, nullptr );
+		idParallelJobList *joblist = tr.frontEndJobList;
 		for ( Job &j : jobs )
 			joblist->AddJob( Job::Invoke, &j );
 		joblist->Submit( nullptr, JOBLIST_PARALLELISM_REALTIME );
-		parallelJobManager->FreeJobList( joblist );
+		joblist->Wait();
 	} else {
 		for ( Job &j : jobs )
 			j.Run();
