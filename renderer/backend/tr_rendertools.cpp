@@ -18,8 +18,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "renderer/tr_local.h"
 #include "renderer/backend/simplex.h"	// line font definition
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/GLSLProgramManager.h"
+#include "renderer/backend/GLSLProgram.h"
+#include "renderer/backend/GLSLUniforms.h"
 #include "renderer/backend/ImmediateRendering.h"
 #include "renderer/backend/VertexArrayState.h"
 
@@ -226,7 +227,7 @@ RB_SimpleSpaceSetup
 void RB_SimpleSpaceSetup( const viewEntity_t *space ) {
 	// change the matrix if needed
 	if ( space != backEnd.currentSpace ) {
-		Uniforms::Transform* globalUniforms = programManager->renderToolsShader->GetUniformGroup<Uniforms::Transform>();
+		TransformUniforms* globalUniforms = programManager->renderToolsShader->GetUniformGroup<TransformUniforms>();
 		globalUniforms->Set( space );
 		backEnd.currentSpace = space;
 	}
@@ -256,7 +257,7 @@ RB_SimpleScreenSetup
 void RB_SimpleScreenSetup( void ) {
 	GL_CheckErrors();
 	backEnd.currentSpace = nullptr;
-	Uniforms::Transform* globalUniforms = programManager->renderToolsShader->GetUniformGroup<Uniforms::Transform>();
+	TransformUniforms* globalUniforms = programManager->renderToolsShader->GetUniformGroup<TransformUniforms>();
 	globalUniforms->modelMatrix.Set( mat4_identity.ToFloatPtr() );			//not used, actually
 	globalUniforms->modelViewMatrix.Set( mat4_identity.ToFloatPtr() );
 	//specify coordinates in [0..1] x [0..1] instead of [-1..1] x [-1..1]
@@ -275,7 +276,7 @@ RB_SimpleWorldSetup
 void RB_SimpleWorldSetup( void ) {
 	GL_CheckErrors();
 	backEnd.currentSpace = &backEnd.viewDef->worldSpace;
-	Uniforms::Transform* globalUniforms = programManager->renderToolsShader->GetUniformGroup<Uniforms::Transform>();
+	TransformUniforms* globalUniforms = programManager->renderToolsShader->GetUniformGroup<TransformUniforms>();
 	globalUniforms->Set( backEnd.currentSpace );
 
 	backEnd.currentScissor = backEnd.viewDef->scissor;

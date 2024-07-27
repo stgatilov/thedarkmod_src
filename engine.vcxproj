@@ -613,7 +613,6 @@
     <ClInclude Include="idlib\Token.h" />
     <ClInclude Include="renderer\backend\FrameBuffer.h" />
     <ClInclude Include="renderer\backend\FrameBufferManager.h" />
-    <ClInclude Include="renderer\backend\glsl.h" />
     <ClInclude Include="renderer\backend\GLSLProgram.h" />
     <ClInclude Include="renderer\backend\GLSLProgramManager.h" />
     <ClInclude Include="renderer\backend\GLSLUniforms.h" />
@@ -1237,7 +1236,7 @@
     <ClCompile Include="idlib\Thread.cpp" />
     <ClCompile Include="idlib\Timer.cpp" />
     <ClCompile Include="idlib\Token.cpp" />
-    <ClCompile Include="renderer\backend\glsl.cpp" />
+    <ClCompile Include="renderer\backend\GLSLUniforms.cpp" />
     <ClCompile Include="renderer\backend\FrameBuffer.cpp" />
     <ClCompile Include="renderer\backend\FrameBufferManager.cpp" />
     <ClCompile Include="renderer\backend\GLSLProgram.cpp" />

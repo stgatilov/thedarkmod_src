@@ -16,8 +16,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "precompiled.h"
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/GLSLProgram.h"
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/VertexArrayState.h"
+#include "renderer/backend/GLSLUniforms.h"
 
 GLSLProgramManager programManagerInstance;
 GLSLProgramManager *programManager = &programManagerInstance;

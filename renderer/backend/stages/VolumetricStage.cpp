@@ -21,7 +21,6 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/resources/Image.h"
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/GLSLUniforms.h"
-#include "renderer/backend/glsl.h"
 
 VolumetricStage volumetricImpl;
 VolumetricStage *volumetric = &volumetricImpl;
@@ -300,7 +299,7 @@ void VolumetricStage::RenderFrustum(GLSLProgram *shader) {
 	//   3) can use frustum exit distance for clamping depth texture
 
 	// set modelview / projection
-	shader->GetUniformGroup<Uniforms::Transform>()->Set( &viewDef->worldSpace );
+	shader->GetUniformGroup<TransformUniforms>()->Set( &viewDef->worldSpace );
 
 	drawSurf_t ds = { 0 };
 	ds.space = &viewDef->worldSpace;

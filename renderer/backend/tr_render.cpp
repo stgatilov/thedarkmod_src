@@ -17,10 +17,11 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #pragma hdrstop
 
 #include "renderer/tr_local.h"
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/VertexArrayState.h"
 #include "renderer/backend/FrameBuffer.h"
 #include "renderer/backend/GLSLProgramManager.h"
+#include "renderer/backend/GLSLProgram.h"
+#include "renderer/backend/GLSLUniforms.h"
 #include "renderer/backend/RenderBackend.h"
 
 /*
@@ -194,7 +195,7 @@ void RB_EnterWeaponDepthHack() {
 	// FIXME: this part is broken since storing projection matrix in uniform block
 	auto prog = GLSLProgram::GetCurrentProgram();
 	if ( prog ) {
-		Uniforms::Transform* transformUniforms = prog->GetUniformGroup<Uniforms::Transform>();
+		TransformUniforms* transformUniforms = prog->GetUniformGroup<TransformUniforms>();
 		//transformUniforms->projectionMatrix.Set( matrix );
 	}
 }
@@ -217,7 +218,7 @@ void RB_EnterModelDepthHack( float depth ) {
 
 	auto prog = GLSLProgram::GetCurrentProgram();
 	if ( prog ) {
-		Uniforms::Transform* transformUniforms = prog->GetUniformGroup<Uniforms::Transform>();
+		TransformUniforms* transformUniforms = prog->GetUniformGroup<TransformUniforms>();
 		//transformUniforms->projectionMatrix.Set( matrix );
 	}
 }
@@ -231,7 +232,7 @@ void RB_LeaveDepthHack() {
 	qglDepthRange( 0.0f, 1.0f );
 
 	if ( auto prog = GLSLProgram::GetCurrentProgram() ) {
-		Uniforms::Transform* transformUniforms = prog->GetUniformGroup<Uniforms::Transform>();
+		TransformUniforms* transformUniforms = prog->GetUniformGroup<TransformUniforms>();
 		//transformUniforms->projectionMatrix.Set( backEnd.viewDef->projectionMatrix );
 	}
 }
@@ -240,7 +241,7 @@ void RB_LeaveDepthHack() {
 static void RB_RenderDrawSurfWithFunction( const drawSurf_t *drawSurf, void ( *triFunc_ )( const drawSurf_t * ) ) {
 	if ( drawSurf->space != backEnd.currentSpace ) {
 		if( GLSLProgram::GetCurrentProgram() != nullptr ) {
-			Uniforms::Transform *transformUniforms = GLSLProgram::GetCurrentProgram()->GetUniformGroup<Uniforms::Transform>();
+			TransformUniforms *transformUniforms = GLSLProgram::GetCurrentProgram()->GetUniformGroup<TransformUniforms>();
 			transformUniforms->Set( drawSurf->space );
 		}
 		GL_CheckErrors();

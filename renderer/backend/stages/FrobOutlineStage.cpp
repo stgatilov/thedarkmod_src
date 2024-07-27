@@ -15,9 +15,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "precompiled.h"
 #include "renderer/backend/stages/FrobOutlineStage.h"
 
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/GLSLProgram.h"
 #include "renderer/backend/GLSLProgramManager.h"
+#include "renderer/backend/GLSLUniforms.h"
 #include "renderer/tr_local.h"
 #include "renderer/backend/FrameBuffer.h"
 #include "renderer/backend/FrameBufferManager.h"
@@ -383,7 +383,7 @@ void FrobOutlineStage::DrawElements( idList<drawSurf_t *> &surfs, GLSLProgram  *
 
 	for ( drawSurf_t *surf : surfs ) {
 		GL_Cull( surf->material->GetCullType() );
-		shader->GetUniformGroup<Uniforms::Transform>()->Set( surf->space );
+		shader->GetUniformGroup<TransformUniforms>()->Set( surf->space );
 		vertexCache.VertexPosition( surf->ambientCache );
 
 		//stgatilov: some transparent objects have no diffuse map

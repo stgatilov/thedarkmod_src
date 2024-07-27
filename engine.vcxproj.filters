@@ -1516,9 +1516,6 @@
     <ClInclude Include="renderer\backend\FrameBufferManager.h">
       <Filter>Renderer\Backend</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\backend\glsl.h">
-      <Filter>Renderer\Backend</Filter>
-    </ClInclude>
     <ClInclude Include="renderer\backend\GLSLProgram.h">
       <Filter>Renderer\Backend</Filter>
     </ClInclude>
@@ -3463,7 +3460,7 @@
     <ClCompile Include="renderer\frontend\tr_turboshadow.cpp">
       <Filter>Renderer\Frontend</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\backend\glsl.cpp">
+    <ClCompile Include="renderer\backend\GLSLUniforms.cpp">
       <Filter>Renderer\Backend</Filter>
     </ClCompile>
     <ClCompile Include="renderer\backend\FrameBuffer.cpp">

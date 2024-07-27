@@ -17,8 +17,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "renderer/tr_local.h"
 #include "renderer/backend/FrameBuffer.h"
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/GLSLProgramManager.h"
+#include "renderer/backend/GLSLProgram.h"
+#include "renderer/backend/GLSLUniforms.h"
 #include "renderer/backend/stages/AmbientOcclusionStage.h"
 #include "renderer/backend/stages/BloomStage.h"
 #include "renderer/backend/FrameBufferManager.h"
@@ -283,7 +284,7 @@ void FB_DebugShowContents() {
 	GL_State( GLS_DEFAULT );
 
 	programManager->renderToolsShader->Activate();
-	Uniforms::Transform* transformUniforms = programManager->renderToolsShader->GetUniformGroup<Uniforms::Transform>();
+	TransformUniforms* transformUniforms = programManager->renderToolsShader->GetUniformGroup<TransformUniforms>();
 	idMat4 ninety = mat4_identity * .9f;
 	ninety[3][3] = 1;
 	transformUniforms->modelViewMatrix.Set( ninety );

@@ -18,7 +18,6 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #pragma hdrstop
 
 #include "renderer/tr_local.h"
-#include "renderer/backend/glsl.h"
 #include "renderer/backend/VertexArrayState.h"
 
 const int32 MAX_VERTCACHE_SIZE = INT_MAX;
