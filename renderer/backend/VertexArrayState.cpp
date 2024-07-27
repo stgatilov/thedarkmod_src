@@ -56,13 +56,10 @@ VertexArrayState::VertexArrayState() {
 	formatAttribMasks[VF_IMMEDIATE] |= (1 << Attributes::TexCoord);
 
 	vao = 0;
+	vbo = 0;
 }
 
-void VertexArrayState::UpdateVertexBuffers() {
-	// TODO: can we avoid quering bound buffer?
-	// perhaps this class can manage VBOs too?
-	int vbo = 0;
-	qglGetIntegerv(GL_ARRAY_BUFFER_BINDING, &vbo);
+void VertexArrayState::UpdateVertexBuffer() {
 	if (vbo == 0)
 		return;		// API calls below generate errors otherwise
 
@@ -110,26 +107,48 @@ void VertexArrayState::Shutdown() {
 void VertexArrayState::SetDefaultState() {
 	// reset to default state with currently bound VBOs
 	memset(overriden, 0, sizeof(overriden));
-	SetVertexFormatAndUpdateVertexBuffers(VF_REGULAR);
+	vbo = 0xDEADBEEF;				// ensure following Set sees change
+	vertexFormat = VF_COUNT;		// ...
+	BindVertexBufferAndSetVertexFormat(0, VF_REGULAR);
 	for (Attributes::Index attrib : allAttribsList) {
 		SetOverrideValuef(attrib);
 	}
 }
 
-void VertexArrayState::SetVertexFormat(VertexFormat format) {
-	if (vertexFormat == format)
-		return;
+bool VertexArrayState::BindVertexBuffer_(unsigned vbo_) {
+	if (vbo == vbo_)
+		return false;
 
-	SetVertexFormatAndUpdateVertexBuffers(format);
+	vbo = vbo_;
+	qglBindBuffer(GL_ARRAY_BUFFER, vbo);
+	return true;
+}
+void VertexArrayState::BindVertexBuffer(unsigned vbo) {
+	if (BindVertexBuffer_(vbo))
+		UpdateVertexBuffer();
 }
 
-void VertexArrayState::SetVertexFormatAndUpdateVertexBuffers(VertexFormat format) {
+bool VertexArrayState::SetVertexFormat_(VertexFormat format) {
+	if (vertexFormat == format)
+		return false;
+
 	vertexFormat = format;
 	for (Attributes::Index attrib : allAttribsList) {
 		ApplyAttribEnabled(attrib);
 	}
+	return true;
+}
+void VertexArrayState::SetVertexFormat(VertexFormat format) {
+	if (SetVertexFormat_(format))
+		UpdateVertexBuffer();
+}
 
-	UpdateVertexBuffers();
+void VertexArrayState::BindVertexBufferAndSetVertexFormat(unsigned vbo, VertexFormat format) {
+	bool changed = false;
+	changed |= BindVertexBuffer_(vbo);
+	changed |= SetVertexFormat_(format);
+	if (changed)
+		UpdateVertexBuffer();
 }
 
 void VertexArrayState::SetOverrideEnabled(Attributes::Index attrib, bool enabled) {

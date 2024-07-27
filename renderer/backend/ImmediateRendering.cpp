@@ -58,8 +58,6 @@ ImmediateRendering::ImmediateRendering() {
 	vertexList.Swap(globals.vertexBuffers[0]);
 	tempList.Swap(globals.vertexBuffers[1]);
 	drawList.Swap(globals.drawBuffers);
-
-	qglGetIntegerv(GL_ARRAY_BUFFER_BINDING, &restore_vbo);
 }
 
 ImmediateRendering::~ImmediateRendering() {
@@ -67,8 +65,6 @@ ImmediateRendering::~ImmediateRendering() {
 		return;
 
 	FlushInternal();
-
-	qglBindBuffer(GL_ARRAY_BUFFER, restore_vbo);
 
 	vertexList.SetNum(0, false);
 	tempList.SetNum(0, false);
@@ -89,10 +85,8 @@ void ImmediateRendering::FlushInternal() {
 		GLuint vbo = 0;
 		qglGenBuffers(1, &vbo);
 
-		qglBindBuffer(GL_ARRAY_BUFFER, vbo);
+		vaState.BindVertexBufferAndSetVertexFormat(vbo, VF_IMMEDIATE);
 		qglBufferData(GL_ARRAY_BUFFER, vertexList.Num() * sizeof(VertexData), vertexList.Ptr(), GL_STREAM_DRAW);
-
-		vaState.SetVertexFormatAndUpdateVertexBuffers(VF_IMMEDIATE);
 
 		for (int i = 0; i < drawList.Num(); i++) {
 			auto draw = drawList[i];
@@ -101,6 +95,7 @@ void ImmediateRendering::FlushInternal() {
 			qglDrawArrays(draw.mode, draw.viBegin, draw.viEnd - draw.viBegin);
 		}
 
+		vaState.BindVertexBuffer();
 		qglDeleteBuffers(1, &vbo);
 	}
 

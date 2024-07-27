@@ -38,13 +38,9 @@ enum VertexFormat {
 };
 
 /**
- * This is the only code which manages OpenGL's "Vertex Array Object" and vertex attributes format.
+ * This is the only code which manages OpenGL's "Vertex Array Object", vertex attributes format, and vertex buffer object binds.
  * Also it supports overriding an attribute with a given constant value.
- * Vertex format and overrides are independent: you can mix changing them in any order.
- * 
- * Note that which VBOs to read is logically not the part of this class; it is handled by idVertexCache.
- * However, we can't use "separate attribute format" (GL 4.3),
- * so user must call UpdateVertexBuffers after VBO rebinds!
+ * Vertex format, overrides, VBO binds are independent: you can change them in any order.
  */
 class VertexArrayState {
 public:
@@ -57,14 +53,13 @@ public:
 	// reset all settings to defaults
 	void SetDefaultState();
 
-	// respecify vertex attributes with currently bound VBOs
-	// must be called: after VBO binds have changed, before any rendering
-	void UpdateVertexBuffers();
-
+	// bind specified VBO
+	void BindVertexBuffer(unsigned vbo = 0);
 	// set current vertex format
 	void SetVertexFormat(VertexFormat format);
-	// same as calling SetVertexFormat + UpdateVertexBuffers
-	void SetVertexFormatAndUpdateVertexBuffers(VertexFormat format);
+
+	// same as calling SetVertexFormat + BindVertexBuffer
+	void BindVertexBufferAndSetVertexFormat(unsigned vbo, VertexFormat format);
 
 	// override some attribute value with given value (thus don't read attribute from buffer)
 	// note: overrides are global state, they persist after vertex format of vertex buffer bind is changed
@@ -76,12 +71,17 @@ public:
 	void BindAttributesToProgram(GLSLProgram *program);
 
 private:
+	void UpdateVertexBuffer();
 	void ApplyAttribEnabled(Attributes::Index attrib);
+	bool BindVertexBuffer_(unsigned vbo);
+	bool SetVertexFormat_(VertexFormat format);
+
 
 	VertexFormat vertexFormat;
 	bool overriden[Attributes::Count];
 
 	unsigned vao;
+	unsigned vbo;
 
 	// const data
 	int formatAttribMasks[VF_COUNT];

@@ -30,7 +30,6 @@ idCVarBool r_usePersistentMapping( "r_usePersistentMapping", "1", CVAR_RENDERER 
 
 idVertexCache		vertexCache;
 uint32_t			staticVertexSize, staticIndexSize, staticShadowSize;
-attribBind_t		currentAttribBinding;
 
 ALIGNTYPE16 const idDrawVert screenRectVerts[4] = {
 	{idVec3( -1,-1,0 ),idVec2( 0,0 ), idVec3(), {idVec3(), idVec3()}, {255, 255, 255, 0}},
@@ -71,23 +70,6 @@ static void FreeGeoBufferSet( geoBufferSet_t &gbs ) {
 	gbs.indexBuffer.Destroy();
 }
 
-/* duzenko 2.08
-Vanilla D3 called VertexAttribPointer/Enable/DisableVertexAttribArray a few times for each draw
-The whole purpose of moving to a single VBO was to be able to set base attrib pointer for many calls
-Unrelated to that, we now also enable all attributes once and not bother driver with toggling them off and on all the time
-*/
-static void BindAttributes( attribBind_t attrib ) {
-	
-	if ( attrib == attribBind_t::ATTRIB_REGULAR ) {
-		vaState.SetVertexFormatAndUpdateVertexBuffers( VF_REGULAR );
-	} else if ( attrib == attribBind_t::ATTRIB_SHADOW ) {
-		vaState.SetVertexFormatAndUpdateVertexBuffers( VF_SHADOW );
-	} else {
-		assert( false );
-	}
-	currentAttribBinding = attrib;
-}
-
 /*
 ==============
 idVertexCache::VertexPosition
@@ -106,22 +88,16 @@ void idVertexCache::VertexPosition( vertCacheHandle_t handle, attribBind_t attri
 		}
 	}
 
-	if ( vbo != currentVertexBuffer ) {
-		qglBindBuffer( GL_ARRAY_BUFFER, vbo );
-		currentVertexBuffer = vbo;
-		BindAttributes( attrib );
-	} else {
-		// still need to switch to shadow attrib bindings when remain in the same VBO
-		if ( currentAttribBinding != attrib )
-			BindAttributes( attrib );
-	}
-
-	if ( attrib == ATTRIB_REGULAR )  {
+	if ( attrib == ATTRIB_REGULAR ) {
+		vaState.BindVertexBufferAndSetVertexFormat( vbo, VF_REGULAR );
 		assert( handle.offset % sizeof( idDrawVert ) == 0 );
 		basePointer = handle.offset / sizeof( idDrawVert );
-	} else {
+	} else if ( attrib == ATTRIB_SHADOW ) {
+		vaState.BindVertexBufferAndSetVertexFormat( vbo, VF_SHADOW );
 		assert( handle.offset % sizeof( shadowCache_t ) == 0 );
 		basePointer = handle.offset / sizeof( shadowCache_t );
+	} else {
+		assert( 0 );
 	}
 }
 
@@ -267,7 +243,7 @@ void idVertexCache::EndFrame() {
 		AllocGeoBufferSet( dynamicData, currentVertexCacheSize, currentIndexCacheSize );
 	}
 
-	qglBindBuffer( GL_ARRAY_BUFFER, currentVertexBuffer = 0 );
+	vaState.BindVertexBuffer();
 	qglBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentIndexBuffer = 0 );
 
 	// 2.08 temp helper for RB_DrawFullScreenQuad on core contexts
@@ -352,6 +328,8 @@ idVertexCache::PrepareStaticCacheForUpload
 ==============
 */
 void idVertexCache::PrepareStaticCacheForUpload() {
+	vaState.BindVertexBuffer( 0 );
+
 	// upload function to be called twice for vertex and index data
 	auto upload = [](GLuint buffer, GLenum bufferType, int size, StaticList &staticList ) {
 		int offset = 0;
@@ -398,7 +376,7 @@ void idVertexCache::PrepareStaticCacheForUpload() {
 	GL_SetDebugLabel( GL_BUFFER, staticIndexBuffer, "StaticIndexCache" );
 	GL_SetDebugLabel( GL_BUFFER, staticShadowBuffer, "StaticShadowCache" );
 
-	qglBindBuffer( GL_ARRAY_BUFFER, currentVertexBuffer = 0 );
+	qglBindBuffer( GL_ARRAY_BUFFER, 0 );
 	qglBindBuffer( GL_ELEMENT_ARRAY_BUFFER, currentIndexBuffer = 0 );
 }
 

@@ -86,8 +86,6 @@ private:
 	idList<VertexData> vertexList, tempList;
 	idList<DrawCall> drawList;
 	int viBeginCurrent = -1;
-
-	GLint restore_vbo = 0;
 };
 
 #endif
