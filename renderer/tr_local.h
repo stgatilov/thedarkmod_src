@@ -1203,33 +1203,6 @@ public:
 	~DepthBoundsTest();
 };
 
-// overloaded color functions vector first
-struct GLColorOverride {
-	bool enabled = false;
-
-	GLColorOverride() {} // conditional override
-	//GL_FloatColor( const idVec3& color );
-	GLColorOverride( const idVec4& color );
-
-	// float type
-	GLColorOverride( const float* color );
-	GLColorOverride( float r, float g, float b );
-	GLColorOverride( float r, float g, float b, float a );
-
-	void Enable( const float* color );
-	
-	~GLColorOverride();
-};
-
-#define MERGE_(a,b)  a##b
-#define LABEL_(a) MERGE_(colorOverride_, a)
-#define GL_FloatColor GLColorOverride LABEL_(__LINE__)
-
-// byte type
-void	GL_ByteColor( const byte* color );
-void	GL_ByteColor( byte r, byte g, byte b );
-void	GL_ByteColor( byte r, byte g, byte b, byte a );
-
 const int GLS_SRCBLEND_ONE						= 0x0;
 const int GLS_SRCBLEND_ZERO						= 0x00000001;
 const int GLS_SRCBLEND_DST_COLOR				= 0x00000003;

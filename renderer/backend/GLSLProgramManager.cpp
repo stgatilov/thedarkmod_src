@@ -17,6 +17,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/GLSLProgram.h"
 #include "renderer/backend/glsl.h"
+#include "renderer/backend/VertexArrayState.h"
 
 GLSLProgramManager programManagerInstance;
 GLSLProgramManager *programManager = &programManagerInstance;
@@ -33,7 +34,7 @@ namespace {
 		if( geometrySource != nullptr ) {
 			program->AttachGeometryShader( geometrySource, defines );
 		}
-		Attributes::BindToProgram( program );
+		vaState.BindAttributesToProgram( program );
 		program->Link();
 		program->Activate();
 		int mv = program->GetUniformLocation( "u_modelViewMatrix" );

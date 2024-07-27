@@ -19,6 +19,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "renderer/tr_local.h"
 #include "renderer/backend/glsl.h"
+#include "renderer/backend/VertexArrayState.h"
 
 const int32 MAX_VERTCACHE_SIZE = INT_MAX;
 
@@ -76,10 +77,11 @@ The whole purpose of moving to a single VBO was to be able to set base attrib po
 Unrelated to that, we now also enable all attributes once and not bother driver with toggling them off and on all the time
 */
 static void BindAttributes( attribBind_t attrib ) {
+	
 	if ( attrib == attribBind_t::ATTRIB_REGULAR ) {
-		Attributes::EnableVertexRegular();
+		vaState.SetVertexFormatAndUpdateVertexBuffers( VF_REGULAR );
 	} else if ( attrib == attribBind_t::ATTRIB_SHADOW ) {
-		Attributes::EnableVertexShadow();
+		vaState.SetVertexFormatAndUpdateVertexBuffers( VF_SHADOW );
 	} else {
 		assert( false );
 	}

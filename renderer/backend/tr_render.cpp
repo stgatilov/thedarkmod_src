@@ -18,6 +18,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "renderer/tr_local.h"
 #include "renderer/backend/glsl.h"
+#include "renderer/backend/VertexArrayState.h"
 #include "renderer/backend/FrameBuffer.h"
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/RenderBackend.h"
@@ -356,6 +357,7 @@ void RB_BeginDrawingView( bool colorIsBackground ) {
 
 	// ensures that depth writes are enabled for the depth clear
 	GL_State( GLS_DEFAULT );
+	vaState.SetDefaultState();
 
 	// we don't have to clear the depth / stencil buffer for 2D rendering
 	if ( backEnd.viewDef->viewEntitys ) {

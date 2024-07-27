@@ -15,10 +15,11 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 #include "precompiled.h"
 #include "renderer/backend/GLSLProgram.h"
+
 #include "renderer/backend/GLSLUniforms.h"
 #include <memory>
-
-#include "renderer/backend/glsl.h"
+#include "renderer/tr_local.h"
+#include "renderer/backend/VertexArrayState.h"
 #include "StdString.h"
 
 idCVar r_debugGLSL("r_debugGLSL", "0", CVAR_BOOL|CVAR_ARCHIVE, "If enabled, checks and warns about additional potential sources of GLSL shader errors.");
@@ -164,7 +165,7 @@ bool GLSLProgram::Validate() {
 void GLSLProgram::LoadFromFiles( const char *vertexFile, const char *fragmentFile, const idHashMapDict &defines ) {
 	AttachVertexShader( vertexFile, defines );
 	AttachFragmentShader( fragmentFile, defines );
-	Attributes::BindToProgram( this );
+	vaState.BindAttributesToProgram( this );
 	Link();
 }
 

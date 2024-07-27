@@ -20,7 +20,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/ImmediateRendering.h"
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/GLSLProgram.h"
-#include "renderer/backend/glsl.h"
+#include "renderer/backend/VertexArrayState.h"
 #include "renderer/tr_local.h"
 
 
@@ -59,7 +59,6 @@ ImmediateRendering::ImmediateRendering() {
 	tempList.Swap(globals.vertexBuffers[1]);
 	drawList.Swap(globals.drawBuffers);
 
-	qglGetIntegerv(GL_VERTEX_ARRAY_BINDING, &restore_vao);
 	qglGetIntegerv(GL_ARRAY_BUFFER_BINDING, &restore_vbo);
 }
 
@@ -69,7 +68,6 @@ ImmediateRendering::~ImmediateRendering() {
 
 	FlushInternal();
 
-	qglBindVertexArray(restore_vao);
 	qglBindBuffer(GL_ARRAY_BUFFER, restore_vbo);
 
 	vertexList.SetNum(0, false);
@@ -89,15 +87,12 @@ void ImmediateRendering::FlushInternal() {
 
 	if (vertexList.Num() > 0) {
 		GLuint vbo = 0;
-		GLuint vao = 0;
 		qglGenBuffers(1, &vbo);
-		qglGenVertexArrays(1, &vao);
 
 		qglBindBuffer(GL_ARRAY_BUFFER, vbo);
 		qglBufferData(GL_ARRAY_BUFFER, vertexList.Num() * sizeof(VertexData), vertexList.Ptr(), GL_STREAM_DRAW);
 
-		qglBindVertexArray(vao);
-		Attributes::EnableVertexImmediate();
+		vaState.SetVertexFormatAndUpdateVertexBuffers(VF_IMMEDIATE);
 
 		for (int i = 0; i < drawList.Num(); i++) {
 			auto draw = drawList[i];
@@ -106,7 +101,6 @@ void ImmediateRendering::FlushInternal() {
 			qglDrawArrays(draw.mode, draw.viBegin, draw.viEnd - draw.viBegin);
 		}
 
-		qglDeleteVertexArrays(1, &vao);
 		qglDeleteBuffers(1, &vbo);
 	}
 

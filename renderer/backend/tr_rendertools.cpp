@@ -21,6 +21,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/glsl.h"
 #include "renderer/backend/GLSLProgramManager.h"
 #include "renderer/backend/ImmediateRendering.h"
+#include "renderer/backend/VertexArrayState.h"
 
 typedef struct debugBase_s {
 	idVec4		rgb;
@@ -144,6 +145,26 @@ void RB_ShutdownDebugTools( void ) {
 
 	testImageCubeShader = nullptr;
 }
+
+// simple way to locally override vertex color from mesh with constant
+// note: if you set colors via ImmediateRendering, then do NOT use this!
+struct OverrideColor {
+	OverrideColor() {
+		vaState.SetOverrideEnabled(Attributes::Color, true);
+	}
+	~OverrideColor() {
+		vaState.SetOverrideEnabled(Attributes::Color, false);
+	}
+	void Set(float r, float g, float b, float a = 1.0f) {
+		vaState.SetOverrideValuef(
+			Attributes::Color,
+			idMath::ClampFloat(0.0f, 1.0f, r),
+			idMath::ClampFloat(0.0f, 1.0f, g),
+			idMath::ClampFloat(0.0f, 1.0f, b),
+			idMath::ClampFloat(0.0f, 1.0f, a)
+		);
+	}
+};
 
 /*
 ================
@@ -526,7 +547,7 @@ void RB_ShowIntensity( void ) {
     qglOrtho( 0, 1, 0, 1, -1, 1 );
 	qglRasterPos2f( 0, 0 );
 	qglPopMatrix();
-	GL_FloatColor( 1, 1, 1 );
+	qglColor3f( 1, 1, 1 );
 	qglMatrixMode( GL_MODELVIEW );
 
 	qglDrawPixels( glConfig.vidWidth, glConfig.vidHeight, GL_RGBA , GL_UNSIGNED_BYTE, colorReadback );
@@ -560,7 +581,7 @@ void RB_ShowDepthBuffer( void ) {
 	qglPopMatrix();
 
 	GL_State( GLS_DEPTHFUNC_ALWAYS );
-	GL_FloatColor( 1, 1, 1 );
+	qglColor3f( 1, 1, 1 );
 
 	depthReadback = R_StaticAlloc( glConfig.vidWidth * glConfig.vidHeight*4 );
 	memset( depthReadback, 0, glConfig.vidWidth * glConfig.vidHeight*4 );
@@ -648,7 +669,8 @@ void RB_ShowSilhouette( void ) {
 	qglDisable( GL_TEXTURE_2D );
 	qglDisable( GL_STENCIL_TEST );
 
-	GL_FloatColor( 0, 0, 0 );
+	OverrideColor forcedColor;
+	forcedColor.Set( 0, 0, 0 );
 
 	GL_State( GLS_POLYMODE_LINE );
 
@@ -661,7 +683,7 @@ void RB_ShowSilhouette( void ) {
 	// now blend in edges that cast silhouettes
 	//
 	RB_SimpleWorldSetup();
-	GL_FloatColor( 0.5, 0, 0 );
+	forcedColor.Set( 0.5, 0, 0 );
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 
 	for ( vLight = backEnd.viewDef->viewLights ; vLight ; vLight = vLight->next ) {
@@ -698,7 +720,7 @@ void RB_ShowSilhouette( void ) {
 	qglEnable( GL_DEPTH_TEST );
 
 	GL_State( GLS_DEFAULT );
-	GL_FloatColor( 1,1,1 );
+	forcedColor.Set( 1,1,1 );
 	GL_Cull( CT_FRONT_SIDED );
 }
 
@@ -872,21 +894,24 @@ static void RB_ShowTris( drawSurf_t **drawSurfs, int numDrawSurfs ) {
 
 	qglDisable( GL_STENCIL_TEST );
 
-	GL_FloatColor( 1, 1, 1 );
+	OverrideColor forcedColor;
+	forcedColor.Set( 1, 1, 1 );
 
 	GL_State( GLS_POLYMODE_LINE );
 
-	if ( r_showTris.GetInteger() & 1 ) {
+	if ( r_showTris.GetInteger() == 1 ) {
 		// only draw visible ones
 		qglPolygonOffset( -1, -2 );
 		qglEnable( GL_POLYGON_OFFSET_LINE );
-	} else 
+	} else {
 		qglDisable( GL_DEPTH_TEST );
-	if ( r_showTris.GetInteger() & 2 ) 
+	}
+	if ( r_showTris.GetInteger() < 3 ) 
 		// draw all front facing
 		GL_Cull( CT_FRONT_SIDED );
-	else
+	else {
 		GL_Cull( CT_TWO_SIDED );
+	}
 	RB_RenderDrawSurfListWithFunction( drawSurfs, numDrawSurfs, RB_T_RenderTriangleSurface );
 
 	qglEnable( GL_DEPTH_TEST );
@@ -997,8 +1022,6 @@ static void RB_ShowViewEntitys( viewEntity_t *vModels ) {
 	}
 	//qglDisable( GL_TEXTURE_2D );
 	qglDisable( GL_STENCIL_TEST );
-
-	GL_FloatColor( 1, 1, 1 );
 
 	GL_State( GLS_POLYMODE_LINE );
 
@@ -1722,11 +1745,12 @@ void RB_ShowLights( void ) {
 				auto color = vLight->lightShader->IsAmbientLight() ? idVec4( 0, .5, .5, 0.25 )
 					: vLight->lightShader->LightCastsShadows() ? idVec4( 0, .5, .5, 0.25 )
 					: idVec4( .5, 0, .5, 0.25 );
-				GL_FloatColor( color );
+				OverrideColor forcedColor;
+				forcedColor.Set( color.x, color.y, color.z, color.w );
 				GL_State( GLS_DEPTHMASK | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_LESS );
 				RB_DrawTriangles( tri );
 				color.w /= 4;
-				GL_FloatColor( color );
+				forcedColor.Set( color.x, color.y, color.z, color.w );
 				GL_State( GLS_DEPTHMASK | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_ALWAYS );
 				RB_DrawTriangles( tri );
 			}
@@ -1734,10 +1758,11 @@ void RB_ShowLights( void ) {
 			if ( r_showLights.GetInteger() & 4 ) {
 				GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_ALWAYS );
 				int c = index % 7 + 1;
-				GL_FloatColor( c & 1, c & 2, c & 4, 0.1f );
+				OverrideColor forcedColor;
+				forcedColor.Set( c & 1, c & 2, c & 4, 0.1f );
 				RB_DrawTriangles( tri );
 				GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK | GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA | GLS_DEPTHFUNC_LESS );
-				GL_FloatColor( c & 1, c & 2, c & 4, 0.3f );
+				forcedColor.Set( c & 1, c & 2, c & 4, 0.3f );
 				RB_DrawTriangles( tri );
 			}
 			GL_CheckErrors();
@@ -2308,7 +2333,7 @@ void RB_TestGamma( void ) {
 
 	qglMatrixMode( GL_PROJECTION );
 	GL_State( GLS_DEPTHFUNC_ALWAYS );
-	GL_FloatColor( 1, 1, 1 );
+	qglColor3f( 1, 1, 1 );
 	qglPushMatrix();
 	qglLoadIdentity(); 
 	qglDisable( GL_TEXTURE_2D );
@@ -2356,7 +2381,7 @@ static void RB_TestGammaBias( void ) {
 	qglLoadIdentity();
 	qglMatrixMode( GL_PROJECTION );
 	GL_State( GLS_DEPTHFUNC_ALWAYS );
-	GL_FloatColor( 1, 1, 1 );
+	qglColor3f( 1, 1, 1 );
 	qglPushMatrix();
 	qglLoadIdentity(); 
 	qglDisable( GL_TEXTURE_2D );

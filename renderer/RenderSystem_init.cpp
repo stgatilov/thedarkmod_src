@@ -24,6 +24,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/stages/BloomStage.h"
 #include "renderer/backend/stages/VolumetricStage.h"
 #include "renderer/backend/FrameBufferManager.h"
+#include "renderer/backend/VertexArrayState.h"
 #include "sys/sys_padinput.h"
 
 // Vista OpenGL wrapper check
@@ -436,6 +437,8 @@ void R_InitOpenGL( void ) {
 	}
 
 	cmdSystem->AddCommand( "reloadGLSLprograms", R_ReloadGLSLPrograms_f, CMD_FL_RENDERER, "reloads GLSL programs" );
+
+	vaState.Init();
 
 	R_ReloadGLSLPrograms_f( idCmdArgs() );
 
@@ -1577,6 +1580,7 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 		// free the context and close the window
 		session->TerminateFrontendThread();
 		vertexCache.Shutdown();
+		vaState.Shutdown();
 		renderBackend->Shutdown();
 		GLimp_Shutdown();
 		glConfig.isInitialized = false;
@@ -1865,6 +1869,8 @@ void idRenderSystemLocal::Shutdown( void ) {
 
 	// free the vertex cache, which should have nothing allocated now
 	vertexCache.Shutdown();
+
+	vaState.Shutdown();
 
 	R_ShutdownTriSurfData();
 

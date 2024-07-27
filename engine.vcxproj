@@ -636,6 +636,7 @@
     <ClInclude Include="renderer\backend\stages\TiledCustomMipmapStage.h" />
     <ClInclude Include="renderer\backend\stages\TonemapStage.h" />
     <ClInclude Include="renderer\backend\stages\VolumetricStage.h" />
+    <ClInclude Include="renderer\backend\VertexArrayState.h" />
     <ClInclude Include="renderer\frontend\GuiModel.h" />
     <ClInclude Include="renderer\frontend\Interaction.h" />
     <ClInclude Include="renderer\frontend\LightQuerySystem.h" />
@@ -1266,6 +1267,7 @@
     <ClCompile Include="renderer\backend\tr_backend.cpp" />
     <ClCompile Include="renderer\backend\tr_render.cpp" />
     <ClCompile Include="renderer\backend\tr_rendertools.cpp" />
+    <ClCompile Include="renderer\backend\VertexArrayState.cpp" />
     <ClCompile Include="renderer\frontend\GuiModel.cpp" />
     <ClCompile Include="renderer\frontend\Interaction.cpp" />
     <ClCompile Include="renderer\frontend\LightQuerySystem.cpp" />
