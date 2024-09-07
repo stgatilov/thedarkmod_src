@@ -108,4 +108,5 @@ for:
           python ./conan_build.py
 
 artifacts:
-  - path: 'C:\Users\appveyor\.conan2\**\b\build-release\ffbuild\config.log'
+  - path: C:\Users\appveyor\.conan2\**\b\build-release\ffbuild\config.log
+  - path: C:\Users\appveyor\.conan2
