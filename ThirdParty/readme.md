@@ -41,7 +41,7 @@ It is available on SVN but usually ignored on DVCS (including GitHub mirror).
 First of all, make sure that you have latest Python 3 installed, e.g. from [download page][2].
 
 Next, install conan if not yet installed.
-Detailed instructions are provided [here][3], the easiest way is via pip:
+Detailed instructions are provided [here][3], the easiest way is via pip (or pipx if you know the difference):
 
     pip install conan
 
@@ -165,7 +165,7 @@ Note that base_windows is passed as build profile here, although maybe you can d
 This command will only show you which libs need to be built, add `-b missing` to actually build them.
 
 
-# How to add new library
+# Add new library
 
 You can search for recipes of a library like this:
 
@@ -191,7 +191,7 @@ In principle, it is possible to build the library manually and add artefacts to 
 But it would be really hard to cover all main platforms and generate glue properly for all build systems.
 
 
-## How to update library
+## Update library
 
 Look into `packages.yaml` and find the library reference there.
 Now do `conan search` for a newer version of the library.
@@ -203,6 +203,14 @@ If you want to update a library with custom recipe, it gets more complicated.
 In many cases you can apply an existing recipe to the newer version: just add source code URL and sha256 checksum for the new version in `conandata.yml`.
 If this is custom-modified recipe, then you can fetch a newer recipe from central repository and try to reapply the same TDM-specified hacks to it.
 
+
+## Test build library
+
+If you have a custom recipe for a library in current directory, you can run its build directly like this:
+
+    conan create . --version {version} -b missing
+
+Note: you might need to pass profiles/settings and options in order to build it exactly the same way as they are built for TDM.
 
 
 [1]: https://conan.io/
