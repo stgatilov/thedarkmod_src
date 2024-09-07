@@ -40,7 +40,7 @@ if not unattended:
     yesno = input("Do you really want to export (yes/no): ")
     assert yesno == 'yes', 'Cancelled by user'
 
-#for cmd in commands:
-#    ret = os.system(cmd)
+for cmd in commands:
+    ret = os.system(cmd)
 #    if unattended:
 #        assert ret == 0, 'Stopped due to error for: %s' % cmd
