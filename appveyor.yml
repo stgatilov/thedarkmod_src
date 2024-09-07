@@ -108,7 +108,7 @@ for:
           python ./conan_build.py
 
 after_build:
-  - xcopy C:\Users\appveyor\.conan2\ crap\ /s /e
+  - robocopy "C:\Users\appveyor\.conan2" crap /s
 
 artifacts:
   - path: crap
