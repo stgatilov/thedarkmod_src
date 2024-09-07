@@ -109,7 +109,7 @@ for:
 
 after_build:
 #  - robocopy "C:\Users\appveyor\.conan2" crap /s
-  - 7z a crap.7z "C:\Users\appveyor\.conan2"
+  - 7z a C:\projects\trunk\crap.7z "C:\Users\appveyor\.conan2"
 
 artifacts:
   - path: crap.7z
