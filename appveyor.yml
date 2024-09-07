@@ -5,18 +5,18 @@ shallow_clone: true
 # configure matrix of builds
 image:
   - Visual Studio 2022
-  - Ubuntu1604
+#  - Ubuntu1604
 platform:
   - 64
-  - 32
+#  - 32
 configuration:
-  - msvc_main     # build Debug + Release on vcxproj
-  - msvc_extra    # build extra configurations on vcxproj
+#  - msvc_main     # build Debug + Release on vcxproj
+#  - msvc_extra    # build extra configurations on vcxproj
   - cmake         # build using CMake
 environment:
   matrix:
-    - thirdparty: artefacts     # use artefacts from SVN (conan-less)
-    - thirdparty: rebuild       # regenerate artefacts using conan then use them
+#    - thirdparty: artefacts     # use artefacts from SVN (conan-less)
+#    - thirdparty: rebuild       # regenerate artefacts using conan then use them
     - thirdparty: conan         # conan build
 
 matrix:
@@ -106,3 +106,6 @@ for:
           cd CiScripts
           python ./linux_install.py
           python ./conan_build.py
+
+artifacts:
+  - path: 'C:\Users\appveyor\.conan2\**\b\build-release\ffbuild\config.log'

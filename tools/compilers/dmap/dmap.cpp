@@ -296,7 +296,7 @@ Dmap
 void Dmap( const idCmdArgs &args ) {
 	int			i;
 	int			start, end;
-	char		path[1024];
+	char		path[1034];
 	idStr		passedName;
 	bool		leaked = false;
 	bool		noCM = false;

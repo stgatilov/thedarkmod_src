@@ -7217,10 +7217,11 @@ void idPlayer::UpdateInventoryHUD()
 		}
 	}
 
+	SetGuiString(m_InventoryOverlay, "Inventory_ItemId", curItem->GetItemId()); // Obsttorte #6096
+
 	// Now take the correct action based on the selected type
 	switch (curItem->GetType())
 	{
-		SetGuiString(m_InventoryOverlay, "Inventory_ItemId", curItem->GetItemId()); // Obsttorte #6096
 		case CInventoryItem::IT_ITEM:
 		{
 			// We display the default hud if the item doesn't have its own. Each item
