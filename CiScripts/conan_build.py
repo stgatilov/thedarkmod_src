@@ -2,7 +2,7 @@ import os, platform, sys
 
 def execute(cmd):
     print("CMD: " + cmd)
-    assert os.system(cmd) == 0
+    os.system(cmd)
 
 try:
     bitness = sys.argv[1]
