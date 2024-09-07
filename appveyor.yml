@@ -107,5 +107,8 @@ for:
           python ./linux_install.py
           python ./conan_build.py
 
+after_build:
+  - xcopy C:\Users\appveyor\.conan2\ crap\ /s /e
+
 artifacts:
-  - path: ..\..\Users\appveyor\.conan2
+  - path: crap
