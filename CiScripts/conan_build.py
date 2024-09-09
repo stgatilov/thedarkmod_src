@@ -17,6 +17,8 @@ else:
     osname = 'linux'
 
 
+execute('conan config install global.conf')
+
 os.chdir('../ThirdParty')
 execute('python ./1_export_custom.py --unattended')
 

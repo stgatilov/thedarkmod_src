@@ -5,6 +5,8 @@ def execute(cmd):
     assert os.system(cmd) == 0
 
 
+execute('conan config install global.conf')
+
 try:
     bitnessArg = '--bitness=' + os.environ['PLATFORM']
 except:
