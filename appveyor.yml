@@ -113,8 +113,8 @@ for:
           python ./linux_install.py
           python ./conan_build.py
 
-after_build:
-  - 7z a C:\projects\trunk\crap.7z "C:\Users\appveyor\.conan2"
+#after_build:
+#  - 7z a C:\projects\trunk\crap.7z "C:\Users\appveyor\.conan2"
 
 artifacts:
   - path: crap.7z
