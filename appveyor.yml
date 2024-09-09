@@ -16,6 +16,10 @@ configuration:
 environment:
   CL: /guard:cf-
   _CL_: /guard:cf-
+  LINK: /guard:cf-
+  _LINK_: /guard:cf-
+  INCLUDE: dfgsdfgsfdg
+  LIB: sdfgsdf
   matrix:
 #    - thirdparty: artefacts     # use artefacts from SVN (conan-less)
 #    - thirdparty: rebuild       # regenerate artefacts using conan then use them
@@ -110,7 +114,6 @@ for:
           python ./conan_build.py
 
 after_build:
-#  - robocopy "C:\Users\appveyor\.conan2" crap /s
   - 7z a C:\projects\trunk\crap.7z "C:\Users\appveyor\.conan2"
 
 artifacts:
