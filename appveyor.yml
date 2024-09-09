@@ -69,6 +69,7 @@ for:
     build_script:
       - |
           cd CiScripts
+          python conan_setconf.py
           python conan_rebuild_artefacts_ci.py force
           build_msvc_main.cmd
 
@@ -91,6 +92,7 @@ for:
     build_script:
       - |
           cd CiScripts
+          python ./conan_setconf.py
           python ./linux_install.py
           python ./conan_rebuild_artefacts_ci.py force
           python ./build_cmake.py
@@ -104,5 +106,12 @@ for:
     build_script:
       - |
           cd CiScripts
+          python ./conan_setconf.py
           python ./linux_install.py
           python ./conan_build.py
+
+# can be used for debugging issues on AppVeyor =(
+#after_build:
+#  - 7z a C:\projects\trunk\crap.7z "C:\Users\appveyor\.conan2"
+#artifacts:
+#  - path: crap.7z
