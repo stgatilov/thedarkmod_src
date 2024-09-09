@@ -14,6 +14,8 @@ configuration:
 #  - msvc_extra    # build extra configurations on vcxproj
   - cmake         # build using CMake
 environment:
+  CL: /guard:cf-
+  _CL_: /guard:cf-
   matrix:
 #    - thirdparty: artefacts     # use artefacts from SVN (conan-less)
 #    - thirdparty: rebuild       # regenerate artefacts using conan then use them
