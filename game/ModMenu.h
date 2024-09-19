@@ -25,8 +25,10 @@ typedef std::shared_ptr<CModInfo> CModInfoPtr;
 class CModMenu
 {
 private:
-	// The index of the first displayed mod
-	int _modTop;
+	idList<CModInfoPtr> _modList;
+	CModInfoPtr _selectedMod;
+	std::map<idStr, idList<CModInfoPtr>> _searchCache;
+	std::map<idStr, idList<idStr>> _authorCache;
 
 	int _briefingPage;
 
@@ -43,6 +45,20 @@ public:
 	void DisplayBriefingPage(idUserInterface* gui, bool isDebriefing);
 
 private:
+	// Resets mod list
+	void ResetModList();
+
+	// Returns the mod info by index (or NULL if out of bounds)
+	CModInfoPtr GetModInfo(int index);
+
+	// Sorts available mods
+	void SortModList(idUserInterface* gui);
+
+	// Compare functor to sort mods by display name
+	static int SortCompareTitle(const CModInfoPtr* a, const CModInfoPtr* b);
+
+	// Search for title/author
+	void Search(idUserInterface* gui);
 
 	// Performs the version check and returns TRUE if positive,
 	// returns FALSE otherwise (and issues failure calls to the given GUI)

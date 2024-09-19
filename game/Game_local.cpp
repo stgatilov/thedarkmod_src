@@ -4094,6 +4094,18 @@ void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterfa
 		// Handle downloads in progress
 		m_DownloadManager->ProcessDownloads();
 
+		// Propagate the mission list CVARs to the GUI
+		if (cvarSystem->GetCVarInteger("tdm_mission_list_sort_direction") == 0) {
+			gui->SetStateString("mission_list_direction", "guis/assets/mainmenu/sort_down");
+		} else {
+			gui->SetStateString("mission_list_direction", "guis/assets/mainmenu/sort_up");
+		}
+		if (cvarSystem->GetCVarInteger("tdm_download_list_sort_direction") == 0) {
+			gui->SetStateString("download_list_direction", "guis/assets/mainmenu/sort_down");
+		} else {
+			gui->SetStateString("download_list_direction", "guis/assets/mainmenu/sort_up");
+		}
+
 		// Propagate the video CVARs to the GUI
 		gui->SetStateInt("video_aspectratio", cvarSystem->GetCVarInteger("r_aspectRatio"));
 		gui->SetStateBool("confirmQuit", cv_mainmenu_confirmquit.GetBool());
