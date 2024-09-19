@@ -195,6 +195,11 @@ void idSliderWindow::SetValue(float _value) {
 	value = _value;
 }
 
+void idSliderWindow::SetThumbSize(float _thumbWidth, float _thumbHeight) {
+	thumbWidth = _thumbWidth;
+	thumbHeight = _thumbHeight;
+}
+
 void idSliderWindow::Draw(int time, float x, float y) {
 	idVec4 color = foreColor;
 
