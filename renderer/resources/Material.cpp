@@ -160,6 +160,10 @@ void idMaterial::FreeData() {
 				Mem_Free( stages[i].newStage );
 				stages[i].newStage = NULL;
 			}
+			if ( stages[i].parallax != NULL ) {
+				Mem_Free( stages[i].parallax );
+				stages[i].parallax = NULL;
+			}
 		}
 		R_StaticFree( stages );
 		stages = NULL;
@@ -892,6 +896,10 @@ void idMaterial::ParseBlend( idLexer &src, shaderStage_t *stage ) {
 		stage->lighting = SL_SPECULAR;
 		return;
 	}
+	else if ( !token.Icmp( "parallaxmap" ) ) {
+		stage->lighting = SL_PARALLAX;
+		return;
+	}
 
 	srcBlend = NameToSrcBlendMode( token );
 
@@ -1155,6 +1163,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 	imageName[0] = 0;
 
 	memset( &newStage, 0, sizeof( newStage ) );
+	parallaxStage_t parallax;	// default-contructed
 
 	ss = &pd->parseStages[numStages];
 	ts = &ss->texture;
@@ -1601,7 +1610,32 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 		else if (  !token.Icmp( "fragmentMap" ) ) {	
 			ParseFragmentMap( src, &newStage );
 			continue;
-		} else {
+		}
+
+		else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "min" )  ) {
+			parallax.heightMinReg = ParseExpression( src );
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "max" )  ) {
+			parallax.heightMaxReg = ParseExpression( src );
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "grazingAngle" )  ) {
+			parallax.grazingAngle = src.ParseFloat();
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "linearSteps" )  ) {
+			parallax.linearSteps = src.ParseInt();
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "refineSteps" )  ) {
+			parallax.refineSteps = src.ParseInt();
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "shadowSoftness" )  ) {
+			parallax.shadowSoftnessReg = ParseExpression( src );
+			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "shadowSteps" )  ) {
+			parallax.shadowSteps = src.ParseInt();
+			continue;
+		}
+
+		else {
 			common->Warning( "unknown token '%s' in material '%s'", token.c_str(), GetName() );
 			SetMaterialFlag( MF_DEFAULTED );
 			return;
@@ -1612,6 +1646,10 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 	if ( newStage.glslProgram ) {
 		ss->newStage = (newShaderStage_t *)Mem_Alloc( sizeof( newStage ) );
 		*(ss->newStage) = newStage;
+	}
+	if ( ss->lighting == SL_PARALLAX ) {
+		ss->parallax = (parallaxStage_t *)Mem_Alloc( sizeof( parallax ) );
+		*(ss->parallax) = parallax;
 	}
 
 	if ( pd->usesFrobParm ) {
@@ -1634,6 +1672,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			break;
 		case SL_SPECULAR:
 			td = TD_SPECULAR;
+			break;
+		case SL_PARALLAX:
+			td = TD_HIGH_QUALITY;
 			break;
 		default:
 			break;
@@ -1793,6 +1834,9 @@ void idMaterial::AddImplicitStages( const textureRepeat_t trpDefault /* = TR_REP
 			hasFrobStage = true;
 		}
 	}
+
+	// TODO: check that bumpmap is set if parallax map is
+	// check that there is no multi-interaction with parallax map
 
 	if ( hasBump || hasDiffuse || hasSpecular ) {
 		// if it has any interaction, then it should have bumpmap
@@ -2215,6 +2259,16 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 			str = R_ParsePastImageProgram( src );
 			idStr::snPrintf( buffer, sizeof( buffer ), "blend bumpmap\nmap %s\n}\n", str );
             newSrc.LoadMemory(buffer, static_cast<int>(strlen(buffer)), "bumpmap");
+			newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
+			ParseStage( newSrc, trpDefault );
+			newSrc.FreeSource();
+			continue;
+		}
+		// parallaxmap for stage shortcut
+		else if ( !token.Icmp( "parallaxmap" ) ) {
+			str = R_ParsePastImageProgram( src );
+			idStr::snPrintf( buffer, sizeof( buffer ), "blend parallaxmap\nmap %s\n}\n", str );
+			newSrc.LoadMemory(buffer, static_cast<int>(strlen(buffer)), "parallaxmap");
 			newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
 			ParseStage( newSrc, trpDefault );
 			newSrc.FreeSource();

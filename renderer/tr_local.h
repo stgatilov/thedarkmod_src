@@ -589,6 +589,7 @@ typedef struct {
 	idImage 			*bumpImage;
 	idImage 			*diffuseImage;
 	idImage 			*specularImage;
+	idImage				*parallaxImage;
 
 	idVec4				diffuseColor;	// may have a light color baked into it, will be < tr.backEndRendererMaxLight
 	idVec4				specularColor;	// may have a light color baked into it, will be < tr.backEndRendererMaxLight
@@ -603,6 +604,7 @@ typedef struct {
 	idVec4				bumpMatrix[2];
 	idVec4				diffuseMatrix[2];
 	idVec4				specularMatrix[2];
+	parallaxStage_t		parallax;
 } drawInteraction_t;
 
 
@@ -1053,6 +1055,8 @@ extern idCVar r_skipDynamicTextures;	// don't dynamically create textures
 extern idCVar r_skipBump;				// uses a flat surface instead of the bump map
 extern idCVar r_skipSpecular;			// use black for specular
 extern idCVar r_skipDiffuse;			// use black for diffuse
+extern idCVar r_skipParallax;
+
 extern idCVar r_skipOverlays;			// skip overlay surfaces
 extern idCVar r_skipROQ;
 extern idCVar r_skipDepthCapture;		// skip capture of early depth pass. revelator + SteveL #3877

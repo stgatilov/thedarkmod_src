@@ -112,6 +112,7 @@ idCVar r_skipUpdates( "r_skipUpdates", "0", CVAR_RENDERER | CVAR_BOOL, "1 = don'
 idCVar r_skipOverlays( "r_skipOverlays", "0", CVAR_RENDERER | CVAR_BOOL, "skip overlay surfaces" );
 idCVar r_skipSpecular( "r_skipSpecular", "0", CVAR_RENDERER | CVAR_BOOL, "use black for specular1" );
 idCVar r_skipBump( "r_skipBump", "0", CVAR_RENDERER | CVAR_BOOL, "uses a flat surface instead of the bump map" );
+idCVar r_skipParallax( "r_skipParallax", "0", CVAR_RENDERER | CVAR_BOOL, "ignore parallax mapping" );
 idCVar r_skipDiffuse( "r_skipDiffuse", "0", CVAR_RENDERER | CVAR_BOOL, "use black for diffuse" );
 idCVar r_skipROQ( "r_skipROQ", "0", CVAR_RENDERER | CVAR_BOOL, "skip ROQ decoding" );
 idCVar r_skipDepthCapture( "r_skipDepthCapture", "0", CVAR_RENDERER | CVAR_BOOL, "skip depth capture" ); // #3877 #4418

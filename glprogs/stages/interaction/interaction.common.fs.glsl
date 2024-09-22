@@ -19,10 +19,12 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #pragma tdm_include "tdm_lightproject.glsl"
 #pragma tdm_include "tdm_interaction.glsl"
 #pragma tdm_include "tdm_compression.glsl"
+#pragma tdm_include "tdm_parallax.glsl"
 
 in vec2 var_TexDiffuse;
 in vec2 var_TexNormal;
 in vec2 var_TexSpecular;
+in vec2 var_TexCoord;
 in vec4 var_TexLight;
 in vec4 var_Color;
 in mat3 var_TangentBitangentNormalMatrix; 
@@ -32,6 +34,7 @@ in vec3 var_ViewDirLocal;
 uniform sampler2D u_normalTexture;
 uniform sampler2D u_diffuseTexture;
 uniform sampler2D u_specularTexture;
+uniform sampler2D u_parallaxTexture;
 
 uniform sampler2D u_lightFalloffTexture;
 uniform sampler2D u_lightProjectionTexture;
@@ -48,28 +51,53 @@ uniform mat4 u_projectionMatrix;
 uniform vec4 u_lightTextureMatrix[2];
 uniform vec4 u_diffuseColor;
 uniform vec4 u_specularColor;
-uniform vec4 u_hasTextureDNS;
+uniform vec4 u_hasTextureDNSP;
 uniform int u_useBumpmapLightTogglingFix;
 uniform float u_RGTC;
 
+uniform vec2 u_parallaxHeightScale;
+uniform ivec3 u_parallaxIterations;
+uniform float u_parallaxGrazingAngle;
+uniform float u_parallaxShadowSoftness;
+
 
 vec3 computeInteraction(out InteractionGeometry props) {
+	vec2 texDiffuse = var_TexDiffuse;
+	vec2 texSpecular = var_TexSpecular;
+	vec2 texNormal = var_TexNormal;
+	float parallaxSelfShadow = 1.0;
+	if (u_hasTextureDNSP[3] != 0.0) {
+		vec3 offset = computeParallaxOffset(
+			u_parallaxTexture, u_parallaxHeightScale,
+			var_TexCoord, var_ViewDirLocal,
+			u_parallaxGrazingAngle, u_parallaxIterations.xy
+		);
+		texDiffuse += offset.xy;
+		texSpecular += offset.xy;
+		texNormal += offset.xy;
+		parallaxSelfShadow = computeParallaxShadow(
+			u_parallaxTexture, u_parallaxHeightScale,
+			vec3(var_TexCoord, 0.0) + offset, var_LightDirLocal,
+			u_parallaxIterations.z, u_parallaxShadowSoftness
+		);
+	}
+
 	vec3 lightColor;
 	if (u_cubic)
 		lightColor = projFalloffOfCubicLight(u_lightProjectionCubemap, var_TexLight).rgb;
 	else
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
-	vec3 localNormal = fetchSurfaceNormal(var_TexNormal, u_hasTextureDNS[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
+	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
 	props = computeInteractionGeometry(var_LightDirLocal, var_ViewDirLocal, localNormal);
 
 	vec3 interactionColor = computeAdvancedInteraction(
 		props,
-		u_diffuseTexture, u_diffuseColor.rgb, var_TexDiffuse,
-		u_specularTexture, u_specularColor.rgb, var_TexSpecular,
+		u_diffuseTexture, u_diffuseColor.rgb, texDiffuse,
+		u_specularTexture, u_specularColor.rgb, texSpecular,
 		var_Color.rgb,
 		u_useBumpmapLightTogglingFix != 0
 	);
 
-	return interactionColor * lightColor;
+	return interactionColor * lightColor * parallaxSelfShadow;
 }

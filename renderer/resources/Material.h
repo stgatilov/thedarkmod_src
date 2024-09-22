@@ -162,7 +162,8 @@ typedef enum {
 	SL_AMBIENT,						// execute after lighting
 	SL_BUMP,
 	SL_DIFFUSE,
-	SL_SPECULAR
+	SL_SPECULAR,
+	SL_PARALLAX						// #6571 parallax effect info
 } stageLighting_t;
 
 // cross-blended terrain textures need to modulate the color by
@@ -188,6 +189,23 @@ typedef struct {
 	GLSLProgram			*glslProgram;
 } newShaderStage_t;
 
+// stgatilov #6571: special settings for parallax stage
+typedef struct parallaxStage_s {
+												// min/max displacement relative to texture tile size (positive means along normal)
+	float				heightMin = -0.1f;		// displacement for value = 0 texels
+	float				heightMax = 0.0f;		// displacement for value = 1 texels
+	int					heightMinReg = -1;
+	int					heightMaxReg = -1;
+
+	float				grazingAngle = 0.3f;	// heightmap is flattened at lower view angles
+	int					linearSteps = 20;		// #(samples) in linear search (affects reliability)
+	int					refineSteps = 5;		// #(samples) during refinement (affects precision)
+	int					shadowSteps = 20;		// #(samples) for self-shadows (affects shadow reliability)
+
+	float				shadowSoftness;			// height displacement into obstacle required for full shadow
+	int					shadowSoftnessReg = -1;	// note: default value is computed on the fly
+} parallaxStage_t;
+
 typedef struct {
 	int					conditionRegister;	// if registers[conditionRegister] == 0, skip stage
 	stageLighting_t		lighting;			// determines which passes interact with lights
@@ -202,6 +220,8 @@ typedef struct {
 	float				privatePolygonOffset;	// a per-stage polygon offset
 
 	newShaderStage_t	*newStage;			// vertex / fragment program based stage
+	parallaxStage_t		*parallax;			// stgatilov: parallax-specific settings (only SL_PARALLAX)
+
 } shaderStage_t;
 
 typedef enum {

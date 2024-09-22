@@ -37,6 +37,7 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( sampler, normalTexture )
 	DEFINE_UNIFORM( sampler, diffuseTexture )
 	DEFINE_UNIFORM( sampler, specularTexture )
+	DEFINE_UNIFORM( sampler, parallaxTexture )
 	DEFINE_UNIFORM( sampler, lightProjectionTexture )
 	DEFINE_UNIFORM( sampler, lightProjectionCubemap )
 	DEFINE_UNIFORM( sampler, lightFalloffTexture )
@@ -78,9 +79,14 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( vec4, colorAdd )
 	DEFINE_UNIFORM( vec4, diffuseColor )
 	DEFINE_UNIFORM( vec4, specularColor )
-	DEFINE_UNIFORM( vec4, hasTextureDNS )
+	DEFINE_UNIFORM( vec4, hasTextureDNSP )
 	DEFINE_UNIFORM( int, useBumpmapLightTogglingFix )
 	DEFINE_UNIFORM( float, RGTC )
+
+	DEFINE_UNIFORM( vec2, parallaxHeightScale )
+	DEFINE_UNIFORM( ivec3, parallaxIterations )
+	DEFINE_UNIFORM( float, parallaxGrazingAngle )
+	DEFINE_UNIFORM( float, parallaxShadowSoftness )
 };
 
 enum TextureUnits {
@@ -97,6 +103,7 @@ enum TextureUnits {
 	TU_SHADOW_DEPTH = 10,
 	TU_SHADOW_STENCIL = 11,
 	TU_SHADOW_STENCIL_MIPMAPS = 12,
+	TU_PARALLAX = 13,
 };
 
 void InteractionStage::LoadInteractionShader( GLSLProgram *shader, const idStr &baseName ) {
@@ -115,6 +122,7 @@ void InteractionStage::LoadInteractionShader( GLSLProgram *shader, const idStr &
 	uniforms->normalTexture.Set( TU_NORMAL );
 	uniforms->diffuseTexture.Set( TU_DIFFUSE );
 	uniforms->specularTexture.Set( TU_SPECULAR );
+	uniforms->parallaxTexture.Set( TU_PARALLAX );
 }
 
 
@@ -424,7 +432,30 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 				PrepareDrawCommand( &inter ); // draw any previous interaction
 				inter.diffuseImage = NULL;
 				inter.specularImage = NULL;
+				inter.parallaxImage = NULL;
 				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.bumpImage, inter.bumpMatrix, NULL );
+			}
+			break;
+		}
+		case SL_PARALLAX: {				
+			if ( !r_skipParallax.GetBool() ) {
+				if ( inter.parallaxImage ) {
+					PrepareDrawCommand( &inter );
+				}
+				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, NULL, NULL );
+				inter.parallax = *surfaceStage->parallax;
+
+				if ( inter.parallax.heightMinReg >= 0 )
+					inter.parallax.heightMin = surfaceRegs[inter.parallax.heightMinReg];
+				if ( inter.parallax.heightMaxReg >= 0 )
+					inter.parallax.heightMax = surfaceRegs[inter.parallax.heightMaxReg];
+
+				if ( inter.parallax.shadowSoftnessReg >= 0 ) {
+					inter.parallax.shadowSoftness = surfaceRegs[inter.parallax.shadowSoftnessReg];
+				} else {
+					// default value = 3 * height_step
+					inter.parallax.shadowSoftness = 3.0f * (inter.parallax.heightMax - inter.parallax.heightMin) / inter.parallax.shadowSteps;
+				}
 			}
 			break;
 		}
@@ -471,6 +502,11 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 			return;
 		din->bumpImage = globalImages->flatNormalMap;		
 	}
+	bool enableParallax = true;
+	if ( !din->parallaxImage ) {
+		din->parallaxImage = globalImages->blackImage;
+		enableParallax = false;
+	}
 
 	if ( !din->diffuseImage || r_skipDiffuse.GetBool() ) {
 		din->diffuseImage = globalImages->blackImage;
@@ -487,6 +523,13 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 	din->diffuseImage->Bind();
 	GL_SelectTexture( TU_SPECULAR );
 	din->specularImage->Bind();
+	GL_SelectTexture( TU_PARALLAX );
+	din->parallaxImage->Bind();
+
+	uniforms->parallaxHeightScale.Set( din->parallax.heightMin, din->parallax.heightMax );
+	uniforms->parallaxGrazingAngle.Set( din->parallax.grazingAngle );
+	uniforms->parallaxShadowSoftness.Set( din->parallax.shadowSoftness );
+	uniforms->parallaxIterations.Set( din->parallax.linearSteps, din->parallax.refineSteps, din->parallax.shadowSteps );
 
 	vertexCache.VertexPosition( din->surf->ambientCache );
 
@@ -514,9 +557,9 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 	uniforms->diffuseColor.Set( din->diffuseColor );
 	uniforms->specularColor.Set( din->specularColor );
 	if ( !din->bumpImage ) {
-		uniforms->hasTextureDNS.Set( 1, 0, 1, 0 );
+		uniforms->hasTextureDNSP.Set( 1, 0, 1, enableParallax );
 	} else {
-		uniforms->hasTextureDNS.Set( 1, 1, 1, 0 );
+		uniforms->hasTextureDNSP.Set( 1, 1, 1, enableParallax );
 	}
 	uniforms->useBumpmapLightTogglingFix.Set( r_useBumpmapLightTogglingFix.GetBool() && !din->surf->material->ShouldCreateBackSides() );
 	uniforms->RGTC.Set( din->bumpImage->internalFormat == GL_COMPRESSED_RG_RGTC2 );

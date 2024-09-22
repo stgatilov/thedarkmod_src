@@ -30,6 +30,7 @@ in vec4 attr_Color;
 out vec2 var_TexDiffuse;
 out vec2 var_TexNormal;
 out vec2 var_TexSpecular;
+out vec2 var_TexCoord;
 out vec4 var_TexLight;
 out vec4 var_Color;
 out mat3 var_TangentBitangentNormalMatrix; 
@@ -63,10 +64,10 @@ void interactionProcessVertex() {
 		var_TexNormal, var_TexDiffuse, var_TexSpecular,
 		var_Color, var_TangentBitangentNormalMatrix
 	);
+	var_TexCoord = attr_TexCoord.xy;
 
 	// light projection texgen
 	var_TexLight = computeLightTex(u_lightProjectionFalloff, attr_Position);
-
 
 	var_LightDirLocal = (worldPosToObject(u_globalLightOrigin, u_modelMatrix) - attr_Position.xyz) * var_TangentBitangentNormalMatrix;
 	var_ViewDirLocal = (worldPosToObject(u_globalViewOrigin, u_modelMatrix) - attr_Position.xyz) * var_TangentBitangentNormalMatrix;	

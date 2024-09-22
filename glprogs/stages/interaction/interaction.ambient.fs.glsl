@@ -17,20 +17,25 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #pragma tdm_include "tdm_lightproject.glsl"
 #pragma tdm_include "tdm_interaction.glsl"
 #pragma tdm_include "tdm_compression.glsl"
+#pragma tdm_include "tdm_parallax.glsl"
 
 in vec2 var_TexDiffuse;
 in vec2 var_TexSpecular;
 in vec2 var_TexNormal;
+in vec2 var_TexCoord;
 in vec4 var_TexLight;
 in vec4 var_Color;
 in mat3 var_TangentBinormalNormalMatrix;
 in vec3 var_worldViewDir;
+in vec3 var_LightDirLocal;
+in vec3 var_ViewDirLocal;
 
 out vec4 FragColor;
 
 uniform sampler2D u_normalTexture;
 uniform sampler2D u_diffuseTexture;
 uniform sampler2D u_specularTexture;
+uniform sampler2D u_parallaxTexture;
 
 uniform sampler2D u_lightProjectionTexture;
 uniform sampler2D u_lightFalloffTexture;
@@ -49,24 +54,42 @@ uniform int u_ssaoEnabled;
 uniform vec4 u_lightTextureMatrix[2];
 uniform vec4 u_diffuseColor;
 uniform vec4 u_specularColor;
-uniform vec4 u_hasTextureDNS;
+uniform vec4 u_hasTextureDNSP;
 uniform float u_RGTC;
 uniform mat4 u_modelMatrix;
 
+uniform vec2 u_parallaxHeightScale;
+uniform ivec3 u_parallaxIterations;
+uniform float u_parallaxGrazingAngle;
+
 void main() {
+	vec2 texDiffuse = var_TexDiffuse;
+	vec2 texSpecular = var_TexSpecular;
+	vec2 texNormal = var_TexNormal;
+	if (u_hasTextureDNSP[3] != 0.0) {
+		vec3 offset = computeParallaxOffset(
+			u_parallaxTexture, u_parallaxHeightScale,
+			var_TexCoord, var_ViewDirLocal,
+			u_parallaxGrazingAngle, u_parallaxIterations.xy
+		);
+		texDiffuse += offset.xy;
+		texSpecular += offset.xy;
+		texNormal += offset.xy;
+	}
+
 	vec3 lightColor;
 	if (u_cubic)
 		lightColor = projFalloffOfCubicLight(u_lightProjectionCubemap, var_TexLight).rgb;
 	else
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
-	vec3 localNormal = fetchSurfaceNormal(var_TexNormal, u_hasTextureDNS[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
+	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
 	AmbientGeometry props = computeAmbientGeometry(var_worldViewDir, localNormal, var_TangentBinormalNormalMatrix, mat3(u_modelMatrix));
 
 	vec4 interactionColor = computeAmbientInteraction(
 		props,
-		u_diffuseTexture, u_diffuseColor.rgb, var_TexDiffuse,
-		u_specularTexture, u_specularColor.rgb, var_TexSpecular,
+		u_diffuseTexture, u_diffuseColor.rgb, texDiffuse,
+		u_specularTexture, u_specularColor.rgb, texSpecular,
 		var_Color.rgb,
 		u_useNormalIndexedDiffuse, u_useNormalIndexedSpecular, u_lightDiffuseCubemap, u_lightSpecularCubemap,
 		u_minLevel, u_gamma
