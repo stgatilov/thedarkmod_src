@@ -92,7 +92,7 @@ const char *idWindow::ScriptNames[] = {
 	"onEnter",
 	"onEnterRelease",
 	"onFocus",
-	"onFocusLost"
+	"onFocusRelease"
 };
 
 idTimeLineEvent::idTimeLineEvent() {
