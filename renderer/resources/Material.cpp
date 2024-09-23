@@ -2171,7 +2171,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "lightFalloffImage" ) ) {
 			str = R_ParsePastImageProgram( src );
 			idStr copy = str;	// so other things don't step on it
-			lightFalloffImage = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_DEFAULT );
+			lightFalloffImage = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_HIGH_QUALITY );
 			continue;
 		}
 		// lightAmbientDiffuse <imageprogram>
@@ -2180,7 +2180,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "lightAmbientDiffuse" ) ) {
 			str = R_ParsePastImageProgramCubeMap( src );
 			idStr copy = str;	// so other things don't step on it
-			lightAmbientDiffuse = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_DEFAULT, CF_NATIVE );
+			lightAmbientDiffuse = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_HIGH_QUALITY, CF_NATIVE );
 			continue;
 		}
 		// lightAmbientSpecular <imageprogram>
@@ -2189,7 +2189,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		else if ( !token.Icmp( "lightAmbientSpecular" ) ) {
 			str = R_ParsePastImageProgramCubeMap( src );
 			idStr copy = str;	// so other things don't step on it
-			lightAmbientSpecular = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_DEFAULT, CF_NATIVE );
+			lightAmbientSpecular = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */, TD_HIGH_QUALITY, CF_NATIVE );
 			continue;
 		}
 		// guisurf <guifile> | guisurf entity
