@@ -25,7 +25,7 @@ in vec2 var_TexNormal;
 in vec2 var_TexCoord;
 in vec4 var_TexLight;
 in vec4 var_Color;
-in mat3 var_TangentBinormalNormalMatrix;
+in mat3 var_TangentBitangentNormalMatrix;
 in vec3 var_worldViewDir;
 in vec3 var_LightDirLocal;
 in vec3 var_ViewDirLocal;
@@ -84,7 +84,7 @@ void main() {
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
 	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
-	AmbientGeometry props = computeAmbientGeometry(var_worldViewDir, localNormal, var_TangentBinormalNormalMatrix, mat3(u_modelMatrix));
+	AmbientGeometry props = computeAmbientGeometry(var_worldViewDir, localNormal, var_TangentBitangentNormalMatrix, mat3(u_modelMatrix));
 
 	vec4 interactionColor = computeAmbientInteraction(
 		props,
