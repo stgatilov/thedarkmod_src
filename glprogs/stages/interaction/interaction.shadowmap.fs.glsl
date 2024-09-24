@@ -26,7 +26,7 @@ out vec4 FragColor;
 uniform bool 	u_shadowMapCullFront;
 uniform vec4	u_shadowRect;
 uniform sampler2D u_shadowMap;
-in vec3 var_WorldLightDir;
+in vec3 var_LightDirWorld;
 
 void main() {
 	InteractionGeometry props;
@@ -36,7 +36,7 @@ void main() {
 
 	if (u_shadows) {
 		float shadowsCoeff = computeShadowMapCoefficient(
-			var_WorldLightDir, worldNormal,
+			-var_LightDirWorld, worldNormal,
 			u_shadowMap, u_shadowRect,
 			u_softShadowsQuality, u_softShadowsRadius, u_shadowMapCullFront
 		);

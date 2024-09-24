@@ -30,6 +30,7 @@ in vec4 var_Color;
 in mat3 var_TangentBitangentNormalMatrix; 
 in vec3 var_LightDirLocal;
 in vec3 var_ViewDirLocal;
+in vec3 var_PositionModel;
 
 uniform sampler2D u_normalTexture;
 uniform sampler2D u_diffuseTexture;
@@ -65,19 +66,29 @@ vec3 computeInteraction(out InteractionGeometry props) {
 	vec2 texDiffuse = var_TexDiffuse;
 	vec2 texSpecular = var_TexSpecular;
 	vec2 texNormal = var_TexNormal;
+	vec3 lightDirLocal = var_LightDirLocal;
+	vec3 viewDirLocal = var_ViewDirLocal;
 	float parallaxSelfShadow = 1.0;
 	if (u_hasTextureDNSP[3] != 0.0) {
 		vec3 offset = computeParallaxOffset(
 			u_parallaxTexture, u_parallaxHeightScale,
-			var_TexCoord, var_ViewDirLocal,
+			var_TexCoord, viewDirLocal,
 			u_parallaxGrazingAngle, u_parallaxIterations.xy
+		);
+
+		vec3 scaledOffset = scaleTexcoordOffsetToModelSpace(
+			offset,
+			var_TexCoord, var_PositionModel, var_TangentBitangentNormalMatrix
 		);
 		texDiffuse += offset.xy;
 		texSpecular += offset.xy;
 		texNormal += offset.xy;
+		lightDirLocal -= scaledOffset;
+		viewDirLocal -= scaledOffset;
+
 		parallaxSelfShadow = computeParallaxShadow(
 			u_parallaxTexture, u_parallaxHeightScale,
-			vec3(var_TexCoord, 0.0) + offset, var_LightDirLocal,
+			vec3(var_TexCoord, 0.0) + offset, lightDirLocal,
 			u_parallaxIterations.z, u_parallaxShadowSoftness
 		);
 	}
@@ -89,7 +100,7 @@ vec3 computeInteraction(out InteractionGeometry props) {
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
 	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
-	props = computeInteractionGeometry(var_LightDirLocal, var_ViewDirLocal, localNormal);
+	props = computeInteractionGeometry(lightDirLocal, viewDirLocal, localNormal);
 
 	vec3 interactionColor = computeAdvancedInteraction(
 		props,

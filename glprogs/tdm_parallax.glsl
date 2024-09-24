@@ -63,6 +63,17 @@ vec3 computeParallaxOffset(
 	return vec3(viewDirLocal.xy / viewDirLocal.z * goodRayH, goodRayH / fader);
 }
 
+// this is pretty hacky approach, and it is not very smooth...
+// it would be better if "scale" between texcoords and model space was passed as vertex attribute
+vec3 scaleTexcoordOffsetToModelSpace(vec3 offset, vec2 texcoords, vec3 positionModel, mat3 matrixTBN) {
+	mat2 tcDer = mat2(dFdx(texcoords), dFdy(texcoords));
+	mat2x3 modDer = mat2x3(dFdx(positionModel), dFdy(positionModel));
+	mat2x3 tcToMod = modDer * inverse(tcDer);
+	float scaleX = dot(tcToMod[0], matrixTBN[0]);
+	float scaleY = dot(tcToMod[1], matrixTBN[1]);
+	return offset * vec3(scaleX, scaleY, (abs(scaleX) + abs(scaleY)) * 0.5);
+}
+
 float computeParallaxShadow(
 	sampler2D heightmap, vec2 heightScale,
 	vec3 texcoords, vec3 lightDirLocal,

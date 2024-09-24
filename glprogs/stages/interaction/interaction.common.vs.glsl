@@ -33,10 +33,11 @@ out vec2 var_TexSpecular;
 out vec2 var_TexCoord;
 out vec4 var_TexLight;
 out vec4 var_Color;
-out mat3 var_TangentBitangentNormalMatrix; 
-out vec3 var_LightDirLocal;  
-out vec3 var_ViewDirLocal;  
-out vec3 var_WorldLightDir;
+out mat3 var_TangentBitangentNormalMatrix;
+out vec3 var_LightDirLocal;
+out vec3 var_ViewDirLocal;
+out vec3 var_LightDirWorld;
+out vec3 var_PositionModel;
 
 uniform vec3 u_globalViewOrigin;
 uniform vec3 u_globalLightOrigin;
@@ -72,6 +73,6 @@ void interactionProcessVertex() {
 	var_LightDirLocal = (worldPosToObject(u_globalLightOrigin, u_modelMatrix) - attr_Position.xyz) * var_TangentBitangentNormalMatrix;
 	var_ViewDirLocal = (worldPosToObject(u_globalViewOrigin, u_modelMatrix) - attr_Position.xyz) * var_TangentBitangentNormalMatrix;	
 
-	// light->fragment vector in world coordinates
-	var_WorldLightDir = (u_modelMatrix * attr_Position).xyz - u_globalLightOrigin;
+	var_LightDirWorld = u_globalLightOrigin - (u_modelMatrix * attr_Position).xyz;
+	var_PositionModel = attr_Position.xyz;
 }
