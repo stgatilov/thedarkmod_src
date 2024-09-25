@@ -26,8 +26,6 @@ private:
 	idList<DownloadableMod*> _downloadableModList;
 	idList<DownloadableMod*> _downloadSelectedList;
 	DownloadableMod* _selectedMod;
-	std::map<idStr, idList<DownloadableMod*>> _searchCache;
-	std::map<idStr, idList<idStr>> _authorCache;
 
 	/**
 	 * greebo: Since mission l10n packs are stored separately, a mission

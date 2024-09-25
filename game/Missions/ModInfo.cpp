@@ -390,16 +390,8 @@ void CModInfo::StyleAsCMOS(idStr& title)
 	//    - "The Example Title: The Subtitle" (Original)
 	//    - "Example Title: The Subtitle, The" (CMOS)
 
-	static std::map<idStr, idStr> cmosCache;
-
 	if (!title)
 		return;
-
-	auto cache = cmosCache.find(title);
-	if (cache != cmosCache.end()) {
-		title = cache->second;
-		return;
-	}
 
 	idStr originalTitle = title;
 	idStr prefix = "";
@@ -412,8 +404,6 @@ void CModInfo::StyleAsCMOS(idStr& title)
 		title.StripLeadingOnce(prefix.c_str());
 		title += suffix;
 	}
-
-	cmosCache[originalTitle] = title;
 }
 
 int CModInfo::SortCompareTitle(const idStr& a, const idStr& b)

@@ -76,7 +76,6 @@ void CModMenu::HandleCommands(const idStr& cmd, idUserInterface* gui)
 		gui->SetStateString("mod_search_text", "");
 		gui->SetStateInt("missionList_scroll", 0); // scroll to top
 		_selectedMod = NULL;
-		_searchCache.clear();
 
 		// Update the GUI state
 		UpdateGUI(gui);
@@ -251,13 +250,6 @@ void CModMenu::Search(idUserInterface* gui)
 	// Clear mod list.
 	_modList.Clear();
 
-	// Try the cache first.
-	auto searchCache = _searchCache.find(searchText);
-	if (searchCache != _searchCache.end()) {
-		_modList = searchCache->second;
-		return;
-	}
-
 	// Populate mod list with search matches.
 	for (CModInfoPtr info : gameLocal.m_MissionManager->GetPrimaryModList()) {
 		bool matched = false;
@@ -282,24 +274,18 @@ void CModMenu::Search(idUserInterface* gui)
 		if (!matched) {
 			idList<idStr> authors;
 
-			auto authorCache = _authorCache.find(info->author);
-			if (authorCache != _authorCache.end()) {
-				authors = authorCache->second;
-			} else {
-				// Some darkmod.txt files include a "Version X" or "Version: X"
-				// after "Author: NAME", which gets included in the author
-				// variable as "NAME\nVersion X". The reason is that this
-				// scenario is not handled by ModInfo LoadMetaData(). So,
-				// truncate everything at and after the newline to clean it up.
-				idStr author = (info->author.Split("\r\n", false))[0];
-				author.StripLeadingOnce("by ");  // some authors include "by" before their name
+			// Some darkmod.txt files include a "Version X" or "Version: X"
+			// after "Author: NAME", which gets included in the author
+			// variable as "NAME\nVersion X". The reason is that this
+			// scenario is not handled by ModInfo LoadMetaData(). So,
+			// truncate everything at and after the newline to clean it up.
+			idStr author = (info->author.Split("\r\n", false))[0];
+			author.StripLeadingOnce("by ");  // some authors include "by" before their name
 
-				// Split on common separators to capture each author.
-				authors = author.Split({",", "&", "and"}, true);
-				for (idStr& a : authors) {
-					a.StripWhitespace();
-				}
-				_authorCache[info->author] = authors;
+			// Split on common separators to capture each author.
+			authors = author.Split({",", "&", "and"}, true);
+			for (idStr& a : authors) {
+				a.StripWhitespace();
 			}
 
 			for (idStr& a : authors) {
@@ -315,8 +301,6 @@ void CModMenu::Search(idUserInterface* gui)
 			_modList.Append(info);
 		}
 	}
-
-	_searchCache[searchText] = _modList;
 }
 
 void CModMenu::UpdateSelectedMod(idUserInterface* gui)

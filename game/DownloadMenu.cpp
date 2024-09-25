@@ -220,7 +220,6 @@ void CDownloadMenu::HandleCommands(const idStr& cmd, idUserInterface* gui)
 		_selectedMod = NULL;
 		_downloadableModList.Clear();
 		_downloadSelectedList.Clear();
-		_searchCache.clear();
 
 		UpdateGUI(gui);
 
@@ -359,15 +358,6 @@ void CDownloadMenu::Search(idUserInterface* gui)
 	// Clear downloadable list.
 	_downloadableModList.Clear();
 
-	// Try the cache first.
-	auto searchCache = _searchCache.find(searchText);
-	if (searchCache != _searchCache.end()) {
-		for (DownloadableMod* mod : searchCache->second) {
-			_downloadableModList.Append(mod);
-		}
-		return;
-	}
-
 	// Populate mod list with search matches.
 	for (DownloadableMod* mod : gameLocal.m_MissionManager->GetPrimaryDownloadableMods()) {
 		bool matched = false;
@@ -392,16 +382,10 @@ void CDownloadMenu::Search(idUserInterface* gui)
 		if (!matched) {
 			idList<idStr> authors;
 
-			auto authorCache = _authorCache.find(mod->author);
-			if (authorCache != _authorCache.end()) {
-				authors = authorCache->second;
-			} else {
-				// Split on common separators to capture each author.
-				authors = mod->author.Split({",", "&", "and", "&amp;"}, true);
-				for (idStr& a : authors) {
-					a.StripWhitespace();
-				}
-				_authorCache[mod->author] = authors;
+			// Split on common separators to capture each author.
+			authors = mod->author.Split({",", "&", "and", "&amp;"}, true);
+			for (idStr& a : authors) {
+				a.StripWhitespace();
 			}
 
 			for (idStr& a : authors) {
@@ -417,8 +401,6 @@ void CDownloadMenu::Search(idUserInterface* gui)
 			_downloadableModList.Append(mod);
 		}
 	}
-
-	_searchCache[searchText] = _downloadableModList;
 }
 
 void CDownloadMenu::UpdateScreenshotItemVisibility(idUserInterface* gui)

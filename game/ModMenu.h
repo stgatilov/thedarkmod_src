@@ -27,8 +27,6 @@ class CModMenu
 private:
 	idList<CModInfoPtr> _modList;
 	CModInfoPtr _selectedMod;
-	std::map<idStr, idList<CModInfoPtr>> _searchCache;
-	std::map<idStr, idList<idStr>> _authorCache;
 
 	int _briefingPage;
 
