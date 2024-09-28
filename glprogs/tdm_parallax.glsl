@@ -14,6 +14,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 ******************************************************************************/
 
 #pragma tdm_include "tdm_dither.glsl"
+#pragma tdm_include "tdm_querylod.glsl"
 
 // smoothened version of min(x, 1) for x >= 0
 float smoothstep_01below(float x) {
@@ -36,12 +37,16 @@ vec3 computeParallaxOffset(
 	// x < y (even if input parameter is inverted)
 	vec2 hgtRange = vec2(min(heightScale.x, heightScale.y), max(heightScale.x, heightScale.y));
 
+	// fix LOD level for the whole parallax computation
+	// texture samples are much faster without all the filtering
+	float lod = queryTextureLod(heightmap, texcoords);
+
 	// trace linearly by height decreasing until first "inside" point
 	float goodRayH = hgtRange.y, badRayH = hgtRange.x;
 	for (int s = linearSteps - 1; s >= 1; s--) {
 		float rayH = mix(hgtRange.x, hgtRange.y, float(s) / linearSteps);
 		vec2 tc = texcoords + rayH * viewDirLocal.xy / viewDirLocal.z;
-		float normH = mix(heightScale.x, heightScale.y, texture(heightmap, tc).r);
+		float normH = mix(heightScale.x, heightScale.y, textureLod(heightmap, tc, lod).r);
 		if (normH > rayH) {
 			badRayH = rayH;
 			break;
@@ -53,7 +58,7 @@ vec3 computeParallaxOffset(
 	for (int s = 0; s < refineSteps; s++) {
 		float rayH = (goodRayH + badRayH) * 0.5;
 		vec2 tc = texcoords + rayH * viewDirLocal.xy / viewDirLocal.z;
-		float normH = mix(heightScale.x, heightScale.y, texture(heightmap, tc).r);
+		float normH = mix(heightScale.x, heightScale.y, textureLod(heightmap, tc, lod).r);
 		if (normH > rayH)
 			badRayH = rayH;
 		else
@@ -84,12 +89,16 @@ float computeParallaxShadow(
 
 	float randomizer = 0.5 + ditherFractionBayer8();
 
+	// fix LOD level for the whole parallax computation
+	// texture samples are much faster without all the filtering
+	float lod = queryTextureLod(heightmap, texcoords.xy);
+
 	// trace linearly to check for obstacles
 	float step = (hgtRange.y - hgtRange.x) / shadowSteps;
 	float maxDiff = -1.0;
 	for (float deltaH = step * randomizer; texcoords.z + deltaH < hgtRange.y; deltaH += step) {
 		vec2 tc = texcoords.xy + deltaH * (lightDirLocal.xy / lightDirLocal.z);
-		float obstH = mix(heightScale.x, heightScale.y, texture(heightmap, tc).r);
+		float obstH = mix(heightScale.x, heightScale.y, textureLod(heightmap, tc, lod).r);
 		float diff = obstH - (texcoords.z + deltaH);
 		maxDiff = max(maxDiff, diff);
 	}

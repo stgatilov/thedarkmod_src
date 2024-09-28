@@ -13,6 +13,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 ******************************************************************************/
 #version 330 core
+#extension GL_ARB_texture_query_lod: enable
 
 out vec4 FragColor;
 

@@ -13,6 +13,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 ******************************************************************************/
 #version 330 core
+#extension GL_ARB_texture_query_lod: enable
 
 #pragma tdm_include "tdm_lightproject.glsl"
 #pragma tdm_include "tdm_interaction.glsl"

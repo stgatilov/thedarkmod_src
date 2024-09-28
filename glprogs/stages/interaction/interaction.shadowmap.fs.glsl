@@ -14,6 +14,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 ******************************************************************************/
 #version 330 core
 #extension GL_ARB_texture_gather: enable
+#extension GL_ARB_texture_query_lod: enable
 
 #define STGATILOV_USEGATHER 1
 
