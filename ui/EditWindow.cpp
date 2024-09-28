@@ -496,13 +496,7 @@ void idEditWindow::InitScroller( bool horizontal )
 	scroller->InitWithDefaults(scrollerName, scrollRect, foreColor, matColor, mat->GetName(), thumbImage, !horizontal, true);
 
 	// Scale scrollbar thumb
-	const float thumbWidth = scrollbarSize;
-	const float hScaled = thumbWidth * (float)thumbMat->GetImageHeight() / (float)thumbMat->GetImageWidth();
-	const float hResolutionScalingFactor =
-		(cvarSystem->GetCVarFloat("r_customWidth") / cvarSystem->GetCVarFloat("r_customHeight")) /
-		(4.0f/3.0f);
-	const float thumbHeight = hScaled * hResolutionScalingFactor;
-	scroller->SetThumbSize(thumbWidth, thumbHeight);
+	scroller->SetThumbSize(scrollbarSize, scrollbarSize);
 
 	InsertChild(scroller, NULL);
 	scroller->SetBuddy(this);
