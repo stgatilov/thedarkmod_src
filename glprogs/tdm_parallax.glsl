@@ -81,7 +81,7 @@ vec3 scaleTexcoordOffsetToModelSpace(vec3 offset, vec2 texcoords, vec3 positionM
 
 float computeParallaxShadow(
 	sampler2D heightmap, vec2 heightScale,
-	vec3 texcoords, vec3 lightDirLocal,
+	vec2 texcoords, vec3 tcOffset, vec3 lightDirLocal,
 	int shadowSteps, float shadowSoftness
 ) {
 	// x < y (even if input parameter is inverted)
@@ -93,13 +93,15 @@ float computeParallaxShadow(
 	// texture samples are much faster without all the filtering
 	float lod = queryTextureLod(heightmap, texcoords.xy);
 
+	vec3 tcTotal = vec3(texcoords, 0.0) + tcOffset;
+
 	// trace linearly to check for obstacles
 	float step = (hgtRange.y - hgtRange.x) / shadowSteps;
 	float maxDiff = -1.0;
-	for (float deltaH = step * randomizer; texcoords.z + deltaH < hgtRange.y; deltaH += step) {
-		vec2 tc = texcoords.xy + deltaH * (lightDirLocal.xy / lightDirLocal.z);
+	for (float deltaH = step * randomizer; tcTotal.z + deltaH < hgtRange.y; deltaH += step) {
+		vec2 tc = tcTotal.xy + deltaH * (lightDirLocal.xy / lightDirLocal.z);
 		float obstH = mix(heightScale.x, heightScale.y, textureLod(heightmap, tc, lod).r);
-		float diff = obstH - (texcoords.z + deltaH);
+		float diff = obstH - (tcTotal.z + deltaH);
 		maxDiff = max(maxDiff, diff);
 	}
 

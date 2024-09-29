@@ -88,7 +88,7 @@ vec3 computeInteraction(out InteractionGeometry props) {
 
 		parallaxSelfShadow = computeParallaxShadow(
 			u_parallaxTexture, u_parallaxHeightScale,
-			vec3(var_TexCoord, 0.0) + offset, lightDirLocal,
+			var_TexCoord, offset, lightDirLocal,
 			u_parallaxIterations.z, u_parallaxShadowSoftness
 		);
 	}
