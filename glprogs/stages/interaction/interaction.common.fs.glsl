@@ -63,26 +63,32 @@ uniform float u_parallaxShadowSoftness;
 
 
 vec3 computeInteraction(out InteractionGeometry props) {
-	vec2 texDiffuse = var_TexDiffuse;
-	vec2 texSpecular = var_TexSpecular;
-	vec2 texNormal = var_TexNormal;
+	vec4 diffuseTexColor, specularTexColor, normalTexColor;
 	vec3 lightDirLocal = var_LightDirLocal;
 	vec3 viewDirLocal = var_ViewDirLocal;
 	float parallaxSelfShadow = 1.0;
+
 	if (u_hasTextureDNSP[3] != 0.0) {
 		vec3 offset = computeParallaxOffset(
 			u_parallaxTexture, u_parallaxHeightScale,
 			var_TexCoord, viewDirLocal,
 			u_parallaxGrazingAngle, u_parallaxIterations.xy
 		);
+		vec2 texDiffuse = var_TexDiffuse + offset.xy;
+		vec2 texSpecular = var_TexSpecular + offset.xy;
+		vec2 texNormal = var_TexNormal + offset.xy;
+
+		// use original gradients to avoid artifacts on relief silhouette
+		vec2 derTcX = dFdx(var_TexCoord);
+		vec2 derTcY = dFdy(var_TexCoord);
+		diffuseTexColor = textureGrad(u_diffuseTexture, texDiffuse, derTcX, derTcY);
+		specularTexColor = textureGrad(u_specularTexture, texSpecular, derTcX, derTcY);
+		normalTexColor = textureGrad(u_normalTexture, texNormal, derTcX, derTcY);
 
 		vec3 scaledOffset = scaleTexcoordOffsetToModelSpace(
 			offset,
 			var_TexCoord, var_PositionModel, var_TangentBitangentNormalMatrix
 		);
-		texDiffuse += offset.xy;
-		texSpecular += offset.xy;
-		texNormal += offset.xy;
 		lightDirLocal -= scaledOffset;
 		viewDirLocal -= scaledOffset;
 
@@ -92,6 +98,11 @@ vec3 computeInteraction(out InteractionGeometry props) {
 			u_parallaxIterations.z, u_parallaxShadowSoftness
 		);
 	}
+	else {
+		diffuseTexColor = texture(u_diffuseTexture, var_TexDiffuse);
+		specularTexColor = texture(u_specularTexture, var_TexSpecular);
+		normalTexColor = texture(u_normalTexture, var_TexNormal);
+	}
 
 	vec3 lightColor;
 	if (u_cubic)
@@ -99,13 +110,13 @@ vec3 computeInteraction(out InteractionGeometry props) {
 	else
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
-	vec3 localNormal = unpackSurfaceNormal(texture(u_normalTexture, texNormal), u_hasTextureDNSP[1] != 0.0, u_RGTC != 0.0);
+	vec3 localNormal = unpackSurfaceNormal(normalTexColor, u_hasTextureDNSP[1] != 0.0, u_RGTC != 0.0);
 	props = computeInteractionGeometry(lightDirLocal, viewDirLocal, localNormal);
 
 	vec3 interactionColor = computeAdvancedInteraction(
 		props,
-		u_diffuseColor.rgb, texture(u_diffuseTexture, texDiffuse),
-		u_specularColor.rgb, texture(u_specularTexture, texSpecular),
+		u_diffuseColor.rgb, diffuseTexColor,
+		u_specularColor.rgb, specularTexColor,
 		var_Color.rgb,
 		u_useBumpmapLightTogglingFix != 0
 	);
