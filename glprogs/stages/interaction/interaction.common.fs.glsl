@@ -62,11 +62,12 @@ uniform float u_parallaxGrazingAngle;
 uniform float u_parallaxShadowSoftness;
 
 
-vec3 computeInteraction(out InteractionGeometry props) {
+vec3 computeInteraction(out InteractionGeometry props, out vec3 worldParallax) {
 	vec4 diffuseTexColor, specularTexColor, normalTexColor;
 	vec3 lightDirLocal = var_LightDirLocal;
 	vec3 viewDirLocal = var_ViewDirLocal;
 	float parallaxSelfShadow = 1.0;
+	worldParallax = vec3(0, 0, 0);
 
 	if (u_hasTextureDNSP[3] != 0.0) {
 		vec3 offset = computeParallaxOffset(
@@ -91,6 +92,7 @@ vec3 computeInteraction(out InteractionGeometry props) {
 		);
 		lightDirLocal -= scaledOffset;
 		viewDirLocal -= scaledOffset;
+		worldParallax = mat3(u_modelMatrix) * var_TangentBitangentNormalMatrix * scaledOffset;
 
 		parallaxSelfShadow = computeParallaxShadow(
 			u_parallaxTexture, u_parallaxHeightScale,

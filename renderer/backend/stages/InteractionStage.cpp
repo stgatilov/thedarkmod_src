@@ -87,6 +87,7 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( ivec3, parallaxIterations )
 	DEFINE_UNIFORM( float, parallaxGrazingAngle )
 	DEFINE_UNIFORM( float, parallaxShadowSoftness )
+	DEFINE_UNIFORM( int, parallaxOffsetExternalShadows )
 };
 
 enum TextureUnits {
@@ -530,6 +531,7 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 	uniforms->parallaxGrazingAngle.Set( din->parallax.grazingAngle );
 	uniforms->parallaxShadowSoftness.Set( din->parallax.shadowSoftness );
 	uniforms->parallaxIterations.Set( din->parallax.linearSteps, din->parallax.refineSteps, din->parallax.shadowSteps );
+	uniforms->parallaxOffsetExternalShadows.Set( din->parallax.offsetExternalShadows );
 
 	vertexCache.VertexPosition( din->surf->ambientCache );
 

@@ -27,17 +27,23 @@ out vec4 FragColor;
 uniform bool 	u_shadowMapCullFront;
 uniform vec4	u_shadowRect;
 uniform sampler2D u_shadowMap;
+uniform bool	u_parallaxOffsetExternalShadows;
+
 in vec3 var_LightDirWorld;
 
 void main() {
 	InteractionGeometry props;
-	FragColor.rgb = computeInteraction(props);
+	vec3 worldParallax;
+	FragColor.rgb = computeInteraction(props, worldParallax);
 
 	vec3 worldNormal = mat3(u_modelMatrix) * var_TangentBitangentNormalMatrix[2];
 
 	if (u_shadows) {
+		vec3 dirToLight = -var_LightDirWorld;
+		if (u_parallaxOffsetExternalShadows)
+			dirToLight += worldParallax;
 		float shadowsCoeff = computeShadowMapCoefficient(
-			-var_LightDirWorld, worldNormal,
+			dirToLight, worldNormal,
 			u_shadowMap, u_shadowRect,
 			u_softShadowsQuality, u_softShadowsRadius, u_shadowMapCullFront
 		);

@@ -1633,6 +1633,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "shadowSteps" )  ) {
 			parallax.shadowSteps = src.ParseInt();
 			continue;
+		} else if ( ss->lighting == SL_PARALLAX && !token.Icmp( "offsetExternalShadows" )  ) {
+			parallax.offsetExternalShadows = src.ParseInt() > 0;
+			continue;
 		}
 
 		else {
@@ -3030,9 +3033,9 @@ const char *idMaterial::DefaultDefinition() const {
 idMaterial::GetBumpStage
 ===================
 */
-const shaderStage_t *idMaterial::GetBumpStage( void ) const {
+const shaderStage_t *idMaterial::FindStageOfType( stageLighting_t type ) const {
 	for ( int i = 0 ; i < numStages ; i++ ) {
-		if ( stages[i].lighting == SL_BUMP ) {
+		if ( stages[i].lighting == type ) {
 			return &stages[i];
 		}
 	}

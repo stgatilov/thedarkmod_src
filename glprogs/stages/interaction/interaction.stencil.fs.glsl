@@ -30,7 +30,8 @@ uniform vec4 u_stencilMipmapsScissor;
 
 void main() {
 	InteractionGeometry props;
-	FragColor.rgb = computeInteraction(props);
+	vec3 worldParallax;
+	FragColor.rgb = computeInteraction(props, worldParallax);
 
 	vec3 objectToLight = var_TangentBitangentNormalMatrix * var_LightDirLocal;
 	vec3 objectNormal = var_TangentBitangentNormalMatrix[2];

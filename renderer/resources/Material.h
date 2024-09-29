@@ -204,6 +204,9 @@ typedef struct parallaxStage_s {
 
 	float				shadowSoftness;			// height displacement into obstacle required for full shadow
 	int					shadowSoftnessReg = -1;	// note: default value is computed on the fly
+
+	bool				offsetExternalShadows = false;	// shadows of other objects fall onto relief instead of mesh
+												// note: global shadows cast by this mesh onto others is suppressed
 } parallaxStage_t;
 
 typedef struct {
@@ -382,9 +385,10 @@ public:
 						// get a specific stage
 	const shaderStage_t *GetStage( const int index ) const { assert(index >= 0 && index < numStages); return &stages[index]; }
 
-						// get the first bump map stage, or NULL if not present.
-						// used for bumpy-specular
-	const shaderStage_t *GetBumpStage( void ) const;
+						// get the first stage of given kind, or NULL if not present.
+	const shaderStage_t *FindStageOfType( stageLighting_t type ) const;
+	const shaderStage_t *GetBumpStage( void ) const { return FindStageOfType( SL_BUMP ); }
+	const shaderStage_t *GetParallaxStage( void ) const { return FindStageOfType( SL_PARALLAX ); }
 
 						// returns true if the material will draw anything at all.  Triggers, portals,
 						// etc, will not have anything to draw.  A not drawn surface can still castShadow,

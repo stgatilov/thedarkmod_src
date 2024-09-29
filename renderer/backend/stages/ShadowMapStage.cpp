@@ -161,6 +161,12 @@ bool ShadowMapStage::ShouldDrawSurf( const drawSurf_t *surf ) const {
         return false;
     }
 
+	// #6571. parallax surfaces with this flag don't work well if the surface is rendered to shadow maps
+	if ( auto parallaxStage = surf->material->GetParallaxStage() ) {
+		if ( parallaxStage->parallax->offsetExternalShadows )
+			return false;
+	}
+
 	return true;
 }
 
