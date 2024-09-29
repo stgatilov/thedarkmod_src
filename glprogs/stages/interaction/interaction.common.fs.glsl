@@ -99,13 +99,13 @@ vec3 computeInteraction(out InteractionGeometry props) {
 	else
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
-	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
+	vec3 localNormal = unpackSurfaceNormal(texture(u_normalTexture, texNormal), u_hasTextureDNSP[1] != 0.0, u_RGTC != 0.0);
 	props = computeInteractionGeometry(lightDirLocal, viewDirLocal, localNormal);
 
 	vec3 interactionColor = computeAdvancedInteraction(
 		props,
-		u_diffuseTexture, u_diffuseColor.rgb, texDiffuse,
-		u_specularTexture, u_specularColor.rgb, texSpecular,
+		u_diffuseColor.rgb, texture(u_diffuseTexture, texDiffuse),
+		u_specularColor.rgb, texture(u_specularTexture, texSpecular),
 		var_Color.rgb,
 		u_useBumpmapLightTogglingFix != 0
 	);

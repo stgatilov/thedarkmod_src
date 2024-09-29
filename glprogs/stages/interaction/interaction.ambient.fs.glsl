@@ -84,13 +84,13 @@ void main() {
 	else
 		lightColor = projFalloffOfNormalLight(u_lightProjectionTexture, u_lightFalloffTexture, u_lightTextureMatrix, var_TexLight).rgb;
 
-	vec3 localNormal = fetchSurfaceNormal(texNormal, u_hasTextureDNSP[1] != 0.0, u_normalTexture, u_RGTC != 0.0);
+	vec3 localNormal = unpackSurfaceNormal(texture(u_normalTexture, texNormal), u_hasTextureDNSP[1] != 0.0, u_RGTC != 0.0);
 	AmbientGeometry props = computeAmbientGeometry(var_worldViewDir, localNormal, var_TangentBitangentNormalMatrix, mat3(u_modelMatrix));
 
 	vec4 interactionColor = computeAmbientInteraction(
 		props,
-		u_diffuseTexture, u_diffuseColor.rgb, texDiffuse,
-		u_specularTexture, u_specularColor.rgb, texSpecular,
+		u_diffuseColor.rgb, texture(u_diffuseTexture, texDiffuse),
+		u_specularColor.rgb, texture(u_specularTexture, texSpecular),
 		var_Color.rgb,
 		u_useNormalIndexedDiffuse, u_useNormalIndexedSpecular, u_lightDiffuseCubemap, u_lightSpecularCubemap,
 		u_minLevel, u_gamma

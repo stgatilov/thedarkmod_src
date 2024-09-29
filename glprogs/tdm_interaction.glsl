@@ -61,7 +61,7 @@ InteractionGeometry computeInteractionGeometry(vec3 localToLight, vec3 localToVi
 	InteractionGeometry props;
 	props.localL = normalize(localToLight);
 	props.localV = normalize(localToView);
-	props.localN = localNormal;	// should be normalized in fetchSurfaceNormal
+	props.localN = localNormal;	// should be normalized in unpackSurfaceNormal
 	props.localH = normalize(props.localV + props.localL);
 	// must be done in tangent space, otherwise smoothing will suffer (see #4958)
 	props.NdotL = clamp(dot(props.localN, props.localL), 0.0, 1.0);
@@ -107,14 +107,14 @@ vec3 computeAdvancedInteraction(
 	// interaction properties:
 	InteractionGeometry props,
 	// surface color:
-	sampler2D diffuseTexture, vec3 diffuseParamColor, vec2 diffuseTexCoord,
-	sampler2D specularTexture, vec3 specularParamColor, vec2 specularTexCoord,
+	vec3 diffuseParamColor, vec4 diffuseTexColorA,
+	vec3 specularParamColor, vec4 specularTexColorA,
 	vec3 vertexColor,
 	// light parameters:
 	bool bumpmapTogglingFixEnabled
 ) {
-	vec3 diffuseTexColor = texture(diffuseTexture, diffuseTexCoord).rgb;
-	vec3 specularTexColor = texture(specularTexture, specularTexCoord).rgb;
+	vec3 diffuseTexColor = diffuseTexColorA.rgb;
+	vec3 specularTexColor = specularTexColorA.rgb;
 
 	FresnelRimCoeffs fresnelRim = computeFresnelRimCoefficients(props);
 	vec3 specularTerm = computeSpecularTerm(props, specularTexColor, fresnelRim);
@@ -148,8 +148,8 @@ vec4 computeAmbientInteraction(
 	// interaction properties:
 	AmbientGeometry props,
 	// surface color:
-	sampler2D diffuseTexture, vec3 diffuseParamColor, vec2 diffuseTexCoord,
-	sampler2D specularTexture, vec3 specularParamColor, vec2 specularTexCoord,
+	vec3 diffuseParamColor, vec4 diffuseTexColorA,
+	vec3 specularParamColor, vec4 specularTexColorA,
 	vec3 vertexColor,
 	// light properties
 	bool useNormalIndexedDiffuse, bool useNormalIndexedSpecular, samplerCube normalIndexedDiffuse, samplerCube normalIndexedSpecular,
@@ -157,8 +157,9 @@ vec4 computeAmbientInteraction(
 	float ambientMinLevel, float ambientGamma
 ) {
 	// compute the diffuse term
-	vec4 diffuseTexColor = texture(diffuseTexture, diffuseTexCoord);
-	vec3 specularTexColor = texture(specularTexture, specularTexCoord).rgb;
+	vec3 diffuseTexColor = diffuseTexColorA.rgb;
+	float diffuseTexAlpha = diffuseTexColorA.a;
+	vec3 specularTexColor = specularTexColorA.rgb;
 
 	// diffuse term
 	vec3 diffuseTerm = vec3(1);
@@ -177,7 +178,7 @@ vec4 computeAmbientInteraction(
 	specularTerm *= specularParamColor;
 
 	vec3 surfaceTerm = (diffuseTerm * diffuseTexColor.rgb + specularTerm * specularTexColor) * vertexColor;
-	vec4 result = vec4(surfaceTerm, diffuseTexColor.a);
+	vec4 result = vec4(surfaceTerm, diffuseTexAlpha);
 
 	// avoid negative values, which with floating point render buffers can lead to NaN artefacts
 	result = max(result, vec4(0));
