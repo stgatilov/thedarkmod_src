@@ -387,7 +387,6 @@ public:
 
 						// get the first stage of given kind, or NULL if not present.
 	const shaderStage_t *FindStageOfType( stageLighting_t type ) const;
-	const shaderStage_t *GetBumpStage( void ) const { return FindStageOfType( SL_BUMP ); }
 	const shaderStage_t *GetParallaxStage( void ) const { return FindStageOfType( SL_PARALLAX ); }
 
 						// returns true if the material will draw anything at all.  Triggers, portals,

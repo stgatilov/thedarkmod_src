@@ -362,7 +362,17 @@ void SurfacePassesStage::DrawEnvironment( const drawSurf_t *drawSurf, const shad
 	uniforms->globalViewOrigin.Set( viewDef->renderView.vieworg );
 
 	// see if there is also a bump map specified
-	const shaderStage_t *bumpStage = drawSurf->material->GetBumpStage();
+	const shaderStage_t *bumpStage = nullptr;
+	for ( int i = 0; i < drawSurf->material->GetNumStages(); i++ ) {
+		const shaderStage_t *stage = drawSurf->material->GetStage( i );
+		if ( stage->lighting != SL_BUMP )
+			continue;
+		if ( !drawSurf->IsStageEnabled( stage ) )
+			continue;
+		// note: only one bump stage can be enabled at once
+		bumpStage = stage;
+		break;
+	}
 	idImage *bumpMap = nullptr;
 	idMat4 bumpMatrix;
 	if ( bumpStage ) {
