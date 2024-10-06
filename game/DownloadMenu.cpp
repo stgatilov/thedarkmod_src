@@ -383,7 +383,7 @@ void CDownloadMenu::Search(idUserInterface* gui)
 			idList<idStr> authors;
 
 			// Split on common separators to capture each author.
-			authors = mod->author.Split({",", "&", "and", "&amp;"}, true);
+			authors = mod->author.Split({",", "&", " and ", "&amp;"}, true);
 			for (idStr& a : authors) {
 				a.StripWhitespace();
 			}

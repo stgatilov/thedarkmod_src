@@ -283,7 +283,7 @@ void CModMenu::Search(idUserInterface* gui)
 			author.StripLeadingOnce("by ");  // some authors include "by" before their name
 
 			// Split on common separators to capture each author.
-			authors = author.Split({",", "&", "and"}, true);
+			authors = author.Split({",", "&", " and "}, true);
 			for (idStr& a : authors) {
 				a.StripWhitespace();
 			}
