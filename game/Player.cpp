@@ -9038,16 +9038,18 @@ bool idPlayer::IsUsedItemOrJunk(idEntity* target)
 			return true;
 
 		{
-			const bool notCandle = target->spawnArgs.GetString("skin_unlit", nullptr) == nullptr;    // Make sure it is not a candle
-			const bool isCandleHolderWithoutCandle = target->spawnArgs.GetBool("extinguished", "0"); // Works only if target is not lantern
-			if (notCandle && isCandleHolderWithoutCandle)
-				return true;
-		}
-
-		{
 			static const idStr sCandle("candle");
 			idEntity* candle = target->GetAttachmentByPosition(sCandle);
-			if (candle != nullptr && IsExtinguishedCandle(candle))
+			const bool hasCandle = candle != nullptr;
+			const bool notCandle = target->spawnArgs.GetString("skin_unlit", nullptr) == nullptr;    // Make sure it is not a candle
+			const bool isCandleHolderWithoutCandle =
+				target->spawnArgs.GetBool("extinguished", "0") // Works only if target is not lantern
+				&& !hasCandle;
+
+			if (notCandle && isCandleHolderWithoutCandle)
+				return true;
+
+			if (hasCandle && IsExtinguishedCandle(candle))
 				return true;
 		}
 	}
