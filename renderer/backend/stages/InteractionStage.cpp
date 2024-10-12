@@ -402,11 +402,15 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 	inter.lightTextureMatrix[0] = lightTexMatrix[0];
 	inter.lightTextureMatrix[1] = lightTexMatrix[1];
 
-	inter.bumpImage = NULL;
-	inter.specularImage = NULL;
-	inter.diffuseImage = NULL;
-	inter.diffuseColor[0] = inter.diffuseColor[1] = inter.diffuseColor[2] = inter.diffuseColor[3] = 0;
-	inter.specularColor[0] = inter.specularColor[1] = inter.specularColor[2] = inter.specularColor[3] = 0;
+	auto ClearInter = [&inter]() {
+		inter.bumpImage = NULL;
+		inter.specularImage = NULL;
+		inter.diffuseImage = NULL;
+		inter.parallaxImage = NULL;
+		inter.diffuseColor[0] = inter.diffuseColor[1] = inter.diffuseColor[2] = inter.diffuseColor[3] = 0;
+		inter.specularColor[0] = inter.specularColor[1] = inter.specularColor[2] = inter.specularColor[3] = 0;
+	};
+	ClearInter();
 
 	// backEnd.lightScale is calculated so that lightColor[] will never exceed
 	// tr.backEndRendererMaxLight
@@ -431,9 +435,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 		case SL_BUMP: {				
 			if ( !r_skipBump.GetBool() ) {
 				PrepareDrawCommand( &inter ); // draw any previous interaction
-				inter.diffuseImage = NULL;
-				inter.specularImage = NULL;
-				inter.parallaxImage = NULL;
+				ClearInter();
 				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.bumpImage, inter.bumpMatrix, NULL );
 			}
 			break;
@@ -442,6 +444,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 			if ( !r_skipParallax.GetBool() ) {
 				if ( inter.parallaxImage ) {
 					PrepareDrawCommand( &inter );
+					ClearInter();
 				}
 				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, NULL, NULL );
 				inter.parallax = *surfaceStage->parallax;
@@ -463,6 +466,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 		case SL_DIFFUSE: {
 			if ( inter.diffuseImage ) {
 				PrepareDrawCommand( &inter );
+				ClearInter();
 			}
 			R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.diffuseImage,
 								  inter.diffuseMatrix, inter.diffuseColor.ToFloatPtr() );
@@ -480,6 +484,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 			}
 			if ( inter.specularImage ) {
 				PrepareDrawCommand( &inter );
+				ClearInter();
 			}
 			R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.specularImage,
 								  inter.specularMatrix, inter.specularColor.ToFloatPtr() );
