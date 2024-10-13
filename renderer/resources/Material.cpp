@@ -1351,18 +1351,6 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			continue;
 		}
 
-		// privatePolygonOffset
-		else if ( !token.Icmp( "privatePolygonOffset" ) ) {
-			if ( !src.ReadTokenOnLine( &token ) ) {
-				ss->privatePolygonOffset = 1.0f;
-				continue;
-			}
-			// explict larger (or negative) offset
-			src.UnreadToken( &token );
-			ss->privatePolygonOffset = src.ParseFloat();
-			continue;
-		}
-
 		// texture coordinate generation
 		else if ( !token.Icmp( "texGen" ) ) {
 			src.ExpectAnyToken( &token );

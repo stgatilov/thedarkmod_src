@@ -220,7 +220,6 @@ typedef struct {
 	stageVertexColor_t	vertexColor;
 	bool				ignoreAlphaTest;	// this stage should act as translucent, even
 											// if the surface is alpha tested
-	float				privatePolygonOffset;	// a per-stage polygon offset
 
 	newShaderStage_t	*newStage;			// vertex / fragment program based stage
 	parallaxStage_t		*parallax;			// stgatilov: parallax-specific settings (only SL_PARALLAX)
