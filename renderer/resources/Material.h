@@ -160,10 +160,13 @@ typedef struct {
 // the order BUMP / DIFFUSE / SPECULAR is necessary for interactions to draw correctly on low end cards
 typedef enum {
 	SL_AMBIENT,						// execute after lighting
+
 	SL_BUMP,
 	SL_DIFFUSE,
 	SL_SPECULAR,
-	SL_PARALLAX						// #6571 parallax effect info
+	SL_PARALLAX,					// #6571 parallax effect info
+
+	SL_COUNT
 } stageLighting_t;
 
 // cross-blended terrain textures need to modulate the color by
@@ -383,6 +386,10 @@ public:
 
 						// get a specific stage
 	const shaderStage_t *GetStage( const int index ) const { assert(index >= 0 && index < numStages); return &stages[index]; }
+
+	int					GetNumInteractionGroups( void ) const { return numInteractionGroups; }
+	int					GetInteractionGroupStart( int group ) const { return interactionGroupStarts[group + 0]; }
+	int					GetInteractionGroupEnd( int group ) const { return interactionGroupStarts[group + 1]; }
 
 						// get the first stage of given kind, or NULL if not present.
 	const shaderStage_t *FindStageOfType( stageLighting_t type ) const;
@@ -657,8 +664,9 @@ private:
 	void				MultiplyTextureMatrix( textureStage_t *ts, int registers[2][3] );	// FIXME: for some reason the const is bad for gcc and Mac
 	void				SortInteractionStages();
 	void				AddImplicitStages( const textureRepeat_t trpDefault = TR_REPEAT );
+	void				DetectInteractionGroups();
 	void				CheckForConstantRegisters();
-	bool				IsFrobStage(int stageIdx, bool *isStandard = nullptr) const;
+	bool				IsFrobStage(const shaderStage_t *stage, bool *isStandard = nullptr) const;
 	void				AddFrobStages(const idVec3 &rgbAdd, const char *imageName, const idVec3 &rgbMult, const textureRepeat_t trpDefault = TR_REPEAT);
 	void				CheckAlphaColorDependencies() const;
 
@@ -720,6 +728,10 @@ private:
 	int					numAmbientStages;
 																										
 	shaderStage_t *		stages;
+
+	// stgatilov: which subsegments of stages comprise interaction groups
+	int					numInteractionGroups;
+	int *				interactionGroupStarts;
 
 	struct mtrParsingData_s	*pd;			// only used during parsing
 

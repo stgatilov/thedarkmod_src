@@ -595,6 +595,7 @@ typedef struct {
 	idVec4				specularColor;	// may have a light color baked into it, will be < tr.backEndRendererMaxLight
 	stageVertexColor_t	vertexColor;	// applies to both diffuse and specular
 
+	idVec4				lightColor;
 	int					ambientLight;	// use tr.ambientNormalMap instead of normalization cube map
 										// (not a bool just to avoid an uninitialized memory check of the pad region by valgrind)
 	int					cubicLight;		// nbohr1more #3881: dedicated cubemap light // probably not needed

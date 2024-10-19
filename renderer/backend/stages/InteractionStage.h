@@ -55,6 +55,7 @@ private:
 	void ChooseInteractionProgram( const viewLight_t *vLight, bool translucent );
 	void ProcessSingleSurface( const viewLight_t *vLight, const shaderStage_t *lightStage, const drawSurf_t *surf );
 	void PrepareDrawCommand( drawInteraction_t *inter );
+	void SetupLightProperties( drawInteraction_t *inter, const viewLight_t *vLight, const shaderStage_t *lightStage, const drawSurf_t *surf );
 
 	void PreparePoissonSamples();
 };

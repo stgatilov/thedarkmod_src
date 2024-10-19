@@ -84,6 +84,8 @@ void idMaterial::CommonInit() {
 	numStages = 0;
 	numAmbientStages = 0;
 	stages = NULL;
+	numInteractionGroups = 0;
+	interactionGroupStarts = NULL;
 	editorImage = NULL;
 	lightFalloffImage = NULL;
 	lightAmbientDiffuse = NULL;
@@ -167,6 +169,8 @@ void idMaterial::FreeData() {
 		}
 		R_StaticFree( stages );
 		stages = NULL;
+		R_StaticFree( interactionGroupStarts );
+		interactionGroupStarts = NULL;
 	}
 	if ( expressionRegisters != NULL ) {
 		R_StaticFree( expressionRegisters );
@@ -1645,7 +1649,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 
 	if ( pd->usesFrobParm ) {
 		// stgatilov #5427: using parm11 outside "frob stage" is wrong
-		if ( !IsFrobStage( numStages ) )
+		if ( !IsFrobStage( ss ) )
 			common->Warning( "Material '%s' stage %d uses parm11 without frobstage condition", GetName(), numStages );
 	}
 
@@ -1818,7 +1822,7 @@ void idMaterial::AddImplicitStages( const textureRepeat_t trpDefault /* = TR_REP
 		if ( pd->parseStages[i].texture.texgen == TG_REFLECT_CUBE ) {
 			hasReflection = true;
 		}
-		if ( IsFrobStage( i, &isFrobStandard) ) {
+		if ( IsFrobStage( &pd->parseStages[i], &isFrobStandard) ) {
 			// stgatilov #5427: warn about nonstandard frobstage condition
 			if ( !isFrobStandard )
 				common->Warning( "Material '%s' frobstage %d: bad condition, should be 'if (parm11 > 0)'", GetName(), i );
@@ -1889,6 +1893,95 @@ void idMaterial::SortInteractionStages() {
 		std::stable_sort( pd->parseStages + i, pd->parseStages + j, [](const shaderStage_t &a, const shaderStage_t &b) {
 			return a.lighting < b.lighting;
 		});
+	}
+}
+
+idCVar r_materialNewParse("r_materialNewParse", "1", CVAR_BOOL, "Better implementation of material stages parsing for 2.13");
+
+/*
+===============
+idMaterial::DetectInteractionGroups
+===============
+*/
+void idMaterial::DetectInteractionGroups() {
+
+	idList<shaderStage_t> ambientStages;
+	idList<idList<shaderStage_t>> interactionGroups;
+	int stageCountPerType[SL_COUNT] = {0};
+
+	// split stages into interaction groups and ambient stages
+	for ( int i = 0; i < numStages; i++ ) {
+		shaderStage_t stage = pd->parseStages[i];
+
+		if ( stage.lighting == SL_AMBIENT ) {
+			ambientStages.AddGrow( stage );
+		}
+		else {
+			// interaction group cannot have two stages of same kind
+			// so we stop expanding current group when we meet stage of a kind that we already got
+			if ( interactionGroups.Num() == 0 || stageCountPerType[stage.lighting] > 0 ) {
+				interactionGroups.AddGrow( {} );
+				memset( stageCountPerType, 0, sizeof(stageCountPerType) );
+			}
+
+			interactionGroups.Last().AddGrow( stage );
+			stageCountPerType[stage.lighting]++;
+		}
+	}
+
+	// make stages in a group go in fixed order for simplicity
+	for ( idList<shaderStage_t> &group : interactionGroups ) {
+		std::stable_sort( group.begin(), group.end(), []( const shaderStage_t &a, const shaderStage_t &b ) {
+			return a.lighting < b.lighting;
+		});
+	}
+
+	// allocate memory for interaction groups
+	numInteractionGroups = interactionGroups.Num();
+	interactionGroupStarts = (int*)Mem_Alloc( (numInteractionGroups + 1) * sizeof(int) );
+
+	// put stages back into global list
+	int pos = 0;
+	interactionGroupStarts[0] = pos;
+	for ( int g = 0; g < interactionGroups.Num(); g++ ) {
+		interactionGroupStarts[g + 0] = pos;
+		for ( const shaderStage_t &stage : interactionGroups[g] )
+			pd->parseStages[pos++] = stage;
+		interactionGroupStarts[g + 1] = pos;
+	}
+	for ( const shaderStage_t &stage : ambientStages ) {
+		pd->parseStages[pos++] = stage;
+	}
+	assert( pos == numStages );
+
+	// add implicit frob stages if necessary
+	if ( r_frobDefaultEnable.GetBool() && interactionGroups.Num() > 0 ) {
+		bool hasFrobStage = false;
+		bool isFrobStandard = false;
+		for ( const shaderStage_t &stage : ambientStages ) {
+			if ( IsFrobStage( &stage, &isFrobStandard ) ) {
+				// stgatilov #5427: warn about nonstandard frobstage condition
+				if ( !isFrobStandard )
+					common->Warning( "Material '%s' frobstage: bad condition, should be 'if (parm11 > 0)'", GetName() );
+				hasFrobStage = true;
+			}
+		}
+
+		idImage *diffuseTex = nullptr;
+		for ( int i = 0; i < numStages; i++ ) {
+			if ( pd->parseStages[i].lighting == SL_DIFFUSE )
+				diffuseTex = pd->parseStages[i].texture.image;
+		}
+
+		// stgatilov #5427: no frobstage found -> add default stages implicitly
+		if ( !hasFrobStage && r_frobDefaultEnable.GetBool() ) {
+			AddFrobStages(
+				idVec3( r_frobDefaultAdd.GetFloat() ),
+				diffuseTex ? diffuseTex->imgName.c_str() : nullptr,
+				idVec3( r_frobDefaultMult.GetFloat() ),
+				TR_REPEAT
+			);
+		}
 	}
 }
 
@@ -2361,11 +2454,17 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 		}
 	}
 
-	// add _flat or _white stages if needed
-	AddImplicitStages();
 
-	// order the diffuse / bump / specular stages properly
-	SortInteractionStages();
+	if ( r_materialNewParse.GetBool() ) {
+		DetectInteractionGroups();
+	}
+	else {
+		// add _flat or _white stages if needed
+		AddImplicitStages();
+
+		// order the diffuse / bump / specular stages properly
+		SortInteractionStages();
+	}
 
 	// stgatilov #6340: warn if output color might depend on input alpha
 	CheckAlphaColorDependencies();
@@ -3074,9 +3173,7 @@ bool idMaterial::HasMirrorLikeStage() const {
 idMaterial::IsFrobStage
 ===================
 */
-bool idMaterial::IsFrobStage(int stageIdx, bool *isStandard) const {
-	const shaderStage_t *stage = &pd->parseStages[stageIdx];
-
+bool idMaterial::IsFrobStage(const shaderStage_t *stage, bool *isStandard) const {
 	// expression operations are executed sequentally
 	// so we need to trace operations backwards to see which of them write to "active" register we are interested in
 	// this way we can walk through the whole dependency subgraph of an "if" statement

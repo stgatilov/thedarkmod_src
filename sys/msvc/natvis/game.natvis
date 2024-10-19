@@ -200,6 +200,15 @@
           </ArrayItems>
         </Expand>
       </Synthetic>
+      <Synthetic Name="[interactionGroups]">
+        <DisplayString>{interactionGroupStarts,[numInteractionGroups + 1]na}</DisplayString>
+        <Expand>
+          <ArrayItems>
+            <Size>numInteractionGroups + 1</Size>
+            <ValuePointer>interactionGroupStarts</ValuePointer>
+          </ArrayItems>
+        </Expand>
+      </Synthetic>
     </Expand>
   </Type>
 
