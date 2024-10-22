@@ -24,6 +24,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/FrameBufferManager.h"
 #include "renderer/backend/stages/AmbientOcclusionStage.h"
 
+#include "glprogs/tdm_constants_shared.glsl"
+
 idCVar r_shadowMapOnTranslucent(
 	"r_shadowMapOnTranslucent", "1", CVAR_BOOL | CVAR_RENDERER | CVAR_ARCHIVE,
 	"Are shadows cast on translucent surfaces?\n"
@@ -34,6 +36,8 @@ idCVar r_shadowMapOnTranslucent(
 struct InteractionStage::Uniforms : GLSLUniformGroup {
 	UNIFORM_GROUP_DEF( Uniforms )
 
+	DEFINE_UNIFORM( int, flags )
+
 	DEFINE_UNIFORM( sampler, normalTexture )
 	DEFINE_UNIFORM( sampler, diffuseTexture )
 	DEFINE_UNIFORM( sampler, specularTexture )
@@ -41,25 +45,19 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( sampler, lightProjectionTexture )
 	DEFINE_UNIFORM( sampler, lightProjectionCubemap )
 	DEFINE_UNIFORM( sampler, lightFalloffTexture )
-	DEFINE_UNIFORM( int, useNormalIndexedDiffuse )
-	DEFINE_UNIFORM( int, useNormalIndexedSpecular )
 	DEFINE_UNIFORM( sampler, lightDiffuseCubemap )
 	DEFINE_UNIFORM( sampler, lightSpecularCubemap )
 	DEFINE_UNIFORM( sampler, ssaoTexture )
 	DEFINE_UNIFORM( vec3, globalViewOrigin )
 	DEFINE_UNIFORM( vec3, globalLightOrigin )
 
-	DEFINE_UNIFORM( int, cubic )
 	DEFINE_UNIFORM( float, gamma )
 	DEFINE_UNIFORM( float, minLevel )
-	DEFINE_UNIFORM( int, ssaoEnabled )
 	DEFINE_UNIFORM( vec2, renderResolution )
 
-	DEFINE_UNIFORM( int, shadows )
 	DEFINE_UNIFORM( int, softShadowsQuality )
 	DEFINE_UNIFORM( float, softShadowsRadius )
 	DEFINE_UNIFORM( vec4, shadowRect )
-	DEFINE_UNIFORM( int, shadowMapCullFront )
 	DEFINE_UNIFORM( sampler, stencilTexture )
 	DEFINE_UNIFORM( sampler, depthTexture )
 	DEFINE_UNIFORM( sampler, shadowMap )
@@ -79,15 +77,11 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( vec4, colorAdd )
 	DEFINE_UNIFORM( vec4, diffuseColor )
 	DEFINE_UNIFORM( vec4, specularColor )
-	DEFINE_UNIFORM( vec4, hasTextureDNSP )
-	DEFINE_UNIFORM( int, useBumpmapLightTogglingFix )
-	DEFINE_UNIFORM( float, RGTC )
 
 	DEFINE_UNIFORM( vec2, parallaxHeightScale )
 	DEFINE_UNIFORM( ivec3, parallaxIterations )
 	DEFINE_UNIFORM( float, parallaxGrazingAngle )
 	DEFINE_UNIFORM( float, parallaxShadowSoftness )
-	DEFINE_UNIFORM( int, parallaxOffsetExternalShadows )
 };
 
 enum TextureUnits {
@@ -180,6 +174,7 @@ void InteractionStage::DrawInteractions( const viewDef_t *viewDef, const viewLig
 
 	this->viewDef = viewDef;
 	this->vLight = vLight;
+	int lightFlags = 0;
 
 	// if using float buffers, alpha values are not clamped and can stack up quite high, since most interactions add 1 to its value
 	// this in turn causes issues with some shader stage materials that use DST_ALPHA blending.
@@ -196,8 +191,9 @@ void InteractionStage::DrawInteractions( const viewDef_t *viewDef, const viewLig
 	FB_ApplyScissor();
 
 	// bind the vertex and fragment program
-	ChooseInteractionProgram( vLight, list == DSL_TRANSLUCENT );
-	uniforms->cubic.Set( vLight->lightShader->IsCubicLight() ? 1 : 0 );
+	ChooseInteractionProgram( vLight, list == DSL_TRANSLUCENT, lightFlags );
+	if ( vLight->lightShader->IsCubicLight() )
+		lightFlags |= SFL_LIGHT_CUBIC;
 	uniforms->globalLightOrigin.Set( vLight->globalLightOrigin );
 	uniforms->globalViewOrigin.Set( viewDef->renderView.vieworg );
 	uniforms->renderResolution.Set( frameBuffers->activeFbo->Width(), frameBuffers->activeFbo->Height() );
@@ -222,22 +218,16 @@ void InteractionStage::DrawInteractions( const viewDef_t *viewDef, const viewLig
 
 		idImage *cubemap = vLight->lightShader->LightAmbientDiffuse();
 		if ( cubemap ) {
-			uniforms->useNormalIndexedDiffuse.Set( true );
+			lightFlags |= SFL_LIGHT_AMBIENT_HAS_DIFFUSE_CUBEMAP;
 			GL_SelectTexture( TU_LIGHT_DIFFUSE_CUBE );
 			cubemap->Bind();
-		}
-		else {
-			uniforms->useNormalIndexedDiffuse.Set( false );
 		}
 
 		cubemap = vLight->lightShader->LightAmbientSpecular();
 		if ( cubemap ) {
-			uniforms->useNormalIndexedSpecular.Set( true );
+			lightFlags |= SFL_LIGHT_AMBIENT_HAS_SPECULAR_CUBEMAP;
 			GL_SelectTexture( TU_LIGHT_SPECULAR_CUBE );
 			cubemap->Bind();
-		}
-		else {
-			uniforms->useNormalIndexedSpecular.Set( false );
 		}
 	}
 
@@ -270,7 +260,7 @@ void InteractionStage::DrawInteractions( const viewDef_t *viewDef, const viewLig
 		uniforms->stencilMipmapsLevel.Set( -1, -1 );
 	}
 
-	const idMaterial	*lightShader = vLight->lightShader;
+	const idMaterial *lightShader = vLight->lightShader;
 	for ( int lightStageNum = 0; lightStageNum < lightShader->GetNumStages(); lightStageNum++ ) {
 		const shaderStage_t	*lightStage = lightShader->GetStage( lightStageNum );
 
@@ -301,7 +291,7 @@ void InteractionStage::DrawInteractions( const viewDef_t *viewDef, const viewLig
 
 			ApplyDepthTweaks depthTweaks( surf );
 
-			ProcessSingleSurface( vLight, lightStage, surf );
+			ProcessSingleSurface( vLight, lightStage, surf, lightFlags );
 		}
 	}
 
@@ -325,7 +315,7 @@ void InteractionStage::BindShadowTexture( const TiledCustomMipmapStage *stencilS
 	}
 }
 
-void InteractionStage::ChooseInteractionProgram( const viewLight_t *vLight, bool translucent ) {
+void InteractionStage::ChooseInteractionProgram( const viewLight_t *vLight, bool translucent, int &lightFlags ) {
 	if ( vLight->lightShader->IsAmbientLight() ) {
 		interactionShader = ambientInteractionShader;
 	} else if ( vLight->shadowMapPage.width > 0 ) {
@@ -338,7 +328,8 @@ void InteractionStage::ChooseInteractionProgram( const viewLight_t *vLight, bool
 	uniforms = interactionShader->GetUniformGroup<Uniforms>();
 	uniforms->gamma.Set( viewDef->IsLightGem() ? 1 : r_ambientGamma.GetFloat() );
 	uniforms->minLevel.Set( r_ambientMinLevel.GetFloat() );
-	uniforms->ssaoEnabled.Set( ambientOcclusion->ShouldEnableForCurrentView() ? 1 : 0 );
+	if ( ambientOcclusion->ShouldEnableForCurrentView() )
+		lightFlags |= SFL_LIGHT_AMBIENT_HAS_SSAO;
 
 	bool doShadows = !vLight->noShadows && vLight->lightShader->LightCastsShadows();
 	// stgatilov #6490: stencil shadows cannot properly cast shadows on translucent objects
@@ -351,18 +342,17 @@ void InteractionStage::ChooseInteractionProgram( const viewLight_t *vLight, bool
 		doShadows = vLight->globalInteractions != NULL;
 	}
 	if ( doShadows ) {
-		uniforms->shadows.Set(true);
+		lightFlags |= SFL_INTERACTION_SHADOWS;
 		const renderCrop_t &page = vLight->shadowMapPage;
 		// https://stackoverflow.com/questions/5879403/opengl-texture-coordinates-in-pixel-space
 		idVec4 v( page.x, page.y, 0, page.width-1 );
 		v.ToVec2() = (v.ToVec2() * 2 + idVec2( 1, 1 )) / (2 * 6 * r_shadowMapSize.GetInteger());
 		v.w /= 6 * r_shadowMapSize.GetFloat();
 		uniforms->shadowRect.Set( v );
-	} else {
-		uniforms->shadows.Set(false);
 	}
 	extern idCVarBool r_shadowMapCullFront;
-	uniforms->shadowMapCullFront.Set( r_shadowMapCullFront );
+	if ( r_shadowMapCullFront.GetBool() )
+		lightFlags |= SFL_INTERACTION_SHADOW_MAP_CULL_FRONT;
 
 	if ( doShadows && ( vLight->globalShadows || vLight->localShadows ) && !viewDef->IsLightGem() ) {
 		uniforms->softShadowsQuality.Set( r_softShadowsQuality.GetInteger() );
@@ -398,7 +388,7 @@ void InteractionStage::SetupLightProperties( drawInteraction_t *inter, const vie
 	inter->lightColor.ToVec3() *= backEnd.lightScale;
 }
 
-void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const shaderStage_t *lightStage, const drawSurf_t *surf ) {
+void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const shaderStage_t *lightStage, const drawSurf_t *surf, int lightFlags ) {
 	const idMaterial	*material = surf->material;
 	const float			*surfaceRegs = surf->shaderRegisters;
 
@@ -465,7 +455,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 				}
 			}
 
-			PrepareDrawCommand( &inter );
+			PrepareDrawCommand( &inter, lightFlags );
 		}
 	}
 	else {
@@ -500,7 +490,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 			}
 			case SL_BUMP: {				
 				if ( !r_skipBump.GetBool() ) {
-					PrepareDrawCommand( &inter ); // draw any previous interaction
+					PrepareDrawCommand( &inter, lightFlags ); // draw any previous interaction
 					ClearInter();
 					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.bumpImage, inter.bumpMatrix, NULL );
 				}
@@ -509,7 +499,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 			case SL_PARALLAX: {				
 				if ( !r_skipParallax.GetBool() ) {
 					if ( inter.parallaxImage ) {
-						PrepareDrawCommand( &inter );
+						PrepareDrawCommand( &inter, lightFlags );
 						ClearInter();
 					}
 					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, NULL, NULL );
@@ -531,7 +521,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 			}
 			case SL_DIFFUSE: {
 				if ( inter.diffuseImage ) {
-					PrepareDrawCommand( &inter );
+					PrepareDrawCommand( &inter, lightFlags );
 					ClearInter();
 				}
 				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.diffuseImage,
@@ -549,7 +539,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 					break;
 				}
 				if ( inter.specularImage ) {
-					PrepareDrawCommand( &inter );
+					PrepareDrawCommand( &inter, lightFlags );
 					ClearInter();
 				}
 				R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.specularImage,
@@ -565,11 +555,11 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 		}
 
 		// draw the final interaction
-		PrepareDrawCommand( &inter );
+		PrepareDrawCommand( &inter, lightFlags );
 	}
 }
 
-void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
+void InteractionStage::PrepareDrawCommand( drawInteraction_t *din, int flags ) {
 	if ( !din->bumpImage ) {
 		extern idCVar r_materialNewParse;
 		if ( !r_skipBump.GetBool() && !r_materialNewParse.GetBool() )
@@ -605,7 +595,8 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 	uniforms->parallaxGrazingAngle.Set( din->parallax.grazingAngle );
 	uniforms->parallaxShadowSoftness.Set( din->parallax.shadowSoftness );
 	uniforms->parallaxIterations.Set( din->parallax.linearSteps, din->parallax.refineSteps, din->parallax.shadowSteps );
-	uniforms->parallaxOffsetExternalShadows.Set( din->parallax.offsetExternalShadows );
+	if ( din->parallax.offsetExternalShadows )
+		flags |= SFL_INTERACTION_PARALLAX_OFFSET_EXTERNAL_SHADOWS;
 
 	vertexCache.VertexPosition( din->surf->ambientCache );
 
@@ -632,13 +623,18 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din ) {
 	}
 	uniforms->diffuseColor.Set( din->diffuseColor );
 	uniforms->specularColor.Set( din->specularColor );
-	if ( !din->bumpImage ) {
-		uniforms->hasTextureDNSP.Set( 1, 0, 1, enableParallax );
-	} else {
-		uniforms->hasTextureDNSP.Set( 1, 1, 1, enableParallax );
-	}
-	uniforms->useBumpmapLightTogglingFix.Set( r_useBumpmapLightTogglingFix.GetBool() && !din->surf->material->ShouldCreateBackSides() );
-	uniforms->RGTC.Set( din->bumpImage->internalFormat == GL_COMPRESSED_RG_RGTC2 );
+	flags |= SFL_SURFACE_HAS_DIFFUSE_TEXTURE;
+	flags |= SFL_SURFACE_HAS_SPECULAR_TEXTURE;
+	if ( din->bumpImage )
+		flags |= SFL_SURFACE_HAS_NORMAL_TEXTURE;
+	if ( enableParallax )
+		flags |= SFL_SURFACE_HAS_PARALLAX_TEXTURE;
+	if ( din->bumpImage->internalFormat == GL_COMPRESSED_RG_RGTC2 )
+		flags |= SFL_SURFACE_NORMAL_TEXTURE_RGTC;
+	if ( r_useBumpmapLightTogglingFix.GetBool() && !din->surf->material->ShouldCreateBackSides() )
+		flags |= SFL_INTERACTION_BUMPMAP_LIGHT_TOGGLING_FIX;
+
+	uniforms->flags.Set( flags );
 
 	RB_DrawElementsWithCounters( din->surf, DCK_INTERACTION );
 }
