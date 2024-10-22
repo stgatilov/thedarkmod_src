@@ -22,8 +22,9 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #pragma tdm_include "tdm_parallax.glsl"
 #pragma tdm_include "tdm_constants_shared.glsl"
 
-in vec2 var_TexDiffuse;
 in vec2 var_TexNormal;
+in vec2 var_TexParallax;
+in vec2 var_TexDiffuse;
 in vec2 var_TexSpecular;
 in vec2 var_TexCoord;
 in vec4 var_TexLight;
@@ -54,6 +55,10 @@ uniform vec4 u_lightTextureMatrix[2];
 uniform vec4 u_diffuseColor;
 uniform vec4 u_specularColor;
 
+uniform vec4 u_bumpMatrix[2];
+uniform vec4 u_diffuseMatrix[2];
+uniform vec4 u_specularMatrix[2];
+
 uniform vec2 u_parallaxHeightScale;
 uniform ivec3 u_parallaxIterations;
 uniform float u_parallaxGrazingAngle;
@@ -70,19 +75,19 @@ vec3 computeInteraction(out InteractionGeometry props, out vec3 worldParallax) {
 	if (checkFlag(u_flags, SFL_SURFACE_HAS_PARALLAX_TEXTURE)) {
 		vec3 offset = computeParallaxOffset(
 			u_parallaxTexture, u_parallaxHeightScale,
-			var_TexCoord, viewDirLocal,
+			var_TexParallax, viewDirLocal,
 			u_parallaxGrazingAngle, u_parallaxIterations.xy
 		);
-		vec2 texDiffuse = var_TexDiffuse + offset.xy;
-		vec2 texSpecular = var_TexSpecular + offset.xy;
-		vec2 texNormal = var_TexNormal + offset.xy;
+
+		bool hasTextureMatrix = checkFlag(u_flags, SFL_SURFACE_HAS_TEXTURE_MATRIX);
+		vec2 texNormal = var_TexNormal + transformSurfaceTexOffset(offset.xy, hasTextureMatrix, u_bumpMatrix);
+		vec2 texDiffuse = var_TexDiffuse + transformSurfaceTexOffset(offset.xy, hasTextureMatrix, u_diffuseMatrix);
+		vec2 texSpecular = var_TexSpecular + transformSurfaceTexOffset(offset.xy, hasTextureMatrix, u_specularMatrix);
 
 		// use original gradients to avoid artifacts on relief silhouette
-		vec2 derTcX = dFdx(var_TexCoord);
-		vec2 derTcY = dFdy(var_TexCoord);
-		diffuseTexColor = textureGrad(u_diffuseTexture, texDiffuse, derTcX, derTcY);
-		specularTexColor = textureGrad(u_specularTexture, texSpecular, derTcX, derTcY);
-		normalTexColor = textureGrad(u_normalTexture, texNormal, derTcX, derTcY);
+		normalTexColor = textureGrad(u_normalTexture, texNormal, dFdx(var_TexNormal), dFdy(var_TexNormal));
+		diffuseTexColor = textureGrad(u_diffuseTexture, texDiffuse, dFdx(var_TexDiffuse), dFdy(var_TexDiffuse));
+		specularTexColor = textureGrad(u_specularTexture, texSpecular, dFdx(var_TexSpecular), dFdy(var_TexSpecular));
 
 		vec3 scaledOffset = scaleTexcoordOffsetToModelSpace(
 			offset,
@@ -94,7 +99,7 @@ vec3 computeInteraction(out InteractionGeometry props, out vec3 worldParallax) {
 
 		parallaxSelfShadow = computeParallaxShadow(
 			u_parallaxTexture, u_parallaxHeightScale,
-			var_TexCoord, offset, lightDirLocal,
+			var_TexParallax, offset, lightDirLocal,
 			u_parallaxIterations.z, u_parallaxShadowSoftness
 		);
 	}

@@ -603,6 +603,7 @@ typedef struct {
 	idVec4				lightProjection[4];		// transforms object coords into light-volume coords
 	idVec4				lightTextureMatrix[2];	// transforms light-volume coords into lightImage texcoords
 	idVec4				bumpMatrix[2];
+	idVec4				parallaxMatrix[2];
 	idVec4				diffuseMatrix[2];
 	idVec4				specularMatrix[2];
 	parallaxStage_t		parallax;

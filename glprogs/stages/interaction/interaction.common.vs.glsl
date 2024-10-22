@@ -27,8 +27,11 @@ in vec3 attr_Bitangent;
 in vec3 attr_Normal;
 in vec4 attr_Color;
 
-out vec2 var_TexDiffuse;
+uniform int u_flags;
+
 out vec2 var_TexNormal;
+out vec2 var_TexParallax;
+out vec2 var_TexDiffuse;
 out vec2 var_TexSpecular;
 out vec2 var_TexCoord;
 out vec4 var_TexLight;
@@ -46,6 +49,7 @@ uniform mat4 u_modelViewMatrix;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_projectionMatrix;
 uniform vec4 u_bumpMatrix[2];
+uniform vec4 u_parallaxMatrix[2];
 uniform vec4 u_diffuseMatrix[2];
 uniform vec4 u_specularMatrix[2];
 uniform mat4 u_lightProjectionFalloff;
@@ -60,9 +64,10 @@ void interactionProcessVertex() {
 	generateSurfaceProperties(
 		attr_TexCoord, attr_Color, 
 		attr_Tangent, attr_Bitangent, attr_Normal,
-		u_bumpMatrix, u_diffuseMatrix, u_specularMatrix,
+		u_bumpMatrix, u_parallaxMatrix, u_diffuseMatrix, u_specularMatrix,
 		u_colorModulate, u_colorAdd,
-		var_TexNormal, var_TexDiffuse, var_TexSpecular,
+		u_flags,
+		var_TexNormal, var_TexParallax, var_TexDiffuse, var_TexSpecular,
 		var_Color, var_TangentBitangentNormalMatrix
 	);
 	var_TexCoord = attr_TexCoord.xy;

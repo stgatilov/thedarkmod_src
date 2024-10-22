@@ -69,6 +69,7 @@ struct InteractionStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM( mat4, modelViewMatrix )
 	DEFINE_UNIFORM( mat4, projectionMatrix )
 	DEFINE_UNIFORM( vec4, bumpMatrix/*[2]*/ )
+	DEFINE_UNIFORM( vec4, parallaxMatrix/*[2]*/ )
 	DEFINE_UNIFORM( vec4, diffuseMatrix/*[2]*/ )
 	DEFINE_UNIFORM( vec4, specularMatrix/*[2]*/ )
 	DEFINE_UNIFORM( mat4, lightProjectionFalloff )
@@ -417,7 +418,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 				}
 
 				if ( surfaceStage->lighting == SL_PARALLAX && !r_skipParallax.GetBool() ) {
-					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, NULL, NULL );
+					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, inter.parallaxMatrix, NULL );
 					inter.parallax = *surfaceStage->parallax;
 
 					if ( inter.parallax.heightMinReg >= 0 )
@@ -502,7 +503,7 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 						PrepareDrawCommand( &inter, lightFlags );
 						ClearInter();
 					}
-					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, NULL, NULL );
+					R_SetDrawInteraction( surfaceStage, surfaceRegs, &inter.parallaxImage, inter.parallaxMatrix, NULL );
 					inter.parallax = *surfaceStage->parallax;
 
 					if ( inter.parallax.heightMinReg >= 0 )
@@ -602,9 +603,22 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din, int flags ) {
 
 	uniforms->modelMatrix.Set( din->surf->space->modelMatrix );
 	uniforms->modelViewMatrix.Set( din->surf->space->modelViewMatrix );
+
+	idVec4 matIdentity[2] = { idVec4(1, 0, 0, 0), idVec4(0, 1, 0, 0) };
+	idVec4 matZero[2] = { idVec4(0, 0, 0, 0), idVec4(0, 0, 0, 0) };	// TODO: remove this hack when "r_materialNewParse 0" is dead
+	bool nontrivialMatrix = false;
+	for ( const idVec4 *matr : { din->bumpMatrix, din->parallaxMatrix, din->diffuseMatrix, din->specularMatrix } ) {
+		if ( memcmp( matr, matIdentity, sizeof(matIdentity) ) != 0 && memcmp( matr, matZero, sizeof(matZero) ) != 0 )
+			nontrivialMatrix = true;
+	}
+	if ( nontrivialMatrix )
+		flags |= SFL_SURFACE_HAS_TEXTURE_MATRIX;
+
 	uniforms->bumpMatrix.SetArray( 2, (float*)din->bumpMatrix );
+	uniforms->parallaxMatrix.SetArray( 2, (float*)din->parallaxMatrix );
 	uniforms->diffuseMatrix.SetArray( 2, (float*)din->diffuseMatrix );
 	uniforms->specularMatrix.SetArray( 2, (float*)din->specularMatrix );
+
 	uniforms->lightProjectionFalloff.Set( (float*)din->lightProjection );
 	uniforms->lightTextureMatrix.SetArray( 2, (float*)din->lightTextureMatrix );
 	switch ( din->vertexColor ) {

@@ -13,26 +13,38 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 
 ******************************************************************************/
 
+#pragma tdm_include "tdm_constants_shared.glsl"
+
+// various helpers for transforming texcoords for different interaction stages
+vec2 transformSurfaceTexCoords(vec2 attrTexCoord, bool hasMatrix, vec4 texMatrix[2]) {
+	if (!hasMatrix)
+		return attrTexCoord;
+	mat2 matr = mat2(texMatrix[0].xy, texMatrix[1].xy);
+	return attrTexCoord * matr + vec2(texMatrix[0].w, texMatrix[1].w);
+}
+vec2 transformSurfaceTexOffset(vec2 attrTexCoord, bool hasMatrix, vec4 texMatrix[2]) {
+	if (!hasMatrix)
+		return attrTexCoord;
+	mat2 matr = mat2(texMatrix[0].xy, texMatrix[1].xy);
+	return attrTexCoord * matr;
+}
+
 // computes all vertex shader outputs related to surface texturing & coloring
 void generateSurfaceProperties(
 	vec4 attrTexCoord, vec4 attrColor,
 	vec3 attrTangent, vec3 attrBitangent, vec3 attrNormal,
-	vec4 bumpMatrix[2], vec4 diffuseMatrix[2], vec4 specularMatrix[2],
+	vec4 normalMatrix[2], vec4 parallaxMatrix[2], vec4 diffuseMatrix[2], vec4 specularMatrix[2],
 	vec4 colorModulate, vec4 colorAdd,
-	out vec2 texNormal, out vec2 texDiffuse, out vec2 texSpecular,
+	int flags,
+	out vec2 texNormal, out vec2 texParallax, out vec2 texDiffuse, out vec2 texSpecular,
 	out vec4 vertexColor, out mat3 matTangentToLocal
 ) {
-	// normal map texgen
-	texNormal.x = dot(attrTexCoord, bumpMatrix[0]);
-	texNormal.y = dot(attrTexCoord, bumpMatrix[1]);
-
-	// diffuse map texgen
-	texDiffuse.x = dot(attrTexCoord, diffuseMatrix[0]);
-	texDiffuse.y = dot(attrTexCoord, diffuseMatrix[1]);
-
-	// specular map texgen
-	texSpecular.x = dot(attrTexCoord, specularMatrix[0]);
-	texSpecular.y = dot(attrTexCoord, specularMatrix[1]);
+	// per-stage texcoords generation
+	bool hasMatrix = checkFlag(flags, SFL_SURFACE_HAS_TEXTURE_MATRIX);
+	texNormal = transformSurfaceTexCoords(attrTexCoord.xy, hasMatrix, normalMatrix);
+	texParallax = transformSurfaceTexCoords(attrTexCoord.xy, hasMatrix, parallaxMatrix);
+	texDiffuse = transformSurfaceTexCoords(attrTexCoord.xy, hasMatrix, diffuseMatrix);
+	texSpecular = transformSurfaceTexCoords(attrTexCoord.xy, hasMatrix, specularMatrix);
 
 	// color generation
 	vertexColor = attrColor * colorModulate + colorAdd;

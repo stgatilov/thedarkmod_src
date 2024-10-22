@@ -24,7 +24,7 @@ out vec4 FragColor;
 #define TDM_allow_ARB_texture_gather STGATILOV_USEGATHER
 #pragma tdm_include "tdm_shadowmaps.glsl"
 
-uniform vec4	u_shadowRect;
+uniform vec4 u_shadowRect;
 uniform sampler2D u_shadowMap;
 
 in vec3 var_LightDirWorld;

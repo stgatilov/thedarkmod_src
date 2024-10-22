@@ -19,6 +19,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #define SFL_SURFACE_HAS_PARALLAX_TEXTURE				0x08
 
 #define SFL_SURFACE_NORMAL_TEXTURE_RGTC					0x10
+#define SFL_SURFACE_HAS_TEXTURE_MATRIX					0x20	// in any stage
 
 #define SFL_LIGHT_CUBIC									0x0100
 #define SFL_LIGHT_AMBIENT_HAS_DIFFUSE_CUBEMAP			0x0200
