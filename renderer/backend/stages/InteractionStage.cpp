@@ -595,7 +595,8 @@ void InteractionStage::PrepareDrawCommand( drawInteraction_t *din, int flags ) {
 	uniforms->parallaxHeightScale.Set( din->parallax.heightMin, din->parallax.heightMax );
 	uniforms->parallaxGrazingAngle.Set( din->parallax.grazingAngle );
 	uniforms->parallaxShadowSoftness.Set( din->parallax.shadowSoftness );
-	uniforms->parallaxIterations.Set( din->parallax.linearSteps, din->parallax.refineSteps, din->parallax.shadowSteps );
+	int shadowSteps = ( din->surf->dsFlags & DSF_BLOCK_SELF_SHADOWS ? 0 : din->parallax.shadowSteps );
+	uniforms->parallaxIterations.Set( din->parallax.linearSteps, din->parallax.refineSteps, shadowSteps );
 	if ( din->parallax.offsetExternalShadows )
 		flags |= SFL_INTERACTION_PARALLAX_OFFSET_EXTERNAL_SHADOWS;
 

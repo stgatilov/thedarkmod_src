@@ -140,6 +140,7 @@ idMat4 RB_GetShaderTextureMatrix( const float *shaderRegisters, const textureSta
 
 static const int DSF_VIEW_INSIDE_SHADOW	= 1;
 static const int DSF_SOFT_PARTICLE = 2; // #3878
+static const int DSF_BLOCK_SELF_SHADOWS = 4; // #6571: used when light interaction and self-shadows are computed in one draw call
 
 struct viewLight_s;
 
@@ -160,8 +161,6 @@ typedef struct drawSurf_s {
 
 	idScreenRect			scissorRect;		// for scissor clipping, local inside renderView viewport
 	int						dsFlags;			// DSF_VIEW_INSIDE_SHADOW, etc
-	//vertCacheHandle_t		dynamicTexCoords;	// float * in vertex cache memory // duzenko: disabled in 2.08, to be removed in 2.09
-	// specular directions for non vertex program cards, skybox texcoords, etc
 	float					particle_radius;	// The radius of individual quads for soft particles #3878
 
 	void CopyGeo( const srfTriangles_t *tri ) {
@@ -1406,7 +1405,7 @@ void R_AddDrawSurf( const srfTriangles_t *tri, const viewEntity_t *space, const 
 					const idMaterial *shader, const idScreenRect &scissor, const float soft_particle_radius = -1.0f, bool deferred = false ); // soft particles in #3878
 
 drawSurf_t *R_PrepareLightSurf( const srfTriangles_t *tri, const viewEntity_t *space,
-					const idMaterial *shader, const idScreenRect &scissor, bool viewInsideShadow );
+					const idMaterial *shader, const idScreenRect &scissor, bool viewInsideShadow, bool blockSelfShadows );
 
 bool R_CreateAmbientCache( srfTriangles_t *tri, bool needsLighting );
 void R_CreatePrivateShadowCache( srfTriangles_t *tri );

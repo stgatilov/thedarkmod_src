@@ -763,7 +763,7 @@ R_PrepareLightSurf
 =================
 */
 drawSurf_t *R_PrepareLightSurf( const srfTriangles_t *tri, const viewEntity_t *space,
-		const idMaterial *material, const idScreenRect &scissor, bool viewInsideShadow ) {
+		const idMaterial *material, const idScreenRect &scissor, bool viewInsideShadow, bool blockSelfShadows ) {
 	if ( !space ) {
 		space = &tr.viewDef->worldSpace;
 	}
@@ -779,6 +779,9 @@ drawSurf_t *R_PrepareLightSurf( const srfTriangles_t *tri, const viewEntity_t *s
 
 	if ( viewInsideShadow ) {
 		drawSurf->dsFlags |= DSF_VIEW_INSIDE_SHADOW;
+	}
+	if ( blockSelfShadows ) {	// #6571
+		drawSurf->dsFlags |= DSF_BLOCK_SELF_SHADOWS;
 	}
 
 	if ( !material ) {
@@ -1096,7 +1099,7 @@ void R_AddLightSurfaces( void ) {
 			if ( !vertexCache.CacheIsCurrent( tri->indexCache ) ) {
 				tri->indexCache = vertexCache.AllocIndex( tri->indexes, tri->numIndexes * sizeof( tri->indexes[0] ) );
 			}
-			drawSurf_t *surf = R_PrepareLightSurf( tri, NULL, NULL, vLight->scissorRect, true /* FIXME ? */ );
+			drawSurf_t *surf = R_PrepareLightSurf( tri, NULL, NULL, vLight->scissorRect, true /* FIXME ? */, false );
 			// actually link it in
 			surf->nextOnLight = vLight->globalShadows;
 			vLight->globalShadows = surf;
