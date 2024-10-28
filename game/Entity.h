@@ -83,6 +83,7 @@ extern const idEventDef EV_SetAngles;
 extern const idEventDef EV_ApplyImpulse;
 extern const idEventDef EV_SetLinearVelocity;
 extern const idEventDef EV_SetAngularVelocity;
+extern const idEventDef EV_SetGravity;
 extern const idEventDef EV_SetSkin;
 extern const idEventDef EV_ReskinCollisionModel; // #4232
 extern const idEventDef EV_StartSoundShader;
@@ -1614,6 +1615,7 @@ public:			// Events should be public, so they can be used from other places as w
 	void					Event_GetLinearVelocity( void );
 	void					Event_SetAngularVelocity( const idVec3 &velocity );
 	void					Event_GetAngularVelocity( void );
+	void					Event_SetGravity( const idVec3 &newGravity );
 	void					Event_ApplyImpulse( idEntity *ent, const int id, const idVec3 &point, const idVec3 &impulse );
 
 	void					Event_SetContents(const int contents);

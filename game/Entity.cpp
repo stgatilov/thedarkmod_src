@@ -127,6 +127,7 @@ const idEventDef EV_SetAngularVelocity( "setAngularVelocity", EventArgs('v', "ve
 	"a physics object is a vector that passes through the center of mass. The\n" \
 	"direction of this vector defines the axis of rotation and the magnitude\n" \
 	"defines the rate of rotation about the axis in radians per second.");
+const idEventDef EV_SetGravity( "setGravity", EventArgs('v', "newGravity", ""), EV_RETURNS_VOID, "Sets a new gravity vector for this entity. Note that non-upright vectors are poorly supported at present.");
 
 // tels #2897
 const idEventDef EV_ApplyImpulse( "applyImpulse", EventArgs(
@@ -588,6 +589,7 @@ ABSTRACT_DECLARATION( idClass, idEntity )
 	EVENT( EV_SetLinearVelocity,	idEntity::Event_SetLinearVelocity )
 	EVENT( EV_GetAngularVelocity,	idEntity::Event_GetAngularVelocity )
 	EVENT( EV_SetAngularVelocity,	idEntity::Event_SetAngularVelocity )
+	EVENT( EV_SetGravity,			idEntity::Event_SetGravity )
 	EVENT( EV_ApplyImpulse,			idEntity::Event_ApplyImpulse )
 
 	EVENT( EV_SetContents,			idEntity::Event_SetContents )
@@ -7405,6 +7407,15 @@ idEntity::Event_GetAngularVelocity
 */
 void idEntity::Event_GetAngularVelocity( void ) {
 	idThread::ReturnVector( GetPhysics()->GetAngularVelocity() );
+}
+
+/*
+================
+idEntity::Event_SetGravity
+================
+*/
+void idEntity::Event_SetGravity( const idVec3 &newGravity ) {
+	GetPhysics()->SetGravity( newGravity );
 }
 
 /*
