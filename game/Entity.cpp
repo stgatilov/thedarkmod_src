@@ -164,6 +164,9 @@ const idEventDef EV_GetColor( "getColor", EventArgs(), 'v', "Gets the color of t
 const idEventDef EV_SetHealth( "setHealth", EventArgs( 'f', "newHealth", "" ), EV_RETURNS_VOID, 
 	"Sets the health of this entity to the new value. Setting health to 0 or lower via this method will result in the entity switching to its broken state." );
 const idEventDef EV_GetHealth( "getHealth", EventArgs(), 'f', "Gets the health of this entity." );
+const idEventDef EV_SetMaxHealth( "setMaxHealth", EventArgs( 'f', "newMaxHealth", "" ), EV_RETURNS_VOID, 
+	"Sets the max health of this entity to the new value. If current health is higher than max health, the current health will be lowered to become equal to max health. Setting health to 0 or lower via this method will result in the entity switching to its broken state." );
+const idEventDef EV_GetMaxHealth( "getMaxHealth", EventArgs(), 'f', "Gets the max health of this entity." );
 
 const idEventDef EV_CacheSoundShader( "cacheSoundShader", EventArgs('s', "shaderName", "the sound shader to cache"), EV_RETURNS_VOID, 
 	"Ensure the specified sound shader is loaded by the system.\nPrevents cache misses when playing sound shaders.");
@@ -569,6 +572,8 @@ ABSTRACT_DECLARATION( idClass, idEntity )
 	EVENT( EV_GetColor,				idEntity::Event_GetColor )
 	EVENT( EV_SetHealth,			idEntity::Event_SetHealth )
 	EVENT( EV_GetHealth,			idEntity::Event_GetHealth )
+	EVENT( EV_SetMaxHealth,			idEntity::Event_SetMaxHealth )
+	EVENT( EV_GetMaxHealth,			idEntity::Event_GetMaxHealth )
 	EVENT( EV_IsHidden,				idEntity::Event_IsHidden )
 	EVENT( EV_Hide,					idEntity::Event_Hide )
 	EVENT( EV_Show,					idEntity::Event_Show )
@@ -7199,6 +7204,34 @@ idEntity::Event_GetHealth
 */
 void idEntity::Event_GetHealth( void ) {
 	idThread::ReturnInt( health );
+}
+
+/*
+================
+idEntity::Event_SetMaxHealth
+================
+*/
+void idEntity::Event_SetMaxHealth( float newMaxHealth ) {
+	maxHealth = static_cast<int>(newMaxHealth);
+
+	if( health > maxHealth )
+	{
+		health = maxHealth;
+	}
+
+	if( health <= 0 && !m_bIsBroken )
+	{
+		BecomeBroken( NULL );
+	}
+}
+
+/*
+================
+idEntity::Event_GetMaxHealth
+================
+*/
+void idEntity::Event_GetMaxHealth( void ) {
+	idThread::ReturnInt( maxHealth );
 }
 
 /*

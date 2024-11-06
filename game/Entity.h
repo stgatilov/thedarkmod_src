@@ -1595,6 +1595,8 @@ public:			// Events should be public, so they can be used from other places as w
 	void					Event_GetColor( void );
 	void					Event_SetHealth( float newHealth );
 	void					Event_GetHealth( void );
+	void					Event_SetMaxHealth( float newMaxHealth );
+	void					Event_GetMaxHealth( void );
 	void					Event_IsHidden( void );
 	void					Event_Hide( void );
 	void					Event_Show( void );

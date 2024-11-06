@@ -485,6 +485,8 @@ const idEventDef AI_GetEyePos( "getEyePos", EventArgs(), 'v', "Get eye position 
 const idEventDef AI_SetHealth( "setHealth", EventArgs('f', "health", ""), EV_RETURNS_VOID, "Use these to set the health of AI or players (this also updates the AI_DEAD flag)");
 const idEventDef AI_GetHealth( "getHealth", EventArgs(), 'f', "Returns the current health.");
 
+const idEventDef AI_SetMaxHealth( "setMaxHealth", EventArgs('f', "maxHealth", ""), EV_RETURNS_VOID, "Use these to set the max health of AI or players. Note that the health bar GUI is limited to showing a max health of 100. If health exceeds max health after this, health will be set to be equal to max health (which would also update the AI_DEAD flag)");
+
 // Attachment Related Events:
 const idEventDef AI_Attach( "attach", EventArgs('e', "ent", "", 's', "attName", "the desired name of the attachment, e.g., 'melee_weapon'"), EV_RETURNS_VOID, 
 	"Attach an entity to the AI.\n" \
@@ -646,6 +648,7 @@ CLASS_DECLARATION( idAFEntity_Gibbable, idActor )
 	EVENT( AI_GetEyePos,				idActor::Event_GetEyePos )
 	EVENT( AI_SetHealth,				idActor::Event_SetHealth )
 	EVENT( AI_GetHealth,				idActor::Event_GetHealth )
+	EVENT( AI_SetMaxHealth,				idActor::Event_SetMaxHealth )
 
 	// Obsttorte: #0540
 	EVENT(EV_getAnimRate,				idActor::Event_getAnimRate)
@@ -5106,6 +5109,21 @@ idActor::Event_GetHealth
 */
 void idActor::Event_GetHealth( void ) {
 	idThread::ReturnFloat( health );
+}
+
+/*
+=====================
+idActor::Event_SetMaxHealth
+=====================
+*/
+void idActor::Event_SetMaxHealth( float newMaxHealth ) {
+	maxHealth = static_cast<int>(newMaxHealth);
+	fl.takedamage = true;
+
+	if( health > newMaxHealth )
+	{
+		Event_SetHealth(newMaxHealth);
+	}
 }
 
 /*

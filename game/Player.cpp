@@ -3156,6 +3156,7 @@ void idPlayer::UpdateHudStats( idUserInterface *_hud )
 	}*/
 
 	_hud->SetStateInt( "player_health", health );
+	_hud->SetStateInt( "player_max_health", maxHealth );
 	// Commented out by Dram. TDM does not use stamina
 	//_hud->SetStateInt( "player_stamina", staminapercentage );
 	_hud->SetStateInt( "player_shadow", 1 );
