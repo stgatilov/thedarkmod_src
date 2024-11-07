@@ -89,6 +89,7 @@ extern const idEventDef EV_ReskinCollisionModel; // #4232
 extern const idEventDef EV_StartSoundShader;
 extern const idEventDef EV_StopSound;
 extern const idEventDef EV_SetFrobActionScript;
+extern const idEventDef EV_SetUsedBy;
 extern const idEventDef EV_CacheSoundShader;
 extern const idEventDef EV_ExtinguishLights;
 extern const idEventDef EV_TeleportTo;
@@ -1602,6 +1603,7 @@ public:			// Events should be public, so they can be used from other places as w
 	void					Event_Hide( void );
 	void					Event_Show( void );
 	void					Event_SetFrobActionScript( const char *frobActionScript );
+	void					Event_SetUsedBy( idEntity *useEnt, bool canUse );
 	void					Event_CacheSoundShader( const char *soundName );
 	void					Event_StartSoundShader( const char *soundName, int channel );
 	void					Event_StopSound( int channel, int netSync );

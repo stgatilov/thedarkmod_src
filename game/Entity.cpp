@@ -170,6 +170,8 @@ const idEventDef EV_GetMaxHealth( "getMaxHealth", EventArgs(), 'f', "Gets the ma
 
 const idEventDef EV_SetFrobActionScript( "setFrobActionScript", EventArgs('s', "frobActionScript", "the new script to call when the entity is frobbed"), EV_RETURNS_VOID, 
 	"Changes the frob action script of this entity. Also updates the 'frob_action_script' spawnarg.");
+const idEventDef EV_SetUsedBy( "setUsedBy", EventArgs('e', "ent", "specify an entity here, like a key", 'd', "b_canUse", "whether the specified entity can use this entity"), EV_RETURNS_VOID,
+	"Allows to change which entities can use this entity.");
 const idEventDef EV_CacheSoundShader( "cacheSoundShader", EventArgs('s', "shaderName", "the sound shader to cache"), EV_RETURNS_VOID, 
 	"Ensure the specified sound shader is loaded by the system.\nPrevents cache misses when playing sound shaders.");
 const idEventDef EV_StartSoundShader( "startSoundShader", EventArgs('s', "shaderName", "the sound shader to play", 'd', "channel", "the channel to play the sound on"), 'f', 
@@ -580,6 +582,7 @@ ABSTRACT_DECLARATION( idClass, idEntity )
 	EVENT( EV_Hide,					idEntity::Event_Hide )
 	EVENT( EV_Show,					idEntity::Event_Show )
 	EVENT( EV_SetFrobActionScript,	idEntity::Event_SetFrobActionScript )
+	EVENT( EV_SetUsedBy,			idEntity::Event_SetUsedBy )
 	EVENT( EV_CacheSoundShader,		idEntity::Event_CacheSoundShader )
 	EVENT( EV_StartSoundShader,		idEntity::Event_StartSoundShader )
 	EVENT( EV_StartSound,			idEntity::Event_StartSound )
@@ -7275,6 +7278,22 @@ void idEntity::Event_SetFrobActionScript( const char *frobActionScript ) {
 	spawnArgs.Set("frob_action_script", str);
 }
 
+/*
+================
+idEntity::Event_SetUsedBy
+================
+*/
+void idEntity::Event_SetUsedBy( idEntity *useEnt, bool canUse ) {
+
+	if( canUse )
+		m_UsedByName.AddUnique( useEnt->name );
+
+	else
+		m_UsedByName.Remove( useEnt->name );
+}
+
+/*
+================
 idEntity::Event_CacheSoundShader
 ================
 */
