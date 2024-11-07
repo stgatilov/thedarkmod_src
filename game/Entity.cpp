@@ -168,6 +168,8 @@ const idEventDef EV_SetMaxHealth( "setMaxHealth", EventArgs( 'f', "newMaxHealth"
 	"Sets the max health of this entity to the new value. If current health is higher than max health, the current health will be lowered to become equal to max health. Setting health to 0 or lower via this method will result in the entity switching to its broken state." );
 const idEventDef EV_GetMaxHealth( "getMaxHealth", EventArgs(), 'f', "Gets the max health of this entity." );
 
+const idEventDef EV_SetFrobActionScript( "setFrobActionScript", EventArgs('s', "frobActionScript", "the new script to call when the entity is frobbed"), EV_RETURNS_VOID, 
+	"Changes the frob action script of this entity. Also updates the 'frob_action_script' spawnarg.");
 const idEventDef EV_CacheSoundShader( "cacheSoundShader", EventArgs('s', "shaderName", "the sound shader to cache"), EV_RETURNS_VOID, 
 	"Ensure the specified sound shader is loaded by the system.\nPrevents cache misses when playing sound shaders.");
 const idEventDef EV_StartSoundShader( "startSoundShader", EventArgs('s', "shaderName", "the sound shader to play", 'd', "channel", "the channel to play the sound on"), 'f', 
@@ -577,6 +579,7 @@ ABSTRACT_DECLARATION( idClass, idEntity )
 	EVENT( EV_IsHidden,				idEntity::Event_IsHidden )
 	EVENT( EV_Hide,					idEntity::Event_Hide )
 	EVENT( EV_Show,					idEntity::Event_Show )
+	EVENT( EV_SetFrobActionScript,	idEntity::Event_SetFrobActionScript )
 	EVENT( EV_CacheSoundShader,		idEntity::Event_CacheSoundShader )
 	EVENT( EV_StartSoundShader,		idEntity::Event_StartSoundShader )
 	EVENT( EV_StartSound,			idEntity::Event_StartSound )
@@ -7263,6 +7266,15 @@ void idEntity::Event_Show( void ) {
 
 /*
 ================
+idEntity::Event_SetFrobActionScript
+================
+*/
+void idEntity::Event_SetFrobActionScript( const char *frobActionScript ) {
+	idStr str = frobActionScript;
+	m_FrobActionScript = str;
+	spawnArgs.Set("frob_action_script", str);
+}
+
 idEntity::Event_CacheSoundShader
 ================
 */
