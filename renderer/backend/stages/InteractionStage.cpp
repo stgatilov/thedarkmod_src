@@ -456,6 +456,11 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 				}
 			}
 
+			// without diffuse and specular textures, this render will have no visible effect
+			// we need to avoid it, since otherwise animated textures (with 60+ if-ed stages) will be slow as hell
+			if (!inter.diffuseImage && !inter.specularImage)
+				continue;
+
 			PrepareDrawCommand( &inter, lightFlags );
 		}
 	}
