@@ -565,6 +565,8 @@ bool R_Lightgem_Render() {
 
 	gameRenderWorld->UpdateEntityDef( lg->GetModelDefHandle(), lgent ); // Make sure the lg is in the updated position
 	auto &lightgemRv = parms.renderView;
+	// Tinkerton lightgem fix
+	lightgemRv.vieworg = lg->GetPhysics()->GetOrigin();
 	lightgemRv.width = SCREEN_WIDTH;
 	lightgemRv.height = SCREEN_HEIGHT;
 	lightgemRv.fov_x = lightgemRv.fov_y = DARKMOD_LG_RENDER_FOV;	// square, TODO: investigate lowering the value to increase performance on tall maps
