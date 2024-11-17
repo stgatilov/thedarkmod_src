@@ -35,6 +35,8 @@ void main() {
 	FragColor.rgb = computeInteraction(props, worldParallax);
 
 	vec3 worldNormal = mat3(u_modelMatrix) * var_TangentBitangentNormalMatrix[2];
+	if (props.localN.z < 0.0)	// #5862: reverse-sided material with Z < 0 normalmap
+		worldNormal = -worldNormal;
 
 	if (checkFlag(u_flags, SFL_INTERACTION_SHADOWS)) {
 		vec3 dirToLight = -var_LightDirWorld;
