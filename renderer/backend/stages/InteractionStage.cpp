@@ -406,7 +406,17 @@ void InteractionStage::ProcessSingleSurface( const viewLight_t *vLight, const sh
 
 			int beg = material->GetInteractionGroupStart( g );
 			int end = material->GetInteractionGroupEnd( g );
-			for ( int s = beg; s < end; s++ ) {
+
+			// force flickering if several stages of same kind are enabled in one interaction group
+			// now that artists can partition stages into groups explicitly, make sure they don't rely on some specific rule
+			bool backwards = backEnd.frameCount % 2 == 0;
+			int step = ( backwards ? -1 : 1 );
+			if ( backwards ) {
+				idSwap( beg, end );
+				beg--; end--;
+			}
+
+			for ( int s = beg; s != end; s += step ) {
 				const shaderStage_t	*surfaceStage = material->GetStage( s );
 				if ( !surf->IsStageEnabled( surfaceStage ) )
 					continue;
