@@ -58,6 +58,9 @@ typedef struct mtrParsingData_s {
 	bool			registersAreConstant;
 	bool			forceOverlays;
 	bool			usesFrobParm;	// stgatilov #5427: is parm11 referenced in current stage?
+
+	idList<int>		interactionSeparators;
+
 } mtrParsingData_t;
 
 
@@ -1908,26 +1911,42 @@ void idMaterial::DetectInteractionGroups() {
 	idList<shaderStage_t> ambientStages;
 	idList<idList<shaderStage_t>> interactionGroups;
 	int stageCountPerType[SL_COUNT] = {0};
+	bool explicitSeparators = ( pd->interactionSeparators.Num() > 0 );
+
+	interactionGroups.AddGrow( {} );	// first group (will be removed if remains empty)
 
 	// split stages into interaction groups and ambient stages
 	for ( int i = 0; i < numStages; i++ ) {
 		shaderStage_t stage = pd->parseStages[i];
 
+		// if at least one interaction separator is present,
+		// then interaction groups are determined explicitly according to the markings
+		if ( explicitSeparators && pd->interactionSeparators.Find( i ) )
+			interactionGroups.AddGrow( {} );
+
 		if ( stage.lighting == SL_AMBIENT ) {
 			ambientStages.AddGrow( stage );
+			continue;
 		}
-		else {
+
+		if ( !explicitSeparators ) {
 			// interaction group cannot have two stages of same kind
 			// so we stop expanding current group when we meet stage of a kind that we already got
-			if ( interactionGroups.Num() == 0 || stageCountPerType[stage.lighting] > 0 ) {
+			if ( stageCountPerType[stage.lighting] > 0 ) {
 				interactionGroups.AddGrow( {} );
 				memset( stageCountPerType, 0, sizeof(stageCountPerType) );
 			}
 
-			interactionGroups.Last().AddGrow( stage );
 			stageCountPerType[stage.lighting]++;
 		}
+
+		interactionGroups.Last().AddGrow( stage );
 	}
+
+	// drop empty interaction groups (easier than to avoid adding them)
+	for ( int i = interactionGroups.Num() - 1; i >= 0; i-- )
+		if ( interactionGroups[i].Num() == 0 )
+			interactionGroups.RemoveIndex( i );
 
 	// make stages in a group go in fixed order for simplicity
 	for ( idList<shaderStage_t> &group : interactionGroups ) {
@@ -2440,6 +2459,10 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 			SetMaterialFlag( MF_NOSHADOWS | MF_NOSELFSHADOW );	// noShadows and noSelfShadows
 
 			coverage = MC_TRANSLUCENT;							// translucent
+			continue;
+		}
+		else if ( token == "interactionSeparator" ) {
+			pd->interactionSeparators.AddGrow( numStages );
 			continue;
 		}
 		else if ( token == "{" ) {
