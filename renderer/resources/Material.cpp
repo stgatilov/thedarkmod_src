@@ -2461,7 +2461,7 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 			coverage = MC_TRANSLUCENT;							// translucent
 			continue;
 		}
-		else if ( token == "interactionSeparator" ) {
+		else if ( !token.Icmp( "interactionSeparator" ) ) {
 			pd->interactionSeparators.AddGrow( numStages );
 			continue;
 		}
