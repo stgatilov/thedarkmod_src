@@ -340,6 +340,7 @@ extern idCVar cv_tdm_rope_pull_force_factor;
 extern idCVar cv_tdm_obj_gui_file;
 extern idCVar cv_tdm_waituntilready_gui_file;
 extern idCVar cv_tdm_invgrid_gui_file;	// #4286
+extern idCVar cv_tdm_invgrid_sortstyle; // #6592
 extern idCVar cv_tdm_subtitles_gui_file;
 
 extern idCVar cv_tdm_hud_opacity;

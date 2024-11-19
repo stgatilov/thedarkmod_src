@@ -1612,7 +1612,8 @@ void idPlayer::CollectItemsAndCategoriesForInventoryGrid( idList< CInventoryItem
 			// Reverse order. New items at the end.
 			CInventoryItemPtr item = category->GetItem((category->GetNumItems() - 1) - j);
 			// Except for the weapons, where reverse order is unintuitive...
-			if ( item->GetType() == CInventoryItem::IT_WEAPON )
+			// #6592
+			if ( item->GetType() == CInventoryItem::IT_WEAPON || cv_tdm_invgrid_sortstyle.GetInteger() > 0 )
 				item = category->GetItem( j );
 
 			// check if we should add this item to the grid
