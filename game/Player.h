@@ -59,6 +59,7 @@ extern const idEventDef EV_Player_GetFrobbed;
 extern const idEventDef EV_Player_SetFrobOnlyUsedByInv;
 extern const idEventDef EV_Player_GetCalibratedLightgemValue;
 extern const idEventDef EV_Player_SetAirAccelerate;
+extern const idEventDef EV_Player_IsAirborne;
 
 // tels: #3282
 extern const idEventDef EV_Player_GetShouldered;
@@ -1345,6 +1346,7 @@ private:
 	void					Event_RopeRemovalCleanup( idEntity *RopeEnt );
 	void					Event_GetCalibratedLightgemValue( void );
 	void					Event_SetAirAccelerate( float newAccel );
+	void					Event_IsAirborne( void );
 	
 /**
 * TDM Events

@@ -288,6 +288,7 @@ const idEventDef EV_Player_GetCalibratedLightgemValue( "getCalibratedLightgemVal
 
 const idEventDef EV_SetAirAccelerate( "setAirAccelerate", EventArgs('f', "newAccelerate", "" ), EV_RETURNS_VOID,
 	"Sets a multiplier for the player's horizontal acceleration while airborne. Default is 1.0.");
+const idEventDef EV_IsAirborne( "isAirborne", EventArgs(), 'd', "Checks whether the player is in the air." );
 
 // greebo: Changes the projectile entityDef name of the given weapon (e.g. "broadhead").
 const idEventDef EV_ChangeWeaponProjectile("changeWeaponProjectile", EventArgs('s', "weaponName", "", 's', "projectileDefName", ""), EV_RETURNS_VOID, 
@@ -395,6 +396,7 @@ CLASS_DECLARATION( idActor, idPlayer )
 	EVENT( EV_Player_GetWeaponEntity,		idPlayer::Event_GetWeaponEntity )
 	EVENT( EV_Player_ExitTeleporter,		idPlayer::Event_ExitTeleporter )
 	EVENT( EV_SetAirAccelerate,				idPlayer::Event_SetAirAccelerate )
+	EVENT( EV_IsAirborne,					idPlayer::Event_IsAirborne )
 	EVENT( EV_Gibbed,						idPlayer::Event_Gibbed )
 
 	EVENT( EV_Player_GetEyePos,				idPlayer::Event_GetEyePos )
@@ -9154,6 +9156,15 @@ idPlayer::Event_SetAirAccelerate
 */
 void idPlayer::Event_SetAirAccelerate( float newAccel ) {
 	physicsObj.SetAirAccelerate( newAccel );
+}
+
+/*
+==================
+idPlayer::Event_IsAirborne
+==================
+*/
+void idPlayer::Event_IsAirborne( void ) {
+	idThread::ReturnFloat(physicsObj.m_bMidAir);
 }
 
 /*

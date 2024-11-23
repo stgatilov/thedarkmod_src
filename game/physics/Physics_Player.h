@@ -948,6 +948,7 @@ public:
 	  * @author		STiFU */
 	bool IsShouldering() const;
 
+	bool					m_bMidAir;
 private:
 		
 	/** @brief	  	Try to start the shouldering animation (#3607)
@@ -976,7 +977,6 @@ private:
 	idEntity*				m_pShoulderingGroundEntity;
 	bool					m_bShouldering_SkipDucking;
 	float					m_fShouldering_TimeToNextSound;
-	bool					m_bMidAir;
 };
 
 #endif /* !__PHYSICS_PLAYER_H__ */
