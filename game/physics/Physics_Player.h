@@ -109,6 +109,7 @@ public:
 	void					SetMaxJumpHeight( const float newMaxJumpHeight );
 	void					SetMovementType( const pmtype_t type );
 	int						GetMovementType( void ); // grayman #2345
+	void					SetAirAccelerate( const float newAirAccelerate );
 
 	/**
 	* Get/set the movement flags, used to force a crouch externally
@@ -397,6 +398,9 @@ private:
 	**/
 	float					m_DeltaViewYaw;
 	float					m_DeltaViewPitch;
+
+	// dragofer: Multiplier for the player's horizontal acceleration during AirMove.
+	float					m_AirAccelerate;
 
 	/**
 	* Peek entity that the player is leaning into

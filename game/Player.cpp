@@ -286,6 +286,9 @@ const idEventDef EV_ReadLightgemModifierFromWorldspawn("readLightgemModifierFrom
 
 const idEventDef EV_Player_GetCalibratedLightgemValue( "getCalibratedLightgemValue", EventArgs(), 'f', "Returns the calibrated light gem value.");
 
+const idEventDef EV_SetAirAccelerate( "setAirAccelerate", EventArgs('f', "newAccelerate", "" ), EV_RETURNS_VOID,
+	"Sets a multiplier for the player's horizontal acceleration while airborne. Default is 1.0.");
+
 // greebo: Changes the projectile entityDef name of the given weapon (e.g. "broadhead").
 const idEventDef EV_ChangeWeaponProjectile("changeWeaponProjectile", EventArgs('s', "weaponName", "", 's', "projectileDefName", ""), EV_RETURNS_VOID, 
 		"Changes the projectile entityDef name of the given weapon (e.g. \"broadhead\")\n" \
@@ -391,6 +394,7 @@ CLASS_DECLARATION( idActor, idPlayer )
 	EVENT( EV_Player_SelectWeapon,			idPlayer::Event_SelectWeapon )
 	EVENT( EV_Player_GetWeaponEntity,		idPlayer::Event_GetWeaponEntity )
 	EVENT( EV_Player_ExitTeleporter,		idPlayer::Event_ExitTeleporter )
+	EVENT( EV_SetAirAccelerate,				idPlayer::Event_SetAirAccelerate )
 	EVENT( EV_Gibbed,						idPlayer::Event_Gibbed )
 
 	EVENT( EV_Player_GetEyePos,				idPlayer::Event_GetEyePos )
@@ -9141,6 +9145,15 @@ idPlayer::Event_GetCalibratedLightgemValue
 void idPlayer::Event_GetCalibratedLightgemValue( void ) {
 	float clampVal = GetCalibratedLightgemValue();
 	idThread::ReturnFloat(clampVal);
+}
+
+/*
+==================
+idPlayer::Event_SetAirAccelerate
+==================
+*/
+void idPlayer::Event_SetAirAccelerate( float newAccel ) {
+	physicsObj.SetAirAccelerate( newAccel );
 }
 
 /*
