@@ -108,6 +108,8 @@ private:
 	void						Event_GetCeil( const float x );
 	// smallest integer (-1.5 => -2, 1.5 => 1, 1.3 => 1)
 	void						Event_GetFloor( const float x );
+	void						Event_GetMin( const float x, const float y );
+	void						Event_GetMax( const float x, const float y );
 	void						Event_GetSquareRoot( float theSquare );
 	void						Event_VecNormalize( idVec3 &vec );
 	void						Event_VecLength( idVec3 &vec );
