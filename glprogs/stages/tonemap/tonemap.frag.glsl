@@ -18,10 +18,20 @@ in vec2 var_TexCoord;
 out vec4 draw_Color;
 uniform sampler2D u_texture;
 
+uniform float u_exposure;
+
+uniform bool u_compressEnable;
+uniform float u_compressSwitchPoint;
+uniform float u_compressSwitchMultiplier;
+uniform float u_compressInitialSlope;
+uniform float u_compressTailMultiplier;
+uniform float u_compressTailShift;
+uniform float u_compressTailPower;
+
 uniform float u_gamma, u_brightness;
 uniform float u_desaturation;
 
-uniform int u_sharpen;
+uniform bool u_sharpen;
 uniform float u_sharpness;
 
 uniform float u_ditherInput;
@@ -115,6 +125,25 @@ vec3 ditherColor(vec3 value, float strength) {
 	return value;
 }
 
+float compressCurveScalar(float x) {
+	// compression curve consists of initial and tail parts
+	// see more: https://colab.research.google.com/gist/stgatilov/640485ffb49fb734e0642f6d5e34dff8/tonemap_compression_curve.ipynb
+	if (x < u_compressSwitchPoint) {
+		// initial: linear * exponent
+		float exponentialReduction = pow(u_compressSwitchMultiplier / u_compressInitialSlope, x / u_compressSwitchPoint);
+		return x * u_compressInitialSlope * exponentialReduction;
+	}
+	else {
+		// tail: tunable Reinhard with custom power
+		float deltaX = x - u_compressSwitchPoint;
+		float ratio = u_compressTailMultiplier / (u_compressTailShift + deltaX);
+		return 1.0 - pow(ratio, u_compressTailPower);
+	}
+}
+vec3 compressCurve(vec3 value) {
+	return vec3(compressCurveScalar(value.r), compressCurveScalar(value.g), compressCurveScalar(value.b));
+}
+
 vec3 adjustColor(vec3 color) {
 	// traditional gamma correction from Doom 3 (higher = brighter)
 	color = pow(color, vec3(1.0 / u_gamma));
@@ -129,7 +158,7 @@ vec3 adjustColor(vec3 color) {
 
 void main() {
 	vec3 color;
-	if (u_sharpen != 0) {
+	if (u_sharpen) {
 		color = sharpen(var_TexCoord);
 	} else {
 		color = texture(u_texture, var_TexCoord).rgb;
@@ -137,8 +166,12 @@ void main() {
 
 	if (u_ditherInput > 0)
 		color = ditherColor(color, -u_ditherInput);
+	color = max(color, vec3(0.0));  // avoid NaNs
 
-	color = max(color, vec3(0.0));  // avoid NaNs in gamma correction
+	color *= u_exposure;
+
+	if (u_compressEnable)
+		color = compressCurve(color);
 
 	color = adjustColor(color);
 

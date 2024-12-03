@@ -22,6 +22,41 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "renderer/backend/FrameBuffer.h"
 #include "renderer/backend/FrameBufferManager.h"
 
+idCVar r_postprocess_exposure(
+	"r_postprocess_exposure", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Multiplies color by coefficient before range compression.\n",
+	1e-3f, 1e+3f
+);
+
+idCVar r_postprocess_compress(
+	"r_postprocess_compress", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL,
+	"Perform range compression to map overbright colors into [0..1] output range.\n"
+	"This basically turns HDR into LDR, although in our case the input is not even linear..."
+);
+idCVar r_postprocess_compress_switch_point(
+	"r_postprocess_compress_switch_point", "1.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Range compression curve: two parts of the curve smoothly join at X = This.\n"
+	"Initial part exists to make normal colors look as before, while tail part exists to squeeze overbright colors.",
+	0.01f, 100.0f
+);
+idCVar r_postprocess_compress_switch_multiplier(
+	"r_postprocess_compress_switch_multiplier", "0.7", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Range compression curve: ratio Y/X = This at X = SwitchPoint.\n"
+	"Lower value sacrifices brightness of normal colors for more contrast in overbright colors.",
+	0.001f, 0.999f
+);
+idCVar r_postprocess_compress_initial_slope(
+	"r_postprocess_compress_initial_slope", "1.2", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Range compression curve: curve derivative at X = 0.\n"
+	"Values > 1 make dark colors more contrast.",
+	0.01f, 100.0f
+);
+idCVar r_postprocess_compress_tail_power(
+	"r_postprocess_compress_tail_power", "2.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Range compression curve: power of Reinhard-like tail function.\n"
+	"Higher value makes overbright colors get close to 1 (full bright) faster.",
+	0.1f, 10.0f
+);
 
 // postprocess related - J.C.Denton
 idCVar r_postprocess_gamma(
@@ -39,9 +74,9 @@ idCVar r_postprocess_brightness(
 idCVar r_postprocess_desaturation(
 	"r_postprocess_desaturation", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
 	"Desaturates the scene if positive.\n"
-	"Oversaturates the scene if negative (high values can cause color clamping)."
+	"Oversaturates the scene if negative (high values can cause color clamping).",
+	-5.0f, 5.0f
 );
-
 
 idCVar r_postprocess_sharpen(
 	"r_postprocess_sharpen", "1", CVAR_RENDERER|CVAR_BOOL|CVAR_ARCHIVE,
@@ -70,11 +105,24 @@ idCVar r_postprocess_dither_output( "r_postprocess_dither_output", "2",
 struct TonemapStage::Uniforms : GLSLUniformGroup {
 	UNIFORM_GROUP_DEF( Uniforms )
 	DEFINE_UNIFORM(sampler, texture)
+
+	DEFINE_UNIFORM(float, exposure)
+
+	DEFINE_UNIFORM(int, compressEnable)
+	DEFINE_UNIFORM(float, compressSwitchPoint)
+	DEFINE_UNIFORM(float, compressSwitchMultiplier)
+	DEFINE_UNIFORM(float, compressInitialSlope)
+	DEFINE_UNIFORM(float, compressTailMultiplier)
+	DEFINE_UNIFORM(float, compressTailShift)
+	DEFINE_UNIFORM(float, compressTailPower)
+
 	DEFINE_UNIFORM(float, gamma)
 	DEFINE_UNIFORM(float, brightness)
 	DEFINE_UNIFORM(float, desaturation)
+
 	DEFINE_UNIFORM(int, sharpen)
 	DEFINE_UNIFORM(float, sharpness)
+
 	DEFINE_UNIFORM(sampler, noiseImage)
 	DEFINE_UNIFORM(float, ditherInput)
 	DEFINE_UNIFORM(float, ditherOutput)
@@ -101,9 +149,35 @@ void TonemapStage::ApplyTonemap( FrameBuffer *destinationFbo, idImage *sourceTex
 
 	tonemapShader->Activate();
 	Uniforms *uniforms = tonemapShader->GetUniformGroup<Uniforms>();
+
+	uniforms->exposure.Set( r_postprocess_exposure.GetFloat() );
+
+	uniforms->compressEnable.Set( r_postprocess_compress.GetBool() );
+	if ( r_postprocess_compress.GetBool() ) {
+		float SwitchPoint = r_postprocess_compress_switch_point.GetFloat();
+		float SwitchMultiplier = r_postprocess_compress_switch_multiplier.GetFloat();
+		float InitialSlope = r_postprocess_compress_initial_slope.GetFloat();
+		float TailPower = r_postprocess_compress_tail_power.GetFloat();
+
+		// value and derivative of curve at switch point
+		float SwitchValue = SwitchMultiplier * SwitchPoint;
+		float SwitchSlope = SwitchMultiplier * ( 1.0f + idMath::Log( SwitchMultiplier / InitialSlope ) );
+		// select unknown parameters of tail curve to ensure C1-continuity at switch point
+		float TailShift = ( 1.0f - SwitchValue ) / SwitchSlope * TailPower;
+		float TailMultiplier = idMath::Pow( 1.0f - SwitchValue, 1.0f / TailPower ) * TailShift;
+
+		uniforms->compressSwitchPoint.Set( SwitchPoint );
+		uniforms->compressSwitchMultiplier.Set( SwitchMultiplier );
+		uniforms->compressInitialSlope.Set( InitialSlope );
+		uniforms->compressTailMultiplier.Set( TailMultiplier );
+		uniforms->compressTailShift.Set( TailShift );
+		uniforms->compressTailPower.Set( TailPower );
+	}
+
 	uniforms->gamma.Set( idMath::ClampFloat( 1e-3f, 1e+3f, r_postprocess_gamma.GetFloat() ) );
 	uniforms->brightness.Set( r_postprocess_brightness.GetFloat() );
 	uniforms->desaturation.Set(idMath::ClampFloat( -1.0f, 1.0f, r_postprocess_desaturation.GetFloat() ) );
+
 	uniforms->sharpen.Set( r_postprocess_sharpen.GetBool() );
 	uniforms->sharpness.Set( idMath::ClampFloat( 0.0f, 1.0f, r_postprocess_sharpness.GetFloat() ) );
 
