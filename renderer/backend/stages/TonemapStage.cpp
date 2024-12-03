@@ -26,17 +26,20 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 // postprocess related - J.C.Denton
 idCVar r_postprocess_gamma(
 	"r_postprocess_gamma", "1.2", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Applies inverse power function in postprocessing",
+	"Applies inverse power function in postprocessing.\n"
+	"Higher value => brighter color.",
 	0.1f, 3.0f
 );
 idCVar r_postprocess_brightness(
 	"r_postprocess_brightness", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Multiplies color by coefficient",
+	"Multiplies final color by coefficient.\n"
+	"Using this is strongly discouraged: it causes color clamping when u > 1 or does not fully utilize monitor range when u < 1.",
 	0.5f, 2.0f
 );
 idCVar r_postprocess_desaturation(
-	"r_postprocess_desaturation", "0.00", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Desaturates the scene"
+	"r_postprocess_desaturation", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"Desaturates the scene if positive.\n"
+	"Oversaturates the scene if negative (high values can cause color clamping)."
 );
 
 

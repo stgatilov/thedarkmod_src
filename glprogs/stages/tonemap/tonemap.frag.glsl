@@ -108,21 +108,23 @@ vec3 sharpen(vec2 texcoord) {
 	return outColor;
 }
 
-float mapColorComponent(float value) {
-	float color = max(value, 0.0);
-
-	//stgatilov: apply traditional gamma/brightness settings
-	color = pow(color, 1.0 / u_gamma);
-	color *= u_brightness;
-
-	return color;
-}
-
 vec3 ditherColor(vec3 value, float strength) {
 	vec2 tc = gl_FragCoord.xy / textureSize(u_noiseImage, 0);
 	vec3 noiseColor = textureLod(u_noiseImage, tc, 0).rgb;
 	value += (noiseColor - vec3(0.5)) * strength;
 	return value;
+}
+
+vec3 adjustColor(vec3 color) {
+	// traditional gamma correction from Doom 3 (higher = brighter)
+	color = pow(color, vec3(1.0 / u_gamma));
+	// traditional brightness from Doom 3
+	color *= u_brightness;
+	// color desaturation if u > 0, oversaturation if u < 0 
+	float luma = clamp(dot(vec3(0.2125, 0.7154, 0.0721), color.rgb), 0.0, 1.0);
+	color = mix(color, vec3(luma), u_desaturation);
+
+	return color;
 }
 
 void main() {
@@ -136,14 +138,9 @@ void main() {
 	if (u_ditherInput > 0)
 		color = ditherColor(color, -u_ditherInput);
 
-	color.r = mapColorComponent(color.r);
-	color.g = mapColorComponent(color.g);
-	color.b = mapColorComponent(color.b);
+	color = max(color, vec3(0.0));  // avoid NaNs in gamma correction
 
-	if (u_desaturation != 0.0) {
-		float luma = clamp(dot(vec3(0.2125, 0.7154, 0.0721), color.rgb), 0.0, 1.0);
-		color = mix(color, vec3(luma), u_desaturation);
-	}
+	color = adjustColor(color);
 
 	if (u_ditherOutput > 0)
 		color = ditherColor(color, u_ditherOutput);
