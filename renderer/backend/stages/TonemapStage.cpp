@@ -34,21 +34,6 @@ idCVar r_postprocess_brightness(
 	"Multiplies color by coefficient",
 	0.5f, 2.0f
 );
-idCVar r_postprocess_colorCurveBias(
-	"r_postprocess_colorCurveBias", "0.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Applies Exponential Color Curve to final pass (range 0 to 1):\n"
-	"1 = color curve fully applied\n"
-	"0 = No color curve"
-);
-idCVar r_postprocess_colorCorrection(
-	"r_postprocess_colorCorrection", "5", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Applies an exponential color correction function to final scene"
-);
-idCVar r_postprocess_colorCorrectBias(
-	"r_postprocess_colorCorrectBias", "0.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
-	"Applies an exponential color correction function to final scene with this bias.\n"
-	"E.g. value ranges between 0-1. A blend is performed between scene render and color corrected image based on this value"
-);
 idCVar r_postprocess_desaturation(
 	"r_postprocess_desaturation", "0.00", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
 	"Desaturates the scene"
@@ -85,9 +70,6 @@ struct TonemapStage::Uniforms : GLSLUniformGroup {
 	DEFINE_UNIFORM(float, gamma)
 	DEFINE_UNIFORM(float, brightness)
 	DEFINE_UNIFORM(float, desaturation)
-	DEFINE_UNIFORM(float, colorCurveBias)
-	DEFINE_UNIFORM(float, colorCorrection)
-	DEFINE_UNIFORM(float, colorCorrectBias)
 	DEFINE_UNIFORM(int, sharpen)
 	DEFINE_UNIFORM(float, sharpness)
 	DEFINE_UNIFORM(sampler, noiseImage)
@@ -119,9 +101,6 @@ void TonemapStage::ApplyTonemap( FrameBuffer *destinationFbo, idImage *sourceTex
 	uniforms->gamma.Set( idMath::ClampFloat( 1e-3f, 1e+3f, r_postprocess_gamma.GetFloat() ) );
 	uniforms->brightness.Set( r_postprocess_brightness.GetFloat() );
 	uniforms->desaturation.Set(idMath::ClampFloat( -1.0f, 1.0f, r_postprocess_desaturation.GetFloat() ) );
-	uniforms->colorCurveBias.Set(r_postprocess_colorCurveBias.GetFloat() );
-	uniforms->colorCorrection.Set(r_postprocess_colorCorrection.GetFloat() );
-	uniforms->colorCorrectBias.Set(idMath::ClampFloat( 0.0f, 1.0f, r_postprocess_colorCorrectBias.GetFloat() ) );
 	uniforms->sharpen.Set( r_postprocess_sharpen.GetBool() );
 	uniforms->sharpness.Set( idMath::ClampFloat( 0.0f, 1.0f, r_postprocess_sharpness.GetFloat() ) );
 

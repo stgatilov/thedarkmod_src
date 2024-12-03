@@ -20,8 +20,6 @@ uniform sampler2D u_texture;
 
 uniform float u_gamma, u_brightness;
 uniform float u_desaturation;
-uniform float u_colorCurveBias;
-uniform float u_colorCorrection, u_colorCorrectBias;
 
 uniform int u_sharpen;
 uniform float u_sharpness;
@@ -114,23 +112,9 @@ float mapColorComponent(float value) {
 	float color = max(value, 0.0);
 
 	//stgatilov: apply traditional gamma/brightness settings
-	color = pow(color, 1.0/u_gamma);
+	color = pow(color, 1.0 / u_gamma);
 	color *= u_brightness;
 
-	if (u_colorCurveBias != 0.0) {
-		//---------------------------------------------------------
-		//  Apply Smooth Exponential color falloff
-		//---------------------------------------------------------
-		float reduced1 = 1.0 - pow(2.718282, -3.0 * color * color);
-		color = mix(color, reduced1, u_colorCurveBias);
-	}
-	if (u_colorCorrectBias != 0.0) {
-		//---------------------------------------------------------
-		//  Apply Smooth Exponential color correction with a bias
-		//---------------------------------------------------------
-		float reduced2 = 1.0 - pow(2.718282, -u_colorCorrection * color);
-		color = mix(color, reduced2, u_colorCorrectBias);
-	}
 	return color;
 }
 
