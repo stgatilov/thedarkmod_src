@@ -91,8 +91,8 @@ const idEventDef EV_Thread_Log( "log", EventArgs('f', "x", ""), 'f', "Returns th
 const idEventDef EV_Thread_Pow( "pow", EventArgs('f', "x", "", 'f', "y", ""), 'f', "Returns the power of x to y.");
 const idEventDef EV_Thread_Ceil( "ceil", EventArgs('f', "x", ""), 'f', "Returns the smallest integer that is greater than or equal to the given value.");
 const idEventDef EV_Thread_Floor( "floor", EventArgs('f', "x", ""), 'f', "Returns the largest integer that is less than or equal to the given value.");
-const idEventDef EV_Thread_GetMin( "getMin", EventArgs('f', "x", "", 'f', "y", ""), 'f', "returns the smaller of two provided float values.");
-const idEventDef EV_Thread_GetMax( "getMax", EventArgs('f', "x", "", 'f', "y", ""), 'f', "returns the larger of two provided float values.");
+const idEventDef EV_Thread_Min( "min", EventArgs('f', "x", "", 'f', "y", ""), 'f', "returns the smaller of two provided float values.");
+const idEventDef EV_Thread_Max( "max", EventArgs('f', "x", "", 'f', "y", ""), 'f', "returns the larger of two provided float values.");
 const idEventDef EV_Thread_SquareRoot( "sqrt", EventArgs('f', "square", ""), 'f', "Returns the square root of the given number.");
 const idEventDef EV_Thread_Normalize( "vecNormalize", EventArgs('v', "vec", ""), 'v', "Returns the normalized version of the given vector.");
 const idEventDef EV_Thread_VecLength( "vecLength", EventArgs('v', "vec", ""), 'f', "Returns the length of the given vector.");
@@ -363,8 +363,8 @@ CLASS_DECLARATION( idClass, idThread )
 	EVENT( EV_Thread_Pow,					idThread::Event_GetPow )
 	EVENT( EV_Thread_Floor,					idThread::Event_GetFloor )
 	EVENT( EV_Thread_Ceil,					idThread::Event_GetCeil )
-	EVENT( EV_Thread_GetMin,				idThread::Event_GetMin )
-	EVENT( EV_Thread_GetMax,				idThread::Event_GetMax )
+	EVENT( EV_Thread_Min,					idThread::Event_GetMin )
+	EVENT( EV_Thread_Max,					idThread::Event_GetMax )
 	EVENT( EV_Thread_SquareRoot,			idThread::Event_GetSquareRoot )
 	EVENT( EV_Thread_Normalize,				idThread::Event_VecNormalize )
 	EVENT( EV_Thread_VecLength,				idThread::Event_VecLength )
@@ -1695,7 +1695,7 @@ Dragofer: idThread::Event_Min - returns the smaller of two provided float values
 ================
 */
 void idThread::Event_GetMin( const float x, const float y ) {
-	ReturnInt( idMath::Fmin( x, y ) );
+	ReturnFloat( idMath::Fmin( x, y ) );
 }
 
 /*
@@ -1703,7 +1703,7 @@ Dragofer: idThread::Event_Max - returns the larger of two provided float values
 ================
 */
 void idThread::Event_GetMax( const float x, const float y ) {
-	ReturnInt( idMath::Fmax( x, y ) );
+	ReturnFloat( idMath::Fmax( x, y ) );
 }
 
 /*
