@@ -20,6 +20,8 @@ uniform sampler2D u_texture;
 
 uniform float u_exposure;
 
+uniform float u_overbrightDesaturation;
+
 uniform bool u_compressEnable;
 uniform float u_compressSwitchPoint;
 uniform float u_compressSwitchMultiplier;
@@ -125,6 +127,33 @@ vec3 ditherColor(vec3 value, float strength) {
 	return value;
 }
 
+float linstep(float vmin, float vmax, float value) {
+	float ratio = (value - vmin) / (vmax - vmin);
+	return clamp(ratio, 0.0, 1.0);
+}
+
+vec3 desaturateOverbright(vec3 color) {
+	// desaturate overbright colors by letting color component slightly leak into other components
+
+	// only affects overbright colors
+	float maxValue = max(max(color.r, color.g), color.b);
+	float overbright = linstep(1.0, 2.0, maxValue);
+	float strength = u_overbrightDesaturation * overbright;
+
+	// this matrix has zero sum (we want to NOT change sum of components)
+	mat3 shiftMatrix = (mat3(1, 1, 1, 1, 1, 1, 1, 1, 1) - 3 * mat3(1)) * 0.5;
+	// blue colors is perceptually dark, it should desaturate slower
+	vec3 weights = vec3(0.2126, 0.7152, 0.0722);
+	shiftMatrix[0] *= weights[0];
+	shiftMatrix[1] *= weights[1];
+	shiftMatrix[2] *= weights[2];
+	mat3 colorTransform = mat3(1) + shiftMatrix * strength;
+
+	color = colorTransform * color;
+
+	return color;
+}
+
 float compressCurveScalar(float x) {
 	// compression curve consists of initial and tail parts
 	// see more: https://colab.research.google.com/gist/stgatilov/640485ffb49fb734e0642f6d5e34dff8/tonemap_compression_curve.ipynb
@@ -169,6 +198,9 @@ void main() {
 	color = max(color, vec3(0.0));  // avoid NaNs
 
 	color *= u_exposure;
+
+	if (u_overbrightDesaturation > 0)
+		color = desaturateOverbright(color);
 
 	if (u_compressEnable)
 		color = compressCurve(color);

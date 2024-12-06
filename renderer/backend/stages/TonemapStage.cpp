@@ -28,6 +28,12 @@ idCVar r_postprocess_exposure(
 	1e-3f, 1e+3f
 );
 
+idCVar r_postprocess_overbright_desaturation(
+	"r_postprocess_overbright_desaturation", "0.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"How strong is the desaturation of overbright colors (0 = don't desaturate).\n",
+	0.0f, 1.0f
+);
+
 idCVar r_postprocess_compress(
 	"r_postprocess_compress", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL,
 	"Perform range compression to map overbright colors into [0..1] output range.\n"
@@ -108,6 +114,8 @@ struct TonemapStage::Uniforms : GLSLUniformGroup {
 
 	DEFINE_UNIFORM(float, exposure)
 
+	DEFINE_UNIFORM(float, overbrightDesaturation)
+
 	DEFINE_UNIFORM(int, compressEnable)
 	DEFINE_UNIFORM(float, compressSwitchPoint)
 	DEFINE_UNIFORM(float, compressSwitchMultiplier)
@@ -151,6 +159,8 @@ void TonemapStage::ApplyTonemap( FrameBuffer *destinationFbo, idImage *sourceTex
 	Uniforms *uniforms = tonemapShader->GetUniformGroup<Uniforms>();
 
 	uniforms->exposure.Set( r_postprocess_exposure.GetFloat() );
+
+	uniforms->overbrightDesaturation.Set( r_postprocess_overbright_desaturation.GetFloat() );
 
 	uniforms->compressEnable.Set( r_postprocess_compress.GetBool() );
 	if ( r_postprocess_compress.GetBool() ) {
