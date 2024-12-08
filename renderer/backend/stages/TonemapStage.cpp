@@ -143,7 +143,7 @@ void TonemapStage::Init() {
 void TonemapStage::Shutdown() {}
 
 void TonemapStage::ApplyTonemap( FrameBuffer *destinationFbo, idImage *sourceTexture ) {
-	if ( !r_tonemap ) {
+	if ( !r_tonemapInternal.GetBool() ) {
 		return;
 	}
 	TRACE_GL_SCOPE("Tonemap")
