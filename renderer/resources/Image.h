@@ -459,6 +459,7 @@ public:
 	// cvars
 	static idCVar		image_colorMipLevels;		// development aid to see texture mip usage
 	static idCVar		image_downSize;				// controls texture downsampling
+	static idCVar		image_downSizeAll;			// force all image types (diffuse, bump, spec) to use the same downsize value
 	static idCVar		image_useCompression;		// 0 = force everything to high quality
 	static idCVar		image_filter;				// changes texture filtering on mipmapped images
 	static idCVar		image_anisotropy;			// set the maximum texture anisotropy if available

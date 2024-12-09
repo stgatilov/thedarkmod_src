@@ -258,6 +258,14 @@ helper function that takes the current width/height and might make them smaller
 void idImageAsset::GetDownsize( int &scaled_width, int &scaled_height ) const {
 	int size = 0;
 
+	if ( allowDownSize && globalImages->image_downSizeAll.GetInteger() )
+	{
+	   size = globalImages->image_downSizeAll.GetInteger();
+	   if ( size == 0 ) {
+			size = 64;
+		}
+	}
+	else {
 	// perform optional picmip operation to save texture memory
 	if ( depth == TD_SPECULAR && globalImages->image_downSizeSpecular.GetInteger() ) {
 		size = globalImages->image_downSizeSpecularLimit.GetInteger();
@@ -275,6 +283,7 @@ void idImageAsset::GetDownsize( int &scaled_width, int &scaled_height ) const {
 			size = 256;
 		}
 	}
+    }
 
 	if ( size > 0 ) {
 		while ( scaled_width > size || scaled_height > size ) {
