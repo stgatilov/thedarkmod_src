@@ -1314,7 +1314,7 @@ idCollisionModelManagerLocal::TryMergePolygons
 cm_polygon_t *idCollisionModelManagerLocal::TryMergePolygons( cm_model_t *model, cm_polygon_t *p1, cm_polygon_t *p2 ) {
 	int i, j, nexti, prevj;
 	int p1BeforeShare, p1AfterShare, p2BeforeShare, p2AfterShare;
-	int newEdges[CM_MAX_POLYGON_EDGES], newNumEdges;
+	idFlexList<int, 128> newEdges;
 	int edgeNum, edgeNum1, edgeNum2, newEdgeNum1, newEdgeNum2;
 	cm_edge_t *edge;
 	cm_polygon_t *newp;
@@ -1431,44 +1431,47 @@ cm_polygon_t *idCollisionModelManagerLocal::TryMergePolygons( cm_model_t *model,
 		}
 	}
 	// set edges for new polygon
-	newNumEdges = 0;
+	newEdges.Clear();
 	if ( !keep2 ) {
-		newEdges[newNumEdges++] = newEdgeNum2;
+		newEdges.AddGrow( newEdgeNum2 );
 	}
 	if ( p1AfterShare < p1BeforeShare ) {
 		for ( i = p1AfterShare + (!keep2); i <= p1BeforeShare - (!keep1); i++ ) {
-			newEdges[newNumEdges++] = p1->edges[i];
+			newEdges.AddGrow( p1->edges[i] );
 		}
 	}
 	else {
 		for ( i = p1AfterShare + (!keep2); i < p1->numEdges; i++ ) {
-			newEdges[newNumEdges++] = p1->edges[i];
+			newEdges.AddGrow( p1->edges[i] );
 		}
 		for ( i = 0; i <= p1BeforeShare - (!keep1); i++ ) {
-			newEdges[newNumEdges++] = p1->edges[i];
+			newEdges.AddGrow( p1->edges[i] );
 		}
 	}
 	if ( !keep1 ) {
-		newEdges[newNumEdges++] = newEdgeNum1;
+		newEdges.AddGrow( newEdgeNum1 );
 	}
 	if ( p2AfterShare < p2BeforeShare ) {
 		for ( i = p2AfterShare + (!keep1); i <= p2BeforeShare - (!keep2); i++ ) {
-			newEdges[newNumEdges++] = p2->edges[i];
+			newEdges.AddGrow( p2->edges[i] );
 		}
 	}
 	else {
 		for ( i = p2AfterShare + (!keep1); i < p2->numEdges; i++ ) {
-			newEdges[newNumEdges++] = p2->edges[i];
+			newEdges.AddGrow( p2->edges[i] );
 		}
 		for ( i = 0; i <= p2BeforeShare - (!keep2); i++ ) {
-			newEdges[newNumEdges++] = p2->edges[i];
+			newEdges.AddGrow( p2->edges[i] );
 		}
 	}
+	// stgatilov: protect against stack overflow?
+	if ( newEdges.Num() > CM_MAX_POLYGON_EDGES )
+		return NULL;
 
-	newp = AllocPolygon( model, newNumEdges );
+	newp = AllocPolygon( model, newEdges.Num() );
 	memcpy( newp, p1, sizeof(cm_polygon_t) );
-	memcpy( newp->edges, newEdges, newNumEdges * sizeof(int) );
-	newp->numEdges = newNumEdges;
+	memcpy( newp->edges, newEdges.Ptr(), newEdges.Num() * sizeof(int) );
+	newp->numEdges = newEdges.Num();
 	newp->checkcount = 0;
 	// increase usage count for the edges of this polygon
 	for ( i = 0; i < newp->numEdges; i++ ) {
