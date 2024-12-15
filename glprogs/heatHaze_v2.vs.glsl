@@ -12,27 +12,26 @@ or (at your option) any later version. For details, see LICENSE.TXT.
 Project: The Dark Mod (http://www.thedarkmod.com/)
 
 ******************************************************************************/
-#version 330
 
 #pragma tdm_include "heatHazeCommon.glsl"
 
-in vec2 texcoordOriginal;
-in vec2 texcoordScrolled;
-in vec2 deformationMagnitude;
+in vec4 attr_Position;
+in vec4 attr_TexCoord;
 
-out vec4 draw_Color;
+uniform mat4 u_modelViewMatrix;
+uniform mat4 u_projectionMatrix;
+uniform vec4 u_localParam0;	// texcoord scroll
+uniform vec4 u_localParam1;	// deform multiplier
 
-uniform sampler2D u_texture0;	// _currentRender
-uniform sampler2D u_texture1;	// displacement texture
-uniform sampler2D u_texture2;	// _currentDepth
+out vec2 texcoordOriginal;
+out vec2 texcoordScrolled;
+out vec2 deformationMagnitude;
 
 void main() {
-	vec3 color = heatHazeFragmentShader(
-		texcoordOriginal, texcoordScrolled, deformationMagnitude, gl_FragCoord,
-		u_texture0, u_texture1,
-		true, u_texture2,
-		false, u_texture0,
-		0.0
+	gl_Position = heatHazeVertexShader(
+		attr_Position, attr_TexCoord,
+		u_modelViewMatrix, u_projectionMatrix,
+		u_localParam0.xy, u_localParam1.xy,
+		texcoordOriginal, texcoordScrolled, deformationMagnitude
 	);
-	draw_Color = vec4(color, 1);
 }

@@ -24,15 +24,18 @@ out vec4 draw_Color;
 
 uniform sampler2D u_texture0;	// _currentRender
 uniform sampler2D u_texture1;	// displacement texture
-uniform sampler2D u_texture2;	// _currentDepth
+uniform sampler2D u_texture2;	// mask texture
+uniform sampler2D u_texture3;	// _currentDepth
+
+uniform vec4 u_localParam2;
 
 void main() {
 	vec3 color = heatHazeFragmentShader(
 		texcoordOriginal, texcoordScrolled, deformationMagnitude, gl_FragCoord,
 		u_texture0, u_texture1,
+		true, u_texture3,
 		true, u_texture2,
-		false, u_texture0,
-		0.0
+		u_localParam2.x
 	);
 	draw_Color = vec4(color, 1);
 }
