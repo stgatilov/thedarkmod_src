@@ -90,7 +90,8 @@ idCVar r_postprocess_sharpen(
 );
 idCVar r_postprocess_sharpness(
 	"r_postprocess_sharpness", "0.5", CVAR_RENDERER|CVAR_FLOAT|CVAR_ARCHIVE,
-	"Sharpening amount"
+	"Sharpening amount",
+	0.0f, 1.0f
 );
 
 idCVar r_postprocess_dither( "r_postprocess_dither", "1",
@@ -184,12 +185,12 @@ void TonemapStage::ApplyTonemap( FrameBuffer *destinationFbo, idImage *sourceTex
 		uniforms->compressTailPower.Set( TailPower );
 	}
 
-	uniforms->gamma.Set( idMath::ClampFloat( 1e-3f, 1e+3f, r_postprocess_gamma.GetFloat() ) );
+	uniforms->gamma.Set( r_postprocess_gamma.GetFloat() );
 	uniforms->brightness.Set( r_postprocess_brightness.GetFloat() );
-	uniforms->desaturation.Set(idMath::ClampFloat( -1.0f, 1.0f, r_postprocess_desaturation.GetFloat() ) );
+	uniforms->desaturation.Set( r_postprocess_desaturation.GetFloat() );
 
 	uniforms->sharpen.Set( r_postprocess_sharpen.GetBool() );
-	uniforms->sharpness.Set( idMath::ClampFloat( 0.0f, 1.0f, r_postprocess_sharpness.GetFloat() ) );
+	uniforms->sharpness.Set( r_postprocess_sharpness.GetFloat() );
 
 	// note: dithering helps only when internal color precision is greater than output precision
 	// otherwise, we lose necessary information before tonemapping, and dithering does not help at all
