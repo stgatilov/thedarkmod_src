@@ -390,6 +390,12 @@ const char *idEditWindow::HandleEvent(const sysEvent_t *event, bool *updateVisua
 			return ret;
 		}
 
+		if ( key == K_MWHEELUP ) {
+			scroller->SetValue( scroller->GetValue() - 1.0f );
+		} else if ( key == K_MWHEELDOWN ) {
+			scroller->SetValue( scroller->GetValue() + 1.0f );
+		}
+
 		if ( key == K_DOWNARROW ) {
 			if ( idKeyInput::IsDown( K_CTRL ) ) {
 				scroller->SetValue( scroller->GetValue() + 1.0f );
