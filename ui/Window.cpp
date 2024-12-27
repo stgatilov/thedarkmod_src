@@ -1604,7 +1604,7 @@ idWindow *idWindow::SetFocus(idWindow *w, bool scripts) {
 
 		//  call on lose focus
 		if ( scripts && lastFocus ) {
-			lastFocus->RunScript(ON_FOCUSLOST);
+			lastFocus->RunScript(ON_FOCUSRELEASE);
 
 			// calling this broke all sorts of guis
 			// lastFocus->RunScript(ON_MOUSEEXIT);
