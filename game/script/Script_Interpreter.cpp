@@ -871,6 +871,90 @@ bool idInterpreter::MultiFrameEventInProgress( void ) const {
 
 /*
 ================
+idInterpreter::CallLibraryEvent
+================
+*/
+void idInterpreter::CallLibraryEvent( const function_t *func, int argsize ) {
+	int 				i;
+	int					j;
+	varEval_t			source;
+	int 				pos;
+	int 				start;
+	intptr_t			data[ D_EVENT_MAXARGS ];
+	const idEventDef	*evdef;
+	const char			*format;
+	Library*			library = gameLocal.GetLibrary();
+
+	if ( !func ) {
+		Error( "NULL function" );
+	}
+
+	assert( func->eventdef );
+	evdef = func->eventdef;
+
+	start = localstackUsed - argsize;
+
+	format = evdef->GetArgFormat();
+	for( j = 0, i = 0, pos = 0; ( pos < argsize ) || ( format[ i ] != 0 ); i++ ) {
+		data[i] = 0;	//stgatilov: clear for easier debugging in x64
+		switch( format[ i ] ) {
+		case D_EVENT_INTEGER :
+			source.intPtr = ( int * )&localstack[ start + pos ];
+			*( int * )&data[ i ] = int( *source.floatPtr );
+			break;
+
+		case D_EVENT_FLOAT :
+			source.intPtr = ( int * )&localstack[ start + pos ];
+			*( float * )&data[ i ] = *source.floatPtr;
+			break;
+
+		case D_EVENT_VECTOR :
+			source.intPtr = ( int * )&localstack[ start + pos ];
+			*( idVec3 ** )&data[ i ] = source.vectorPtr;
+			break;
+
+		case D_EVENT_STRING :
+			*( const char ** )&data[ i ] = ( char * )&localstack[ start + pos ];
+			break;
+
+		case D_EVENT_ENTITY :
+			source.intPtr = ( int * )&localstack[ start + pos ];
+			*( idEntity ** )&data[ i ] = GetEntity( *source.entityNumberPtr );
+			if ( !*( idEntity ** )&data[ i ] ) {
+				Warning( "Entity not found for event '%s'. Terminating thread.", evdef->GetName() );
+				threadDying = true;
+				PopParms( argsize );
+				return;
+			}
+			break;
+
+		case D_EVENT_ENTITY_NULL :
+			source.intPtr = ( int * )&localstack[ start + pos ];
+			*( idEntity ** )&data[ i ] = GetEntity( *source.entityNumberPtr );
+			break;
+
+		case D_EVENT_TRACE :
+			Error( "trace type not supported from script for '%s' event.", evdef->GetName() );
+			break;
+
+		default :
+			Error( "Invalid arg format string for '%s' event.", evdef->GetName() );
+			break;
+		}
+
+		pos += func->parmSize[ j++ ];
+	}
+
+	popParms = argsize;
+	library->ProcessEventArgPtr( evdef, data );
+	if ( popParms ) {
+		PopParms( popParms );
+	}
+	popParms = 0;
+}
+
+/*
+================
 idInterpreter::CallSysEvent
 ================
 */
@@ -1134,6 +1218,10 @@ bool idInterpreter::Execute( void ) {
 
 		case OP_SYSCALL:
 			CallSysEvent( st->a->value.functionPtr, st->b->value.argSize );
+			break;
+
+		case OP_LIBCALL:
+			CallLibraryEvent( st->a->value.functionPtr, st->b->value.argSize );
 			break;
 
 		case OP_IFNOT:

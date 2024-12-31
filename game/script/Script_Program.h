@@ -26,6 +26,7 @@ class idEntity;
 class idThread;
 class idSaveGame;
 class idRestoreGame;
+class Library;
 
 #define MAX_STRING_LEN		128
 #define MAX_GLOBALS			(384 << 10)			// in bytes
@@ -33,7 +34,7 @@ class idRestoreGame;
 #define MAX_STATEMENTS		(80 << 10)			// statement_t - 18 bytes last I checked (stgatilov: it was never 18 bytes, now it is 40 bytes)
 
 typedef enum {
-	ev_error = -1, ev_void, ev_scriptevent, ev_namespace, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_function, ev_virtualfunction, ev_pointer, ev_object, ev_jumpoffset, ev_argsize, ev_boolean
+	ev_error = -1, ev_void, ev_scriptevent, ev_namespace, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_function, ev_virtualfunction, ev_pointer, ev_object, ev_jumpoffset, ev_argsize, ev_boolean, ev_library
 } etype_t;
 
 class function_t {
@@ -66,6 +67,7 @@ typedef union eval_s {
 	function_t			*function;
 	int 				_int;
 	int 				entity;
+	int				library;
 } eval_t;
 
 /***********************************************************************
@@ -286,6 +288,7 @@ typedef union varEval_s {
 	int 					*intPtr;
 	byte					*bytePtr;
 	int 					*entityNumberPtr;
+	int 					*libraryNumberPtr;
 	int						virtualFunction;
 	int						jumpOffset;
 	int						stackOffset;		// offset in stack for local variables
@@ -376,6 +379,7 @@ extern	idTypeDef	type_string;
 extern	idTypeDef	type_float;
 extern	idTypeDef	type_vector;
 extern	idTypeDef	type_entity;
+extern	idTypeDef	type_library;
 extern  idTypeDef	type_field;
 extern	idTypeDef	type_function;
 extern	idTypeDef	type_virtualfunction;
@@ -392,6 +396,7 @@ extern	idVarDef	def_string;
 extern	idVarDef	def_float;
 extern	idVarDef	def_vector;
 extern	idVarDef	def_entity;
+extern	idVarDef	def_library;
 extern	idVarDef	def_field;
 extern	idVarDef	def_function;
 extern	idVarDef	def_virtualfunction;
@@ -426,6 +431,7 @@ private:
 	idStrList									fileList;
 	idStr 										filename;
 	int											filenum;
+	bool										is_library;
 
 	idList<byte>								variables;
 	idList<byte>								variableDefaults;
@@ -511,6 +517,7 @@ public:
 	int											GetFunctionIndex( const function_t *func );
 
 	void										SetEntity( const char *name, idEntity *ent );
+	void										SetLibrary( const char *name, Library *library );
 
 	statement_t									*AllocStatement( void );
 	statement_t									&GetStatement( int index );

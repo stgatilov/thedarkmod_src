@@ -94,6 +94,7 @@ punctuation_t default_punctuations[] = {
 	//precompiler operator
 	{"#",P_PRECOMP},					// pre-compiler
 	{"$",P_DOLLAR},
+	{"@",P_AT},
 	{NULL, 0}
 };
 
@@ -824,6 +825,12 @@ int idLexer::ReadToken( idToken *token ) {
 		*token = idLexer::token;
 		return 1;
 	}
+
+	// library headers must declare themselves at the first non-whitespace token
+	if ( script_p > buffer + 1 ) {
+	    couldBeLibraryHeader = false;
+	}
+
 	// save script pointer
 	lastScript_p = script_p;
 	// save line counter
@@ -1582,6 +1589,8 @@ idLexer::Reset
 void idLexer::Reset( void ) {
 	// pointer in script buffer
 	idLexer::script_p = idLexer::buffer;
+	// no longer know if this is or is not a library header
+	idLexer::couldBeLibraryHeader = true;
 	// pointer in script buffer before reading token
 	idLexer::lastScript_p = idLexer::buffer;
 	// begin of white space
@@ -1625,6 +1634,7 @@ int idLexer::LoadFile( const char *filename, bool OSPath ) {
 	idStr pathname;
 	int length;
 	char *buf;
+	printf("Lexing from %s\n", filename);
 
 	if ( idLexer::loaded ) {
 		idLib::common->Error("idLexer::LoadFile: another script already loaded");
@@ -1657,11 +1667,14 @@ int idLexer::LoadFile( const char *filename, bool OSPath ) {
 	const char *tdmroot = cvarSystem->GetCVarString( "fs_basepath" );
 	displayFilename = idLexer::filename;
 	displayFilename.StripLeadingOnce(tdmroot);
+	libraryPath = "";
 
 	idLexer::buffer = buf;
 	idLexer::length = length;
 	// pointer in script buffer
 	idLexer::script_p = idLexer::buffer;
+	// we do not yet know if this is or is not a library header
+	idLexer::couldBeLibraryHeader = true;
 	// pointer in script buffer before reading token
 	idLexer::lastScript_p = idLexer::buffer;
 	// pointer to end of script buffer
@@ -1693,6 +1706,8 @@ int idLexer::LoadMemory( const char *ptr, int length, const char *name, int star
 	idLexer::length = length;
 	// pointer in script buffer
 	idLexer::script_p = idLexer::buffer;
+	// we do not yet know if this is or is not a library header
+	idLexer::couldBeLibraryHeader = true;
 	// pointer in script buffer before reading token
 	idLexer::lastScript_p = idLexer::buffer;
 	// pointer to end of script buffer
@@ -1845,6 +1860,15 @@ idLexer::HadError
 */
 bool idLexer::HadError( void ) const {
 	return hadError;
+}
+
+/*
+================
+idLexer::IsLibraryHeader
+================
+*/
+const bool idLexer::IsLibraryHeader( void ) const {
+	return idLexer::libraryPath != "";
 }
 
 #pragma warning( pop )

@@ -96,6 +96,7 @@ opcode_t idCompiler::opcodes[] = {
 	{ ".", "EVENTCALL", 2, false, &def_entity, &def_function, &def_void },
 	{ ".", "OBJECTCALL", 2, false, &def_object, &def_function, &def_void },
 	{ ".", "SYSCALL", 2, false, &def_void, &def_function, &def_void },
+	{ ".", "LIBCALL", 2, false, &def_library, &def_function, &def_void },
 
 	{ "=", "STORE_F", 6, true, &def_float, &def_float, &def_float },
 	{ "=", "STORE_V", 6, true, &def_vector, &def_vector, &def_vector },
@@ -163,6 +164,7 @@ opcode_t idCompiler::opcodes[] = {
 	{ "<PUSH>", "PUSH_S", -1, false, &def_string, &def_string, &def_void },
 	{ "<PUSH>", "PUSH_ENT", -1, false, &def_entity, &def_entity, &def_void },
 	{ "<PUSH>", "PUSH_OBJ", -1, false, &def_object, &def_object, &def_void },
+	{ "<PUSH>", "PUSH_LIB", -1, false, &def_library, &def_library, &def_void },
 	{ "<PUSH>", "PUSH_OBJENT", -1, false, &def_entity, &def_object, &def_void },
 	{ "<PUSH>", "PUSH_FTOS", -1, false, &def_string, &def_float, &def_void },
 	{ "<PUSH>", "PUSH_BTOF", -1, false, &def_float, &def_boolean, &def_void },
@@ -725,6 +727,12 @@ void idCompiler::NextToken( void ) {
 			return;
 		}
 
+		if ( token == "@" ) {
+			immediateType = &type_library;
+			parserPtr->ReadToken( &token );
+			return;
+		}
+
 		if ( token == "{" ) {
 			braceDepth++;
 			return;
@@ -1148,6 +1156,37 @@ idVarDef *idCompiler::ParseSysObjectCall( idVarDef *funcDef ) {
 
 /*
 ============
+idCompiler::ParseLibCall
+============
+*/
+idVarDef *idCompiler::ParseLibCall( idVarDef *libDef, idVarDef *funcDef ) {
+	if ( callthread ) {
+		Error( "Cannot call built-in functions as a thread" );
+	}
+
+	if ( libDef->Type() != ev_library ) {
+		Error( "'%s' is not a library", libDef->Name() );
+	}
+
+	if ( funcDef->Type() != ev_function ) {
+		Error( "'%s' is not a function", funcDef->Name() );
+	}
+
+	if ( !funcDef->value.functionPtr->eventdef ) {
+		Error( "\"%s\" cannot be called with object notation", funcDef->Name() );
+	}
+
+	if ( !idThread::Type.RespondsTo( *funcDef->value.functionPtr->eventdef ) ) {
+		Error( "\"%s\" is not callable as a library function", funcDef->Name() );
+	}
+
+	EmitPush( libDef, &type_library ); // RMV ?
+
+	return EmitFunctionParms( OP_LIBCALL, funcDef, 0, 0, NULL );
+}
+
+/*
+============
 idCompiler::LookupDef
 ============
 */
@@ -1253,6 +1292,15 @@ idVarDef *idCompiler::ParseValue( void ) {
 		def = gameLocal.program.GetDef( &type_entity, "$" + token, &def_namespace );
 		if ( !def ) {
 			def = gameLocal.program.AllocDef( &type_entity, "$" + token, &def_namespace, true );
+		}
+		NextToken();
+		return def;
+	} else if ( immediateType == &type_library ) {
+		// if an immediate library (@-prefaced name) then create or lookup a def for it.
+		// when libraries are loaded, they'll lookup the def and point it to them.
+		def = gameLocal.program.GetDef( &type_library, "@" + token, &def_namespace );
+		if ( !def ) {
+			def = gameLocal.program.AllocDef( &type_library, "@" + token, &def_namespace, true );
 		}
 		NextToken();
 		return def;
@@ -1564,6 +1612,11 @@ idVarDef *idCompiler::GetExpression( int priority ) {
 			e = ParseSysObjectCall( e2 );
 			break;
 
+		case OP_LIBCALL :
+			ExpectToken( "(" );
+			e = ParseLibCall( e, e2 );
+			break;
+		
 		case OP_OBJECTCALL :
 			ExpectToken( "(" );
 			if ( ( e2->initialized != idVarDef::uninitialized ) && e2->value.functionPtr->eventdef ) {
@@ -2113,6 +2166,11 @@ void idCompiler::ParseFunctionDef( idTypeDef *returnType, const char *name ) {
 		Error( "Functions may not be defined within other functions" );
 	}
 
+	if (parserPtr->InLibraryHeader()) {
+		ParseExternDef( returnType, name );
+		return;
+	}
+
 	type = ParseFunction( returnType, name );
 	def = gameLocal.program.GetDef( type, name, scope );
 	if ( !def ) {
@@ -2333,6 +2391,29 @@ void idCompiler::ParseVariableDef( idTypeDef *type, const char *name ) {
 
 /*
 ================
+idCompiler::GetEventArgForType
+================
+*/
+char idCompiler::GetEventArgForType( idTypeDef *type ) {
+	char argType = '\0';
+
+	if ( type == &type_float ) {
+		argType = D_EVENT_FLOAT;
+	} else if ( type == &type_vector ) {
+		argType = D_EVENT_VECTOR;
+	} else if ( type == &type_string ) {
+		argType = D_EVENT_STRING;
+	} else if ( type == &type_entity ) {
+		argType = D_EVENT_ENTITY;
+	} else if ( type == &type_void ) {
+		argType = D_EVENT_VOID;
+	}
+	
+	return argType;
+}
+
+/*
+================
 idCompiler::GetTypeForEventArg
 ================
 */
@@ -2378,6 +2459,89 @@ idTypeDef *idCompiler::GetTypeForEventArg( char argType ) {
 	}
 	
 	return type;
+}
+
+/*
+================
+idCompiler::ParseExternDef
+================
+*/
+void idCompiler::ParseExternDef( idTypeDef *returnType, const char *name ) {
+	char			eventReturnType;
+	char			eventArgType;
+	idTypeDef		*argType;
+	idTypeDef		*type;
+	idVarDef		*def;
+	int 			i;
+	int				num;
+	int 			numParms;
+	const char		*format;
+	const idEventDef *ev;
+	idStr			parmName;
+	function_t		*func;
+	const idTypeDef	*parmType;
+
+	// set the return type
+	eventReturnType = GetEventArgForType( returnType );
+	// TODO: since D_EVENT_VOID is '\0', a better way to handle errors
+	// if (eventReturnType == '\0') {
+	// 	Error( "Unknown return type '%s'", returnType->Name() );
+	// }
+
+	type = ParseFunction( returnType, name );
+	def = gameLocal.program.GetDef( type, name, scope );
+	if ( !def ) {
+		def = gameLocal.program.AllocDef( type, name, scope, true );
+		type->def = def;
+
+		func = &gameLocal.program.AllocFunction( def );
+	} else {
+		func = def->value.functionPtr;
+		assert( func );
+		if ( func->eventdef ) {
+			Error( "%s redeclared", def->GlobalName() );
+		}
+	}
+
+	// calculate stack space used by parms
+	// stgatilov #4713: we must do it as early as we see prototype
+	// because parmTotal must be correct when method calls are compiled
+	numParms = type->NumParameters();
+	func->parmSize.SetNum( numParms );
+	func->parmTotal = 0;
+	for( i = 0; i < numParms; i++ ) {
+		parmType = type->GetParmType( i );
+		func->parmSize[ i ] = parmType->Size();
+		func->parmTotal += func->parmSize[ i ];
+	}
+
+	assert(numParms <= 8);
+
+	idList<EventArg> evarglist;
+	for( i = 0; i < numParms; i++ )
+	{
+		argType = ParseType();
+		ParseName( parmName );
+
+		eventArgType = GetEventArgForType( argType );
+		// TODO: since D_EVENT_VOID is '\0', a better way to handle errors
+		// if (eventArgType == '\0') {
+		// 	Error( "Unknown type '%s'", argType->Name() );
+		// }
+
+		EventArg evarg;
+		evarg.type = eventArgType;
+		evarg.name = parmName.c_str();
+		// TODO: needs lifetime
+		idStr *desc = new idStr("(unset: dynamic)");
+		evarg.desc = desc->c_str();
+		evarglist.Append(evarg);
+	}
+	const EventArgs evargs = *(new EventArgs(&evarglist));
+	ev = new idEventDef(name, evargs, eventReturnType, "(unset: dynamic)");
+	func->eventdef = ev;
+
+	ExpectToken( ";" );
 }
 
 /*
@@ -2586,6 +2750,9 @@ void idCompiler::ParseNamespace( idVarDef *newScope ) {
 
 		ParseDefs();
 	}
+
+	// At this point, in a library file, we should have a complete list of extern defs for this scope.
+	// j
 
 	scope = oldscope;
 }

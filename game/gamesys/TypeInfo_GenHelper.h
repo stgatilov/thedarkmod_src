@@ -66,6 +66,7 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #include "../game/PVSToAASMapping.h"
 #include "../game/RawVector.h"
 #include "../game/Relations.h"
+#include "../game/script/Library.h"
 #include "../game/script/Script_Compiler.h"
 #include "../game/script/Script_Doc_Export.h"
 #include "../game/script/Script_Interpreter.h"

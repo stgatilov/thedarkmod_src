@@ -29,6 +29,7 @@ idTypeDef	type_string( ev_string, &def_string, "string", MAX_STRING_LEN, NULL );
 idTypeDef	type_float( ev_float, &def_float, "float", sizeof(float), NULL );
 idTypeDef	type_vector( ev_vector, &def_vector, "vector", sizeof(idVec3), NULL );
 idTypeDef	type_entity( ev_entity, &def_entity, "entity", sizeof(int), NULL );					// stored as entity number pointer
+idTypeDef	type_library( ev_library, &def_library, "entity", sizeof(int), NULL );					// stored as library number pointer
 idTypeDef	type_field( ev_field, &def_field, "field", sizeof(int), NULL );
 idTypeDef	type_function( ev_function, &def_function, "function", sizeof(int), &type_void );
 idTypeDef	type_virtualfunction( ev_virtualfunction, &def_virtualfunction, "virtual function", sizeof(int), NULL );
@@ -45,6 +46,7 @@ idVarDef	def_string( &type_string );
 idVarDef	def_float( &type_float );
 idVarDef	def_vector( &type_vector );
 idVarDef	def_entity( &type_entity );
+idVarDef	def_library( &type_library );
 idVarDef	def_field( &type_field );
 idVarDef	def_function( &type_function );
 idVarDef	def_virtualfunction( &type_virtualfunction );
@@ -676,6 +678,10 @@ void idVarDef::SetValue( const eval_t &_value, bool constant ) {
 
 	case ev_entity :
 		*value.entityNumberPtr = _value.entity;
+		break;
+
+	case ev_library :
+		*value.libraryNumberPtr = _value.library;
 		break;
 
 	case ev_string :
@@ -1678,6 +1684,28 @@ void idProgram::SetEntity( const char *name, idEntity *ent ) {
 			*def->value.entityNumberPtr = 0;
 		} else {
 			*def->value.entityNumberPtr = ent->entityNumber + 1;
+		}
+	}
+}
+
+/*
+================
+idProgram::SetLibrary
+================
+*/
+void idProgram::SetLibrary( const char *name, Library *library ) {
+	idVarDef	*def;
+	idStr		defName( "@" );
+
+	defName += name;
+
+	def = GetDef( &type_entity, defName, &def_namespace );
+	if ( def && ( def->initialized != idVarDef::stackVariable ) ) {
+		// 0 is reserved for NULL entity
+		if ( !library ) {
+			*def->value.entityNumberPtr = 0;
+		} else {
+			*def->value.libraryNumberPtr = library->libraryNumber + 1;
 		}
 	}
 }

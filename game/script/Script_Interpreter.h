@@ -70,6 +70,7 @@ private:
 	void				LeaveFunction( idVarDef *returnDef );
 	void				CallEvent( const function_t *func, int argsize );
 	void				CallSysEvent( const function_t *func, int argsize );
+	void				CallLibraryEvent( const function_t *func, int argsize );
 
 public:
 	bool				doneProcessing;

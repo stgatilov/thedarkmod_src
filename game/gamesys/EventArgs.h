@@ -82,6 +82,8 @@ public:
 			  char argType6, const char* argName6, const char* argDesc6,
 			  char argType7, const char* argName7, const char* argDesc7,
 			  char argType8, const char* argName8, const char* argDesc8);
+
+	inline EventArgs(idList<EventArg>* argList);
 };
 
 inline int EventArgs::size() const {
@@ -203,4 +205,16 @@ inline EventArgs::EventArgs(char argType1, const char* argName1, const char* arg
 	args[7].type = argType8; args[7].name = argName8; args[7].desc = argDesc8;
 }
 
+inline EventArgs::EventArgs(idList<EventArg>* argList) {
+	int i;
+
+	// EventArgs are capped at length 8.
+	assert((*argList).Num() <= 8);
+
+	for ( i = 0; i < (*argList).Num(); i++ ) {
+		args[i].type = (*argList)[i].type;
+		args[i].name = (*argList)[i].name;
+		args[i].desc = (*argList)[i].desc;
+	}
+}
 #endif

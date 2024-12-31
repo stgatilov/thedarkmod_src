@@ -38,6 +38,8 @@ Project: The Dark Mod (http://www.thedarkmod.com/)
 #define INDENT_IFDEF			0x0008
 #define INDENT_IFNDEF			0x0010
 
+const char MAGIC_DEF_LIBRARY[] = "#library";
+
 // macro definitions
 typedef struct define_s {
 	char *			name;						// define name
@@ -171,6 +173,7 @@ public:
 					// stgatilov: returns string representation of macro value
 					// it is just concatenation of all replacement tokens (useful for constants)
 	idStr			GetDefineValueString(const char *name);
+	const bool		InLibraryHeader( void ) const;
 
 private:
 	int				loaded;						// set when a source file is loaded from file or memory
@@ -223,6 +226,7 @@ private:
 	int				Evaluate( int *intvalue, double *floatvalue, int integer );
 	int				DollarEvaluate( int *intvalue, double *floatvalue, int integer);
 	int				Directive_define( void );
+	int				Directive_library( void );
 	int				Directive_elif( void );
 	int				Directive_if( void );
 	int				Directive_line( void );
@@ -244,6 +248,15 @@ ID_INLINE const char *idParser::GetFileName( void ) const {
 	}
 	else {
 		return "";
+	}
+}
+
+ID_INLINE const bool idParser::InLibraryHeader( void ) const {
+	if ( idParser::scriptstack ) {
+		return idParser::scriptstack->IsLibraryHeader();
+	}
+	else {
+		return false;
 	}
 }
 

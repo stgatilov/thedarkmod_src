@@ -112,6 +112,7 @@ void gameError( const char *fmt, ... );
 #include "LightController.h"
 #include "ModMenu.h"
 #include "LodComponent.h"
+#include "script/Library.h"
 
 //============================================================================
 
@@ -991,6 +992,8 @@ public:
 	int						FindSuspiciousEvent( EventType type, idVec3 location, idEntity* entity, int time ); // grayman #3424
 	SuspiciousEvent*		FindSuspiciousEvent( int eventID ); // grayman #3857
 	int						LogSuspiciousEvent( SuspiciousEvent se, bool forceLog ); // grayman #3424 grayman #3857
+
+	Library*				GetLibrary();
 	
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
@@ -1058,6 +1061,8 @@ private:
 	idList<idStr>				m_GUICommandStack;
 	// how many arguments do we expect for the current command (m_GUICommandStack[0]):
 	int							m_GUICommandArgs;
+
+	Library*				library;
 
 	void					Clear( void );
 

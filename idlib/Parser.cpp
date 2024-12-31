@@ -212,7 +212,12 @@ idStrList idParser::GetAllDefineNames(bool sorted) {
 
 idStr idParser::GetDefineValueString(const char *name) {
 	define_t *def = FindHashedDefine(definehash, name);
-	idStr ret;
+	idStr ret = "";
+
+	if (!def) {
+	    return ret;
+	}
+
 	for (idToken *token = def->tokens; token; token = token->next) {
 		ret += *token;
 	}
@@ -1071,6 +1076,46 @@ int idParser::Directive_include( void ) {
 	script->SetFlags( idParser::flags );
 	script->SetPunctuations( idParser::punctuations );
 	idParser::PushScript( script );
+	return true;
+}
+
+/*
+================
+idParser::Directive_library
+================
+*/
+int idParser::Directive_library( void ) {
+	idToken token, *t;
+	define_t *define;
+
+	if (!scriptstack->couldBeLibraryHeader) {
+		idParser::Error( "#library must be the first token in the script if present" );
+		return false;
+	}
+
+	if (!idParser::ReadLine( &token )) {
+		idParser::Error( "#library without path" );
+		return false;
+	}
+	if ( token.linesCrossed > 0 ) {
+		idParser::UnreadSourceToken( &token );
+		idParser::Error( "#library without library path directly after" );
+		return false;
+	}
+	if ( token.type != TT_STRING ) {
+		idParser::UnreadSourceToken( &token );
+		idParser::Error( "#library without string library path" );
+		return false;
+	}
+
+	t = new idToken(token);
+	t->ClearTokenWhiteSpace();
+	t->next = NULL;
+	define->tokens = t;
+
+	scriptstack->libraryPath = token;
+	idLib::common->Printf("Found library: '%s'.\n", token.c_str() );
+
 	return true;
 }
 
@@ -2269,6 +2314,9 @@ int idParser::ReadDirective( void ) {
 		else {
 			if ( token == "include" ) {
 				return idParser::Directive_include();
+			}
+			else if ( token == "library" ) {
+				return idParser::Directive_library();
 			}
 			else if ( token == "define" ) {
 				return idParser::Directive_define();

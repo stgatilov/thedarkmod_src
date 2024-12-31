@@ -92,6 +92,7 @@ enum {
 	OP_EVENTCALL,
 	OP_OBJECTCALL,
 	OP_SYSCALL,
+	OP_LIBCALL, // TDM libraries
 
 	OP_STORE_F,
 	OP_STORE_V,
@@ -237,6 +238,7 @@ private:
 	idVarDef		*ParseObjectCall( idVarDef *object, idVarDef *func );
 	idVarDef		*ParseEventCall( idVarDef *object, idVarDef *func );
 	idVarDef		*ParseSysObjectCall( idVarDef *func );
+	idVarDef		*ParseLibCall( idVarDef *libDef, idVarDef *func );
 	idVarDef		*LookupDef( const char *name, const idVarDef *baseobj );
 	idVarDef		*ParseValue( void );
 	idVarDef		*GetTerm( void );
@@ -252,6 +254,7 @@ private:
 	void			ParseObjectDef( const char *objname );
 	idTypeDef		*ParseFunction( idTypeDef *returnType, const char *name );
 	void			ParseFunctionDef( idTypeDef *returnType, const char *name );
+	void			ParseExternDef( idTypeDef *returnType, const char *name );
 	void			ParseVariableDef( idTypeDef *type, const char *name );
 	void			ParseEventDef( idTypeDef *type, const char *name );
 	void			ParseDefs( void );
@@ -264,6 +267,7 @@ public :
 	void			CompileFile( const char *text, const char *filename, bool console );
 
 	static idTypeDef		*GetTypeForEventArg( char argType );
+	static char			GetEventArgForType( idTypeDef *type );
 };
 
 #endif /* !__SCRIPT_COMPILER_H__ */
