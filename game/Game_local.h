@@ -994,6 +994,7 @@ public:
 	int						LogSuspiciousEvent( SuspiciousEvent se, bool forceLog ); // grayman #3424 grayman #3857
 
 	Library*				GetLibrary();
+	void					LoadLibraries();
 	
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;

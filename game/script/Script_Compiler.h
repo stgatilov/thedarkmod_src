@@ -205,6 +205,7 @@ private:
 	int				currentLineNumber;
 	int				currentFileNumber;
 	int				errorCount;
+	Library*			activeLibrary;
 					
 	idVarDef		*scope;				// the function being parsed, or NULL
 	const idVarDef	*basetype;			// for accessing fields
@@ -253,8 +254,9 @@ private:
 	void			ParseStatement( void );
 	void			ParseObjectDef( const char *objname );
 	idTypeDef		*ParseFunction( idTypeDef *returnType, const char *name );
+	idTypeDef		*ParseLibraryFunction( idTypeDef *returnType, const char *name );
 	void			ParseFunctionDef( idTypeDef *returnType, const char *name );
-	void			ParseExternDef( idTypeDef *returnType, const char *name );
+	void			ParseLibraryFunctionDef( idTypeDef *returnType, const char *name );
 	void			ParseVariableDef( idTypeDef *type, const char *name );
 	void			ParseEventDef( idTypeDef *type, const char *name );
 	void			ParseDefs( void );

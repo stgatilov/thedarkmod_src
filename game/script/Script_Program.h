@@ -34,7 +34,7 @@ class Library;
 #define MAX_STATEMENTS		(80 << 10)			// statement_t - 18 bytes last I checked (stgatilov: it was never 18 bytes, now it is 40 bytes)
 
 typedef enum {
-	ev_error = -1, ev_void, ev_scriptevent, ev_namespace, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_function, ev_virtualfunction, ev_pointer, ev_object, ev_jumpoffset, ev_argsize, ev_boolean, ev_library
+	ev_error = -1, ev_void, ev_scriptevent, ev_namespace, ev_externnamespace, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_function, ev_virtualfunction, ev_pointer, ev_object, ev_jumpoffset, ev_argsize, ev_boolean, ev_library, ev_libraryfunction
 } etype_t;
 
 class function_t {
@@ -67,7 +67,7 @@ typedef union eval_s {
 	function_t			*function;
 	int 				_int;
 	int 				entity;
-	int				library;
+	// RMV int				library;
 } eval_t;
 
 /***********************************************************************
@@ -288,7 +288,7 @@ typedef union varEval_s {
 	int 					*intPtr;
 	byte					*bytePtr;
 	int 					*entityNumberPtr;
-	int 					*libraryNumberPtr;
+	int 					libraryNumber;
 	int						virtualFunction;
 	int						jumpOffset;
 	int						stackOffset;		// offset in stack for local variables
@@ -375,11 +375,13 @@ private:
 extern	idTypeDef	type_void;
 extern	idTypeDef	type_scriptevent;
 extern	idTypeDef	type_namespace;
+extern	idTypeDef	type_externnamespace;
 extern	idTypeDef	type_string;
 extern	idTypeDef	type_float;
 extern	idTypeDef	type_vector;
 extern	idTypeDef	type_entity;
 extern	idTypeDef	type_library;
+extern	idTypeDef	type_libraryfunction;
 extern  idTypeDef	type_field;
 extern	idTypeDef	type_function;
 extern	idTypeDef	type_virtualfunction;
@@ -392,11 +394,13 @@ extern	idTypeDef	type_boolean;
 extern	idVarDef	def_void;
 extern	idVarDef	def_scriptevent;
 extern	idVarDef	def_namespace;
+extern	idVarDef	def_externnamespace;
 extern	idVarDef	def_string;
 extern	idVarDef	def_float;
 extern	idVarDef	def_vector;
 extern	idVarDef	def_entity;
 extern	idVarDef	def_library;
+extern	idVarDef	def_libraryfunction;
 extern	idVarDef	def_field;
 extern	idVarDef	def_function;
 extern	idVarDef	def_virtualfunction;
@@ -431,7 +435,6 @@ private:
 	idStrList									fileList;
 	idStr 										filename;
 	int											filenum;
-	bool										is_library;
 
 	idList<byte>								variables;
 	idList<byte>								variableDefaults;

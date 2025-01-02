@@ -874,7 +874,7 @@ bool idInterpreter::MultiFrameEventInProgress( void ) const {
 idInterpreter::CallLibraryEvent
 ================
 */
-void idInterpreter::CallLibraryEvent( const function_t *func, int argsize ) {
+void idInterpreter::CallLibraryEvent( int libraryNumber, int functionNumber, int argsize ) {
 	int 				i;
 	int					j;
 	varEval_t			source;
@@ -883,7 +883,9 @@ void idInterpreter::CallLibraryEvent( const function_t *func, int argsize ) {
 	intptr_t			data[ D_EVENT_MAXARGS ];
 	const idEventDef	*evdef;
 	const char			*format;
-	Library*			library = gameLocal.GetLibrary();
+	Library*			libraryMgr = gameLocal.GetLibrary();
+	Library*			library = libraryMgr->libraries[libraryNumber];
+	const function_t*		func = library->GetFunction(functionNumber);
 
 	if ( !func ) {
 		Error( "NULL function" );
@@ -1221,7 +1223,7 @@ bool idInterpreter::Execute( void ) {
 			break;
 
 		case OP_LIBCALL:
-			CallLibraryEvent( st->a->value.functionPtr, st->b->value.argSize );
+			CallLibraryEvent( st->a->value.libraryNumber, st->a->value.virtualFunction, st->c->value.argSize );
 			break;
 
 		case OP_IFNOT:

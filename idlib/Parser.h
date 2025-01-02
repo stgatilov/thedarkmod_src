@@ -147,6 +147,7 @@ public:
 	int				GetFlags( void ) const;
 					// returns the current filename
 	const char *	GetFileName( void ) const;
+	const char *	GetFileStem( void ) const;
 	const char *	GetDisplayFileName( void ) const;
 					// get current offset in current script
 	const int		GetFileOffset( void ) const;
@@ -174,6 +175,7 @@ public:
 					// it is just concatenation of all replacement tokens (useful for constants)
 	idStr			GetDefineValueString(const char *name);
 	const bool		InLibraryHeader( void ) const;
+	const idStr		GetLibraryPath( void ) const;
 
 private:
 	int				loaded;						// set when a source file is loaded from file or memory
@@ -241,6 +243,15 @@ private:
 	int				DollarDirective_evalfloat( void );
 	int				ReadDollarDirective( void );
 };
+
+ID_INLINE const char *idParser::GetFileStem( void ) const {
+	if ( idParser::scriptstack ) {
+		return idParser::scriptstack->GetFileStem();
+	}
+	else {
+		return "";
+	}
+}
 
 ID_INLINE const char *idParser::GetFileName( void ) const {
 	if ( idParser::scriptstack ) {

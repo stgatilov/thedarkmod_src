@@ -164,7 +164,7 @@ opcode_t idCompiler::opcodes[] = {
 	{ "<PUSH>", "PUSH_S", -1, false, &def_string, &def_string, &def_void },
 	{ "<PUSH>", "PUSH_ENT", -1, false, &def_entity, &def_entity, &def_void },
 	{ "<PUSH>", "PUSH_OBJ", -1, false, &def_object, &def_object, &def_void },
-	{ "<PUSH>", "PUSH_LIB", -1, false, &def_library, &def_library, &def_void },
+	// RMV { "<PUSH>", "PUSH_LIB", -1, false, &def_library, &def_library, &def_void },
 	{ "<PUSH>", "PUSH_OBJENT", -1, false, &def_entity, &def_object, &def_void },
 	{ "<PUSH>", "PUSH_FTOS", -1, false, &def_string, &def_float, &def_void },
 	{ "<PUSH>", "PUSH_BTOF", -1, false, &def_float, &def_boolean, &def_void },
@@ -211,6 +211,7 @@ idCompiler::idCompiler() {
 	loopDepth			= 0;
 	eof					= false;
 	braceDepth			= 0;
+	activeLibrary = NULL;
 	immediateType		= NULL;
 	basetype			= NULL;
 	currentLineNumber	= 0;
@@ -866,6 +867,8 @@ idTypeDef *idCompiler::CheckType( void ) {
 		type = &type_boolean;
 	} else if ( token == "namespace" ) {
 		type = &type_namespace;
+	} else if ( token == "extern" ) {
+		type = &type_externnamespace;
 	} else if ( token == "scriptEvent" ) {
 		type = &type_scriptevent;
 	} else {
@@ -897,7 +900,7 @@ idTypeDef *idCompiler::ParseType( void ) {
 		Error( "scriptEvents can only defined in the global namespace" );
 	}
 
-	if ( ( type == &type_namespace ) && ( scope->Type() != ev_namespace ) ) {
+	if ( ( type == &type_namespace || type == &type_externnamespace ) && ( scope->Type() != ev_namespace && scope->Type() != ev_externnamespace ) ) {
 		Error( "A namespace may only be defined globally, or within another namespace" );
 	}
 
@@ -938,7 +941,7 @@ idVarDef *idCompiler::EmitFunctionParms( int op, idVarDef *func, int startarg, i
 	int				resultOp;
 
 	type = func->TypeDef();
-	if ( func->Type() != ev_function ) {
+	if ( func->Type() != ev_function && func->Type() != ev_libraryfunction ) {
 		Error( "'%s' is not a function", func->Name() );
 	}
 
@@ -975,7 +978,29 @@ idVarDef *idCompiler::EmitFunctionParms( int op, idVarDef *func, int startarg, i
 	}
 
 	if ( op == OP_CALL ) {
-		EmitOpcode( op, func, 0 );
+		if (func->Type() == ev_libraryfunction) {
+			eval_t eval;
+
+			memset( &eval, 0, sizeof( eval ) );
+			int libraryNumber = func->value.functionPtr->filenum;
+
+			Library *libraryMgr = gameLocal.GetLibrary();
+			Library *library = libraryMgr->libraries[libraryNumber];
+			eval.entity = libraryNumber;
+			eval._int = library->GetFunctionNumber( func->value.functionPtr );
+			if ( eval._int < 0 ) {
+				Error( "Function '%s' not found in library '%s'", func->Name(), library->name.c_str() );
+			}
+
+			EmitOpcode( OP_LIBCALL, GetImmediate( &type_libraryfunction, &eval, "" ), 0);
+			// Tidy up if duplicate.
+
+			// need arg size seperate since script object may be NULL
+			statement_t &statement = gameLocal.program.GetStatement( gameLocal.program.NumStatements() - 1 );
+			statement.c = SizeConstant( func->value.functionPtr->parmTotal );
+		} else {
+			EmitOpcode( op, func, 0 );
+		}
 	} else if ( ( op == OP_OBJECTCALL ) || ( op == OP_OBJTHREAD ) ) {
 		EmitOpcode( op, object, VirtualFunctionConstant( func ) );
 
@@ -1053,11 +1078,11 @@ idCompiler::ParseFunctionCall
 idVarDef *idCompiler::ParseFunctionCall( idVarDef *funcDef ) {
 	assert( funcDef );
 
-	if ( funcDef->Type() != ev_function ) {
+	if ( funcDef->Type() != ev_function && funcDef->Type() != ev_libraryfunction ) {
 		Error( "'%s' is not a function", funcDef->Name() );
 	}
 
-	if ( funcDef->initialized == idVarDef::uninitialized ) {
+	if ( funcDef->initialized == idVarDef::uninitialized && funcDef->Type() == ev_function ) {
 		Error( "Function '%s' has not been defined yet", funcDef->GlobalName() );
 	}
 
@@ -1070,7 +1095,7 @@ idVarDef *idCompiler::ParseFunctionCall( idVarDef *funcDef ) {
 		return EmitFunctionParms( OP_THREAD, funcDef, 0, 0, NULL );
 	} else {
 		if ( ( funcDef->initialized != idVarDef::uninitialized ) && funcDef->value.functionPtr->eventdef ) {
-			if ( ( scope->Type() != ev_namespace ) && ( scope->scope->Type() == ev_object ) ) {
+			if ( ( scope->Type() != ev_namespace  && scope->Type() != ev_externnamespace) && ( scope->scope->Type() == ev_object ) ) {
 				// get the local object pointer
 				idVarDef *thisdef = gameLocal.program.GetDef( scope->scope->TypeDef(), "self", scope );
 				if ( !thisdef ) {
@@ -1078,7 +1103,7 @@ idVarDef *idCompiler::ParseFunctionCall( idVarDef *funcDef ) {
 				}
 
 				return ParseEventCall( thisdef, funcDef );
-			} else {
+			} else if ( funcDef->Type() != ev_libraryfunction ) {
 				Error( "Built-in functions cannot be called without an object" );
 			}
 		}
@@ -1164,7 +1189,7 @@ idVarDef *idCompiler::ParseLibCall( idVarDef *libDef, idVarDef *funcDef ) {
 		Error( "Cannot call built-in functions as a thread" );
 	}
 
-	if ( libDef->Type() != ev_library ) {
+	if ( libDef->Type() != ev_externnamespace ) {
 		Error( "'%s' is not a library", libDef->Name() );
 	}
 
@@ -1180,7 +1205,7 @@ idVarDef *idCompiler::ParseLibCall( idVarDef *libDef, idVarDef *funcDef ) {
 		Error( "\"%s\" is not callable as a library function", funcDef->Name() );
 	}
 
-	EmitPush( libDef, &type_library ); // RMV ?
+	// RMV EmitPush( libDef, &type_library ); // RMV ?
 
 	return EmitFunctionParms( OP_LIBCALL, funcDef, 0, 0, NULL );
 }
@@ -1208,12 +1233,16 @@ idVarDef *idCompiler::LookupDef( const char *name, const idVarDef *baseobj ) {
 				break;
 			}
 		}
+	} else if ( baseobj && ( baseobj->Type() == ev_library ) ) {
+		const idVarDef *tdef;
+
+		def = gameLocal.program.GetDef( &type_libraryfunction, name, baseobj);
 	} else {
 		// first look through the defs in our scope
 		def = gameLocal.program.GetDef( NULL, name, scope );
 		if ( !def ) {
 			// if we're in a member function, check types local to the object
-			if ( ( scope->Type() != ev_namespace ) && ( scope->scope->Type() == ev_object ) ) {
+			if ( ( scope->Type() != ev_namespace && scope->Type() != ev_externnamespace ) && ( scope->scope->Type() == ev_object ) ) {
 				// get the local object pointer
 				idVarDef *thisdef = gameLocal.program.GetDef( scope->scope->TypeDef(), "self", scope );
 
@@ -1318,8 +1347,16 @@ idVarDef *idCompiler::ParseValue( void ) {
 			Error( "Unknown value \"%s\"", name.c_str() );
 		}
 	// if namespace, then look up the variable in that namespace
-	} else if ( def->Type() == ev_namespace ) {
-		while( def->Type() == ev_namespace ) {
+	} else if ( def->Type() == ev_library ) {
+		ExpectToken( "::" );
+		ParseName( name );
+		namespaceDef = def;
+		def = gameLocal.program.GetDef( NULL, name, namespaceDef );
+		if ( !def ) {
+			Error( "Unknown value \"%s::%s\"", namespaceDef->GlobalName(), name.c_str() );
+		}
+	} else if ( def->Type() == ev_namespace || def->Type() == ev_externnamespace ) {
+		while( def->Type() == ev_namespace || def->Type() == ev_externnamespace ) {
 			ExpectToken( "::" );
 			ParseName( name );
 			namespaceDef = def;
@@ -1551,7 +1588,7 @@ idVarDef *idCompiler::GetExpression( int priority ) {
 		oldtype = basetype;
 
 		// field access needs scope from object
-		if ( ( op->name[ 0 ] == '.' ) && e->TypeDef()->Inherits( &type_object ) ) {
+		if ( ( op->name[ 0 ] == '.' ) && (e->TypeDef()->Inherits( &type_object ) || e->TypeDef() == &type_library)) {
 			// save off what type this field is part of
 			basetype = e->TypeDef()->def;
 		}
@@ -1612,11 +1649,6 @@ idVarDef *idCompiler::GetExpression( int priority ) {
 			e = ParseSysObjectCall( e2 );
 			break;
 
-		case OP_LIBCALL :
-			ExpectToken( "(" );
-			e = ParseLibCall( e, e2 );
-			break;
-		
 		case OP_OBJECTCALL :
 			ExpectToken( "(" );
 			if ( ( e2->initialized != idVarDef::uninitialized ) && e2->value.functionPtr->eventdef ) {
@@ -2056,7 +2088,7 @@ void idCompiler::ParseObjectDef( const char *objname ) {
 
 	oldscope = scope;
 	if ( scope->Type() != ev_namespace ) {
-		Error( "Objects cannot be defined within functions or other objects" );
+		Error( "Objects cannot be defined within functions, libraries or other objects" );
 	}
 
 	// make sure it doesn't exist before we create it
@@ -2119,6 +2151,35 @@ void idCompiler::ParseObjectDef( const char *objname ) {
 
 /*
 ============
+idCompiler::ParseLibraryFunction
+
+parse a function type
+============
+*/
+idTypeDef *idCompiler::ParseLibraryFunction( idTypeDef *returnType, const char *name ) {
+	idTypeDef	newtype( ev_libraryfunction, NULL, name, type_libraryfunction.Size(), returnType );
+	idTypeDef	*type;
+	
+	if ( scope->Type() != ev_externnamespace ) {
+		Error("Library functions must always be namespaced with extern: %s", name);
+	}
+
+	if ( !CheckToken( ")" ) ) {
+		idStr parmName;
+		do {
+			type = ParseType();
+			ParseName( parmName );
+			newtype.AddFunctionParm( type, parmName );
+		} while( CheckToken( "," ) );
+
+		ExpectToken( ")" );
+	}
+
+	return gameLocal.program.GetType( newtype, true );
+}
+
+/*
+============
 idCompiler::ParseFunction
 
 parse a function type
@@ -2162,13 +2223,13 @@ void idCompiler::ParseFunctionDef( idTypeDef *returnType, const char *name ) {
 	function_t		*func;
 	statement_t		*pos;
 
-	if ( ( scope->Type() != ev_namespace ) && !scope->TypeDef()->Inherits( &type_object ) ) {
-		Error( "Functions may not be defined within other functions" );
+	if ( scope->Type() == ev_externnamespace ) {
+		ParseLibraryFunctionDef( returnType, name );
+		return;
 	}
 
-	if (parserPtr->InLibraryHeader()) {
-		ParseExternDef( returnType, name );
-		return;
+	if ( ( scope->Type() != ev_namespace ) && !scope->TypeDef()->Inherits( &type_object ) ) {
+		Error( "Functions may not be defined within other functions" );
 	}
 
 	type = ParseFunction( returnType, name );
@@ -2463,10 +2524,10 @@ idTypeDef *idCompiler::GetTypeForEventArg( char argType ) {
 
 /*
 ================
-idCompiler::ParseExternDef
+idCompiler::ParseLibraryFunctionDef
 ================
 */
-void idCompiler::ParseExternDef( idTypeDef *returnType, const char *name ) {
+void idCompiler::ParseLibraryFunctionDef( idTypeDef *returnType, const char *name ) {
 	char			eventReturnType;
 	char			eventArgType;
 	idTypeDef		*argType;
@@ -2488,19 +2549,28 @@ void idCompiler::ParseExternDef( idTypeDef *returnType, const char *name ) {
 	// 	Error( "Unknown return type '%s'", returnType->Name() );
 	// }
 
-	type = ParseFunction( returnType, name );
+	type = ParseLibraryFunction( returnType, name );
 	def = gameLocal.program.GetDef( type, name, scope );
 	if ( !def ) {
 		def = gameLocal.program.AllocDef( type, name, scope, true );
 		type->def = def;
 
 		func = &gameLocal.program.AllocFunction( def );
+		// This is a job for the library
+		def->initialized = idVarDef::uninitialized;
 	} else {
 		func = def->value.functionPtr;
 		assert( func );
-		if ( func->eventdef ) {
-			Error( "%s redeclared", def->GlobalName() );
-		}
+	}
+
+	if (parserPtr->InLibraryHeader()) {
+		// Abusing the initialized states to get a ternary.
+		def->initialized = idVarDef::stackVariable;
+	}
+
+	if ( func->eventdef ) {
+		// These are essentially header files, so this is fine.
+		return;
 	}
 
 	// calculate stack space used by parms
@@ -2540,6 +2610,13 @@ void idCompiler::ParseExternDef( idTypeDef *returnType, const char *name ) {
 	const EventArgs evargs = *(new EventArgs(&evarglist));
 	ev = new idEventDef(name, evargs, eventReturnType, "(unset: dynamic)");
 	func->eventdef = ev;
+
+	if (!activeLibrary) {
+		Error("Trying to create a library function without an extern namespace to instantiate a matching library");
+	}
+
+	activeLibrary->AddFunction(func);
+	func->filenum = activeLibrary->libraryNumber;
 
 	ExpectToken( ";" );
 }
@@ -2693,10 +2770,27 @@ void idCompiler::ParseDefs( void ) {
     
 	ParseName( name );
 
-	if ( type == &type_namespace ) {
+	if ( type == &type_namespace || type == &type_externnamespace ) {
 		def = gameLocal.program.GetDef( type, name, scope );
 		if ( !def ) {
 			def = gameLocal.program.AllocDef( type, name, scope, true );
+		}
+
+		if ( type == &type_externnamespace ) {
+			Library *libraryMgr = gameLocal.GetLibrary();
+			activeLibrary = libraryMgr->AddLibrary(name);
+
+			if (parserPtr->InLibraryHeader()) {
+				if (activeLibrary->path != "") {
+					Error("Library '%s' already has a path '%s'", activeLibrary->name.c_str(), activeLibrary->path.c_str());
+				}
+
+				activeLibrary->path = parserPtr->GetLibraryPath();
+
+				if (activeLibrary->path == "") {
+					Error("Library '%s' has no path", activeLibrary->name.c_str());
+				}
+			}
 		}
 		ParseNamespace( def );
 	} else if ( CheckToken( "::" ) ) {
@@ -2751,8 +2845,7 @@ void idCompiler::ParseNamespace( idVarDef *newScope ) {
 		ParseDefs();
 	}
 
-	// At this point, in a library file, we should have a complete list of extern defs for this scope.
-	// j
+	activeLibrary = NULL;
 
 	scope = oldscope;
 }
@@ -2776,6 +2869,7 @@ void idCompiler::CompileFile( const char *text, const char *filename, bool toCon
 	loopDepth			= 0;
 	eof					= false;
 	braceDepth			= 0;
+	activeLibrary = NULL;
 	immediateType		= NULL;
 	currentLineNumber	= 0;
 	console				= toConsole;

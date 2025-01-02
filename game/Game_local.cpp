@@ -8369,12 +8369,23 @@ int idGameLocal::LogSuspiciousEvent( SuspiciousEvent se, bool forceLog ) // gray
 
 Library* idGameLocal::GetLibrary()
 {
-    // Only set up a library if we know that we can use it.
-    if (!library) {
-	library = new Library();
-    }
+	// Only set up a library if we know that we need it.
+	if (!library) {
+		library = new Library(true);
+		library->Construct("(manager)", true);
+	}
 
-    return library;
+	return library;
+}
+
+void idGameLocal::LoadLibraries()
+{
+	if (!library) {
+		Printf( "Libraries: (not used)\n" );
+		return;
+	}
+
+	library->LoadAll();
 }
 
 

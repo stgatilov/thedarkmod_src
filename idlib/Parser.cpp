@@ -3364,3 +3364,16 @@ idParser::~idParser( void ) {
 	idParser::FreeSource( false );
 }
 
+
+const idStr idParser::GetLibraryPath( void ) const {
+	if ( idParser::scriptstack ) {
+		idStr path = scriptstack->GetFileName();
+		path.StripFilename();
+		path += "/";
+		path += idParser::scriptstack->GetLibraryPath();
+		return path;
+	}
+	else {
+		return "";
+	}
+}

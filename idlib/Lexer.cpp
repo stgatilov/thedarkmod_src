@@ -1667,6 +1667,8 @@ int idLexer::LoadFile( const char *filename, bool OSPath ) {
 	const char *tdmroot = cvarSystem->GetCVarString( "fs_basepath" );
 	displayFilename = idLexer::filename;
 	displayFilename.StripLeadingOnce(tdmroot);
+	filestem = displayFilename;
+	filestem.StripAbsoluteFileExtension();
 	libraryPath = "";
 
 	idLexer::buffer = buf;
@@ -1701,6 +1703,8 @@ int idLexer::LoadMemory( const char *ptr, int length, const char *name, int star
 	}
 	idLexer::filename = name;
 	idLexer::displayFilename = name;
+	idLexer::filestem = name;
+	idLexer::filestem.StripAbsoluteFileExtension();
 	idLexer::buffer = ptr;
 	idLexer::fileTime = 0;
 	idLexer::length = length;
@@ -1769,6 +1773,7 @@ idLexer::idLexer
 idLexer::idLexer( void ) {
 	idLexer::loaded = false;
 	idLexer::filename = "";
+	idLexer::filestem = "";
 	idLexer::flags = 0;
 	idLexer::SetPunctuations( NULL );
 	idLexer::allocated = false;
@@ -1790,6 +1795,7 @@ idLexer::idLexer
 idLexer::idLexer( int flags ) {
 	idLexer::loaded = false;
 	idLexer::filename = "";
+	idLexer::filestem = "";
 	idLexer::flags = flags;
 	idLexer::SetPunctuations( NULL );
 	idLexer::allocated = false;
@@ -1869,6 +1875,10 @@ idLexer::IsLibraryHeader
 */
 const bool idLexer::IsLibraryHeader( void ) const {
 	return idLexer::libraryPath != "";
+}
+
+const char* idLexer::GetLibraryPath( void ) {
+	return idLexer::libraryPath;
 }
 
 #pragma warning( pop )
