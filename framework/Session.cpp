@@ -2059,7 +2059,8 @@ bool idSessionLocal::SaveGame( const char *saveName, bool autosave, bool skipChe
 	}
 
 	syncNextGameFrame = true;
-	qglFinish();
+	// remove #4967 hack fix. It is now causing autosave crashes. Bug is also still present whether the hack is present or not.
+	// qglFinish();
 
 
 	return true;
