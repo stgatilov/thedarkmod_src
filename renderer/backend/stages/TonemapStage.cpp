@@ -29,13 +29,13 @@ idCVar r_postprocess_exposure(
 );
 
 idCVar r_postprocess_overbright_desaturation(
-	"r_postprocess_overbright_desaturation", "0.1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"r_postprocess_overbright_desaturation", "0.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
 	"How strong is the desaturation of overbright colors (0 = don't desaturate).\n",
 	0.0f, 1.0f
 );
 
 idCVar r_postprocess_compress(
-	"r_postprocess_compress", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL,
+	"r_postprocess_compress", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL,
 	"Perform range compression to map overbright colors into [0..1] output range.\n"
 	"This basically turns HDR into LDR, although in our case the input is not even linear..."
 );
@@ -78,7 +78,7 @@ idCVar r_postprocess_brightness(
 	0.5f, 2.0f
 );
 idCVar r_postprocess_desaturation(
-	"r_postprocess_desaturation", "-0.2", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
+	"r_postprocess_desaturation", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT,
 	"Desaturates the scene if positive.\n"
 	"Oversaturates the scene if negative (high values can cause color clamping).",
 	-5.0f, 5.0f

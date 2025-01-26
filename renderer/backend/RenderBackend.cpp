@@ -52,7 +52,7 @@ void RenderBackend::Init() {
 	qglGenBuffers( 3, lightgemPbos );
 	for ( int i = 0; i < 3; ++i ) {
 		qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[i] );
-		qglBufferData( GL_PIXEL_PACK_BUFFER, DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_RENDER_WIDTH * 3, nullptr, GL_STREAM_READ );
+		qglBufferData( GL_PIXEL_PACK_BUFFER, DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_BPP, nullptr, GL_STREAM_READ );
 	}
 	qglBindBuffer( GL_PIXEL_PACK_BUFFER, 0 ); // reset to default to allow sysmem ReadPixels if LG disabled
 }
@@ -153,6 +153,8 @@ void RenderBackend::DrawView( const viewDef_t *viewDef, bool colorIsBackground )
 }
 
 void RenderBackend::DrawLightgem( const viewDef_t *viewDef, byte *lightgemData ) {
+	TRACE_GL_SCOPE( "DrawLightgem" );
+
 	FrameBuffer *currentFbo = frameBuffers->activeFbo;
 	FrameBuffer *renderFbo = frameBuffers->currentRenderFbo;
 	frameBuffers->currentRenderFbo = lightgemFbo;
@@ -160,16 +162,22 @@ void RenderBackend::DrawLightgem( const viewDef_t *viewDef, byte *lightgemData )
 	
 	DrawView( viewDef, false );
 
-	// asynchronously copy contents of the lightgem framebuffer to a pixel buffer
-	qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[currentLightgemPbo] );
-	qglPixelStorei( GL_PACK_ALIGNMENT, 1 );	// otherwise small rows get padded to 32 bits
-	qglReadPixels( 0, 0, DARKMOD_LG_RENDER_WIDTH, DARKMOD_LG_RENDER_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, nullptr );
+	{
+		TRACE_GL_SCOPE( "CopyToPbo" );
+		// asynchronously copy contents of the lightgem framebuffer to a pixel buffer
+		qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[currentLightgemPbo] );
+		qglPixelStorei( GL_PACK_ALIGNMENT, 1 );	// otherwise small rows get padded to 32 bits
+		qglReadPixels( 0, 0, DARKMOD_LG_RENDER_WIDTH, DARKMOD_LG_RENDER_WIDTH, GL_RGB, GL_UNSIGNED_BYTE, nullptr );
+	}
 
-	// advance PBO index and actually copy the data stored in that PBO to local memory
-	// this PBO is from a previous frame, and data transfer should thus be reasonably fast
-	currentLightgemPbo = ( currentLightgemPbo + 1 ) % 3;
-	qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[currentLightgemPbo] );
-	qglGetBufferSubData( GL_PIXEL_PACK_BUFFER, 0, DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_RENDER_WIDTH * 3, lightgemData );
+	{
+		TRACE_GL_SCOPE( "ReadFromPbo" );
+		// advance PBO index and actually copy the data stored in that PBO to local memory
+		// this PBO is from a previous frame, and data transfer should thus be reasonably fast
+		currentLightgemPbo = ( currentLightgemPbo + 1 ) % 3;
+		qglBindBuffer( GL_PIXEL_PACK_BUFFER, lightgemPbos[currentLightgemPbo] );
+		qglGetBufferSubData( GL_PIXEL_PACK_BUFFER, 0, DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_RENDER_WIDTH * DARKMOD_LG_BPP, lightgemData );
+	}
 
 	qglBindBuffer( GL_PIXEL_PACK_BUFFER, 0 );
 	currentFbo->Bind();
