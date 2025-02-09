@@ -26,9 +26,12 @@ uniform sampler2D u_texture0;	// _currentRender
 uniform sampler2D u_texture1;	// displacement texture
 uniform sampler2D u_texture2;	// mask texture
 
+uniform vec4 u_scaleWindowToUnit;	// inverse size of currently rendered image
+
 void main() {
 	vec3 color = heatHazeFragmentShader(
-		texcoordOriginal, texcoordScrolled, deformationMagnitude, gl_FragCoord,
+		texcoordOriginal, texcoordScrolled, deformationMagnitude,
+		gl_FragCoord, u_scaleWindowToUnit.xy,
 		u_texture0, u_texture1,
 		false, u_texture0,
 		true, u_texture2,
