@@ -24,7 +24,7 @@ idRenderSystemLocal	tr;
 idRenderSystem	*renderSystem = &tr;
 
 idCVar r_tonemap( "r_tonemap", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Use the tonemap correction (gamma, brightness, etc)" );
-idCVar r_tonemapOnlyGame3d( "r_tonemapOnlyGame3d", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Skip tonemap in main menu, loading, and other GUI situations when game is not rendered" );
+idCVar r_tonemapOnlyGame3d( "r_tonemapOnlyGame3d", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Skip tonemap in main menu, loading, and other GUI situations when game is not rendered" );
 idCVar r_tonemapInternal( "r_tonemapInternal", "-666", CVAR_RENDERER | CVAR_BOOL, "Internal cvar which shows whether tonemap is actually used" );
 idCVar r_smallCharSpacing( "r_smallCharSpacing", "1", CVAR_RENDERER | CVAR_ARCHIVE, "Console text symbol spacing", 0.5, 1 );
 
