@@ -41,14 +41,13 @@ vec4 heatHazeVertexShader(
 }
 
 vec3 heatHazeFragmentShader(
-	vec2 texcoordOriginal, vec2 texcoordScrolled, vec2 deformationMagnitude, vec4 glFragCoord,
+	vec2 texcoordOriginal, vec2 texcoordScrolled, vec2 deformationMagnitude,
+	vec4 glFragCoord, vec2 invRenderSize,
 	in sampler2D currentRender, in sampler2D displacementTexture,
 	bool saveForeground, in sampler2D currentDepth, 
 	bool useMask, in sampler2D maskTexture,
 	float blurDistance
 ) {
-	vec2 invRenderSize = vec2(1.0) / textureSize(currentRender, 0);
-
 	// load displacement vector from the texture
 	// note: it is also called "normal texture" for some weird reason
 	vec4 displacementRawTex = texture(displacementTexture, texcoordScrolled);
